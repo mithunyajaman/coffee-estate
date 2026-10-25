@@ -29,70 +29,78 @@
     </div>
   </div>
 
-  <!-- KPI Cards Grid (Real DB values + Empty States) -->
+  <!-- KPI Cards Grid (Real DB values) -->
   <div class="row g-3 mb-4">
-    <!-- Workforce KPI (Real DB Query) -->
+    <!-- Workforce KPI -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="kpi-card h-100">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="kpi-title">Active Employees</div>
-          <div class="p-2 rounded bg-light text-success">
-            <i class="bi bi-people-fill fs-5"></i>
+      <a href="{{ url_for('employees.employee_list') }}" class="text-decoration-none">
+        <div class="kpi-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="kpi-title">Active Workforce</div>
+            <div class="p-2 rounded bg-light text-success">
+              <i class="bi bi-people-fill fs-5"></i>
+            </div>
+          </div>
+          <div class="kpi-value mt-2">{{ kpis.active_employees }}</div>
+          <div class="kpi-meta text-muted">
+            <span>Total registered: <strong>{{ kpis.total_employees }}</strong> staff</span>
           </div>
         </div>
-        <div class="kpi-value mt-2">{{ kpis.active_employees }}</div>
-        <div class="kpi-meta text-muted">
-          <span>Total registered: <strong>{{ kpis.total_employees }}</strong></span>
-        </div>
-      </div>
+      </a>
     </div>
 
-    <!-- Plantation Blocks (Empty State Shell) -->
+    <!-- Plantation Blocks -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="kpi-card h-100">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="kpi-title">Estate Blocks</div>
-          <div class="p-2 rounded bg-light brand-forest">
-            <i class="bi bi-map-fill fs-5"></i>
+      <a href="{{ url_for('farm.farm_list') }}" class="text-decoration-none">
+        <div class="kpi-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="kpi-title">Estate Blocks</div>
+            <div class="p-2 rounded bg-light brand-forest">
+              <i class="bi bi-map-fill fs-5"></i>
+            </div>
+          </div>
+          <div class="kpi-value mt-2">{{ kpis.active_blocks_count }}</div>
+          <div class="kpi-meta text-muted">
+            <span>Active plantation zones</span>
           </div>
         </div>
-        <div class="kpi-value mt-2">0</div>
-        <div class="kpi-meta">
-          <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 0.7rem;">Awaiting Stage 2 Blocks</span>
-        </div>
-      </div>
+      </a>
     </div>
 
-    <!-- Daily Attendance KPI (Empty State Shell) -->
+    <!-- Harvest KPI -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="kpi-card h-100 border-accent">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="kpi-title">Today's Attendance</div>
-          <div class="p-2 rounded bg-light brand-coffee">
-            <i class="bi bi-calendar2-check-fill fs-5"></i>
+      <a href="{{ url_for('harvest.harvest_list') }}" class="text-decoration-none">
+        <div class="kpi-card h-100 border-accent">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="kpi-title">Total Harvest (kg)</div>
+            <div class="p-2 rounded bg-light text-danger">
+              <i class="bi bi-basket3-fill fs-5"></i>
+            </div>
+          </div>
+          <div class="kpi-value mt-2">{{ kpis.harvest_this_month_kg }} <small class="fs-6 text-muted">kg</small></div>
+          <div class="kpi-meta text-muted">
+            <span>Recorded field yield</span>
           </div>
         </div>
-        <div class="kpi-value mt-2">--</div>
-        <div class="kpi-meta">
-          <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 0.7rem;">Awaiting Stage 3 Roster</span>
-        </div>
-      </div>
+      </a>
     </div>
 
-    <!-- Monthly Harvest KPI (Empty State Shell) -->
+    <!-- Inventory / Tasks KPI -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="kpi-card h-100 border-accent">
-        <div class="d-flex justify-content-between align-items-start">
-          <div class="kpi-title">Harvest (kg)</div>
-          <div class="p-2 rounded bg-light text-danger">
-            <i class="bi bi-basket3-fill fs-5"></i>
+      <a href="{{ url_for('inventory.inventory_list') }}" class="text-decoration-none">
+        <div class="kpi-card h-100 border-accent">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="kpi-title">Low Stock Alerts</div>
+            <div class="p-2 rounded bg-light text-warning">
+              <i class="bi bi-box-seam-fill fs-5"></i>
+            </div>
+          </div>
+          <div class="kpi-value mt-2">{{ kpis.low_stock_items_count }}</div>
+          <div class="kpi-meta text-muted">
+            <span>Items below reorder point</span>
           </div>
         </div>
-        <div class="kpi-value mt-2">0 <small class="fs-6 text-muted">kg</small></div>
-        <div class="kpi-meta">
-          <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 0.7rem;">Awaiting Stage 2 Harvest</span>
-        </div>
-      </div>
+      </a>
     </div>
   </div>
 

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Harvest Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-basket3-fill me-2 text-danger"></i>Harvest Management &amp; Yield Tracking
+      </h1>
+      <p class="text-secondary small mb-0">
+        Record daily cherry picking, monitor block-wise yields against targets, and trace processing stages.
+      </p>
+    </div>
+
+    {% if current_user.is_manager %}
+    <div class="mt-3 mt-md-0">
+      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addHarvestModal">
+        <i class="bi bi-plus-circle me-1"></i> Record Daily Harvest
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- KPI Cards Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card border-accent">
+        <div class="kpi-title">Total Cherry Harvested</div>
+        <div class="kpi-value text-danger mt-1">{{ "%.1f"|format(total_harvest_kg) }} <small class="fs-6 text-muted">kg</small></div>
+        <div class="kpi-meta text-muted">Cumulative estate yield</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card">
+        <div class="kpi-title">Target Planned Yield</div>
+        <div class="kpi-value brand-forest mt-1">{{ "%.1f"|format(total_planned_kg) }} <small class="fs-6 text-muted">kg</small></div>
+        <div class="kpi-meta text-muted">Scheduled harvest plans</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card">
+        <div class="kpi-title">Overall Variance</div>
+        {% set variance = total_harvest_kg - total_planned_kg %}
+        <div class="kpi-value {% if variance >= 0 %}text-success{% else %}text-warning{% endif %} mt-1">
+          {% if variance >= 0 %}+{% endif %}{{ "%.1f"|format(variance) }} <small class="fs-6 text-muted">kg</small>
+        </div>
+        <div class="kpi-meta text-muted">Actual vs Target comparison</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('harvest.harvest_list') }}" class="row g-2 align-items-center">
+        <div class="col-12 col-md-5">
+          <select name="block_id" class="form-select">
+            <option value="">All Plantation Blocks</option>
+            {% for b in blocks %}
+            <option value="{{ b.id }}" {% if block_filter == b.id %}selected{% endif %}>{{ b.name }} ({{ b.variety }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-4">
+          <select name="processing_status" class="form-select">
+            <option value="">All Processing Stages</option>
+            <option value="Raw Cherry" {% if status_filter == 'Raw Cherry' %}selected{% endif %}>Raw Cherry</option>
+            <option value="Wet Pulped" {% if status_filter == 'Wet Pulped' %}selected{% endif %}>Wet Pulped (Washed)</option>
+            <option value="Dry Natural" {% if status_filter == 'Dry Natural' %}selected{% endif %}>Dry Natural</option>
+            <option value="Parchment" {% if status_filter == 'Parchment' %}selected{% endif %}>In Parchment</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-outline-forest flex-fill">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          {% if block_filter or status_filter %}
+          <a href="{{ url_for('harvest.harvest_list') }}" class="btn btn-light border text-secondary">Reset</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Harvest Records Table -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h6 fw-bold brand-forest mb-0">Harvest Batches &amp; Processing Ledger</h2>
+      <span class="badge bg-light text-secondary border">Total Batches: {{ pagination.total }}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if records and records|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Date</th>
+              <th>Block</th>
+              <th>Actual Yield</th>
+              <th>Planned</th>
+              <th>Variance</th>
+              <th>Harvest Team</th>
+              <th>Processing Stage</th>
+              <th>Notes</th>
+              {% if current_user.is_manager %}
+              <th class="text-end pe-3">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in records %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ rec.date.strftime('%d %b %Y') }}</td>
+              <td><strong>{{ rec.block.name }}</strong></td>
+              <td><span class="fw-bold brand-forest fs-6">{{ rec.actual_quantity }} {{ rec.unit }}</span></td>
+              <td class="text-secondary">{{ rec.planned_quantity }} {{ rec.unit }}</td>
+              <td>
+                {% if rec.variance_kg >= 0 %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">+{{ rec.variance_kg }} kg</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ rec.variance_kg }} kg</span>
+                {% endif %}
+              </td>
+              <td><span class="badge bg-cream text-dark border">{{ rec.team_id or 'General Team' }}</span></td>
+              <td>
+                <span class="badge {% if rec.processing_status == 'Raw Cherry' %}bg-danger-subtle text-danger border border-danger-subtle{% elif rec.processing_status == 'Wet Pulped' %}bg-primary-subtle text-primary border border-primary-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+                  {{ rec.processing_status }}
+                </span>
+              </td>
+              <td class="text-secondary small">{{ rec.notes or '--' }}</td>
+              {% if current_user.is_manager %}
+              <td class="text-end pe-3">
+                <form method="POST" action="{{ url_for('harvest.delete_harvest', record_id=rec.id) }}" onsubmit="return confirm('Delete this harvest entry of {{ rec.actual_quantity }} kg?');" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-outline-danger p-1 px-2" title="Delete Entry">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state-card border-0 py-5">
+        <i class="bi bi-basket3 fs-1 text-danger opacity-75 mb-2"></i>
+        <h4 class="h5 fw-bold brand-forest">No Harvest Records Recorded</h4>
+        <p class="text-secondary small mb-3">Begin logging daily picked batches from your estate blocks.</p>
+        {% if current_user.is_manager %}
+        <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addHarvestModal">
+          <i class="bi bi-plus-circle me-1"></i> Record First Harvest
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="d-flex justify-content-center mb-4">
+    <ul class="pagination pagination-sm">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('harvest.harvest_list', page=pagination.prev_num, block_id=block_filter, processing_status=status_filter) }}">Previous</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('harvest.harvest_list', page=p, block_id=block_filter, processing_status=status_filter) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('harvest.harvest_list', page=pagination.next_num, block_id=block_filter, processing_status=status_filter) }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<!-- Modal: Record Harvest -->
+<div class="modal fade" id="addHarvestModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('harvest.add_harvest') }}">
+        <div class="modal-header">
+          <h5 class="modal-title brand-forest fw-bold">Record Daily Harvest</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Estate Block *</label>
+            <select name="block_id" class="form-select" required>
+              {% for b in blocks %}
+              <option value="{{ b.id }}">{{ b.name }} ({{ b.variety }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Harvest Date *</label>
+            <input type="date" name="date" class="form-control" value="{{ date_today }}" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Actual Picked Quantity (kg) *</label>
+              <input type="number" step="0.1" min="0" name="actual_quantity" class="form-control" placeholder="e.g. 450.5" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Planned Target (kg)</label>
+              <input type="number" step="0.1" min="0" name="planned_quantity" class="form-control" placeholder="e.g. 400.0" value="0">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Harvest Team / Supervisor</label>
+            <input type="text" name="team_id" class="form-control" placeholder="e.g. East Valley Pickers Gang A">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Initial Processing Status</label>
+            <select name="processing_status" class="form-select">
+              <option value="Raw Cherry">Raw Cherry (Freshly Picked)</option>
+              <option value="Wet Pulped">Wet Pulped (Washed &amp; Fermenting)</option>
+              <option value="Dry Natural">Dry Natural (Patio Sun Drying)</option>
+              <option value="Parchment">In Parchment (Conditioned)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Field Observations / Quality Notes</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Ripeness percentage, brix reading, weather notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest btn-sm">Save Harvest Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

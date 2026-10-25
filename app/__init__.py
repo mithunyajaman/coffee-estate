@@ -20,10 +20,20 @@ def create_app(config_class=Config):
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.farm import farm_bp
+    from app.routes.harvest import harvest_bp
+    from app.routes.employees import employees_bp
+    from app.routes.tasks import tasks_bp
+    from app.routes.inventory import inventory_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(farm_bp)
+    app.register_blueprint(harvest_bp)
+    app.register_blueprint(employees_bp)
+    app.register_blueprint(tasks_bp)
+    app.register_blueprint(inventory_bp)
 
     # Global context processors for templates
     @app.context_processor

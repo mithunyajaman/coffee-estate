@@ -61,37 +61,32 @@
       </a>
 
       <div class="nav-section-title">Core Operations</div>
-      <a href="#farm" class="sidebar-link text-white-50">
+      <a href="{{ url_for('farm.farm_list') }}" class="sidebar-link {% if request.path.startswith('/farm') %}active{% endif %}">
         <i class="bi bi-map"></i>
         <span>4. Farm Management</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
       </a>
       <a href="#weather" class="sidebar-link text-white-50">
         <i class="bi bi-cloud-sun"></i>
         <span>5. Weather Advisor</span>
         <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 5</span>
       </a>
-      <a href="#harvest" class="sidebar-link text-white-50">
+      <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">
         <i class="bi bi-basket"></i>
         <span>8. Harvest Management</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
       </a>
-      <a href="#tasks" class="sidebar-link text-white-50">
+      <a href="{{ url_for('tasks.task_list') }}" class="sidebar-link {% if request.path.startswith('/tasks') %}active{% endif %}">
         <i class="bi bi-check2-square"></i>
         <span>14. Task Management</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
       </a>
-      <a href="#inventory" class="sidebar-link text-white-50">
+      <a href="{{ url_for('inventory.inventory_list') }}" class="sidebar-link {% if request.path.startswith('/inventory') %}active{% endif %}">
         <i class="bi bi-box-seam"></i>
         <span>17. Inventory Tracking</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
       </a>
 
       <div class="nav-section-title">Workforce &amp; Attendance</div>
-      <a href="#employees" class="sidebar-link text-white-50">
+      <a href="{{ url_for('employees.employee_list') }}" class="sidebar-link {% if request.path.startswith('/employees') %}active{% endif %}">
         <i class="bi bi-people"></i>
         <span>10. Employees</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
       </a>
       <a href="#face-reg" class="sidebar-link text-white-50">
         <i class="bi bi-person-bounding-box"></i>

@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-check2-square me-2 brand-leaf"></i>Field Task Assignments
+      </h1>
+      <p class="text-secondary small mb-0">
+        Assign daily estate operations, monitor progress, link field tasks to parcels, and record completions.
+      </p>
+    </div>
+
+    {% if current_user.is_manager %}
+    <div class="mt-3 mt-md-0">
+      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+        <i class="bi bi-plus-circle me-1"></i> Assign New Task
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Status Counters -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card border-accent">
+        <div class="kpi-title">Pending Tasks</div>
+        <div class="kpi-value text-warning mt-1">{{ pending_count }}</div>
+        <div class="kpi-meta text-muted">Awaiting start by workers</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card">
+        <div class="kpi-title">In Progress</div>
+        <div class="kpi-value brand-forest mt-1">{{ in_progress_count }}</div>
+        <div class="kpi-meta text-muted">Currently active field operations</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card">
+        <div class="kpi-title">Completed Tasks</div>
+        <div class="kpi-value text-success mt-1">{{ completed_count }}</div>
+        <div class="kpi-meta text-muted">Successfully fulfilled</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('tasks.task_list') }}" class="row g-2 align-items-center">
+        <div class="col-6 col-md-3">
+          <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+            <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <select name="priority" class="form-select">
+            <option value="">All Priorities</option>
+            <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High Priority</option>
+            <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium Priority</option>
+            <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low Priority</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-4">
+          <select name="block_id" class="form-select">
+            <option value="">All Blocks</option>
+            {% for b in blocks %}
+            <option value="{{ b.id }}" {% if block_filter == b.id %}selected{% endif %}>{{ b.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-outline-forest flex-fill">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          {% if status_filter or priority_filter or block_filter %}
+          <a href="{{ url_for('tasks.task_list') }}" class="btn btn-light border text-secondary">Reset</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tasks Table -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h6 fw-bold brand-forest mb-0">Assigned Tasks Ledger</h2>
+      <span class="badge bg-light text-secondary border">Total Tasks: {{ pagination.total }}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if tasks and tasks|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Priority</th>
+              <th>Task Title &amp; Details</th>
+              <th>Plantation Block</th>
+              <th>Assigned Worker</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th class="text-end pe-3">Update Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in tasks %}
+            <tr>
+              <td class="ps-3">
+                {% if t.priority == 'High' %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle">High</span>
+                {% elif t.priority == 'Medium' %}
+                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Medium</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">Low</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="fw-semibold text-dark">{{ t.title }}</span>
+                {% if t.instructions %}
+                <br><small class="text-muted text-truncate d-inline-block" style="max-width: 320px;">{{ t.instructions }}</small>
+                {% endif %}
+                {% if t.completion_notes %}
+                <div class="mt-1 small text-success"><i class="bi bi-chat-left-quote me-1"></i>Notes: {{ t.completion_notes }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.block %}
+                  <span class="badge bg-cream text-dark border">{{ t.block.name }}</span>
+                {% else %}
+                  <span class="text-muted small">General Estate</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.assigned_employee %}
+                  <span class="fw-medium text-dark">{{ t.assigned_employee.name }}</span>
+                  <br><small class="text-muted font-monospace">{{ t.assigned_employee.employee_code }}</small>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border">Unassigned</span>
+                {% endif %}
+              </td>
+              <td class="text-secondary small">
+                {{ t.due_date.strftime('%d %b %Y') if t.due_date else 'Flexible' }}
+              </td>
+              <td>
+                <span class="badge {% if t.status == 'Completed' %}bg-success-subtle text-success border border-success-subtle{% elif t.status == 'In Progress' %}bg-primary-subtle text-primary border border-primary-subtle{% elif t.status == 'Cancelled' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
+                  {{ t.status }}
+                </span>
+              </td>
+              <td class="text-end pe-3">
+                <button class="btn btn-sm btn-outline-forest" data-bs-toggle="modal" data-bs-target="#updateTaskModal{{ t.id }}" title="Change Status">
+                  <i class="bi bi-pencil-square me-1"></i> Update
+                </button>
+              </td>
+
+              <!-- Update Task Status Modal -->
+              <div class="modal fade" id="updateTaskModal{{ t.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form method="POST" action="{{ url_for('tasks.update_task_status', task_id=t.id) }}">
+                      <div class="modal-header">
+                        <h5 class="modal-title brand-forest fw-bold">Update Task: {{ t.title }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Execution Status</label>
+                          <select name="status" class="form-select">
+                            <option value="Pending" {% if t.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="In Progress" {% if t.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if t.status == 'Completed' %}selected{% endif %}>Completed</option>
+                            <option value="Cancelled" {% if t.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                          </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Completion / Progress Notes</label>
+                          <textarea name="completion_notes" class="form-control" rows="3" placeholder="Provide details on trees sprayed, rows pruned, inputs used...">{{ t.completion_notes or '' }}</textarea>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-forest btn-sm">Save Progress</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state-card border-0 py-5">
+        <i class="bi bi-check2-circle fs-1 brand-leaf opacity-75 mb-2"></i>
+        <h4 class="h5 fw-bold brand-forest">No Tasks Found</h4>
+        <p class="text-secondary small mb-3">All assigned duties are cleared or no matches found for your filter.</p>
+        {% if current_user.is_manager %}
+        <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+          <i class="bi bi-plus-circle me-1"></i> Assign First Task
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="d-flex justify-content-center mb-4">
+    <ul class="pagination pagination-sm">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('tasks.task_list', page=pagination.prev_num, status=status_filter, priority=priority_filter, block_id=block_filter) }}">Previous</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('tasks.task_list', page=p, status=status_filter, priority=priority_filter, block_id=block_filter) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('tasks.task_list', page=pagination.next_num, status=status_filter, priority=priority_filter, block_id=block_filter) }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<!-- Modal: Add Task -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('tasks.add_task') }}">
+        <div class="modal-header">
+          <h5 class="modal-title brand-forest fw-bold">Assign New Field Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Task Title *</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Foliar Zinc Spray on Block B" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Instructions</label>
+            <textarea name="instructions" class="form-control" rows="2" placeholder="Step-by-step instructions for worker..."></textarea>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Target Block</label>
+              <select name="block_id" class="form-select">
+                <option value="">General (No specific block)</option>
+                {% for b in blocks %}
+                <option value="{{ b.id }}">{{ b.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Assign To Worker</label>
+              <select name="assigned_to_id" class="form-select">
+                <option value="">Unassigned</option>
+                {% for e in employees %}
+                <option value="{{ e.id }}">{{ e.name }} ({{ e.job_role }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Priority</label>
+              <select name="priority" class="form-select">
+                <option value="High">High</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Due Date</label>
+              <input type="date" name="due_date" class="form-control" value="{{ date_today }}">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest btn-sm">Assign Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -5,6 +5,10 @@ from app.database import db
 from app.models.user import User
 from app.models.employee import Employee
 from app.models.audit import AuditLog
+from app.models.farm import EstateBlock
+from app.models.harvest import HarvestRecord
+from app.models.task import Task
+from app.models.inventory import InventoryItem
 from app.services.auth_service import login_required, roles_required, get_current_user
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -19,6 +23,10 @@ def dashboard():
     total_employees = Employee.query.count()
     active_employees = Employee.query.filter_by(status="Active").count()
     total_users = User.query.count() if current_user.is_admin else None
+    active_blocks = EstateBlock.query.filter_by(status="Active").count()
+    total_harvest_kg = db.session.query(func.coalesce(func.sum(HarvestRecord.actual_quantity), 0)).scalar()
+    pending_tasks = Task.query.filter_by(status="Pending").count()
+    low_stock_items = InventoryItem.query.filter(InventoryItem.current_balance <= InventoryItem.reorder_level).count()
 
     # Audit logs for manager/admin recent activity feed
     recent_audits = []
@@ -27,17 +35,16 @@ def dashboard():
             AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(8).all()
         )
 
-    # Empty states data structures for future modules (Blocks, Tasks, Harvest, Stock)
     kpis = {
         "total_employees": total_employees,
         "active_employees": active_employees,
         "total_users": total_users,
-        "active_blocks_count": 0,       # Stage 2 will populate from EstateBlocks
+        "active_blocks_count": active_blocks,
         "today_attendance_pct": 0,     # Stage 3 will populate from Attendance
         "today_present_count": 0,
-        "harvest_this_month_kg": 0,    # Stage 2 will populate from HarvestRecords
-        "pending_tasks_count": 0,      # Stage 2 will populate from Tasks
-        "low_stock_items_count": 0,    # Stage 2 will populate from Inventory
+        "harvest_this_month_kg": float(total_harvest_kg),
+        "pending_tasks_count": pending_tasks,
+        "low_stock_items_count": low_stock_items,
     }
 
     freshness_timestamp = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M:%S UTC")

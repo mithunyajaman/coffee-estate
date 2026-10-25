@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Farm Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header & Actions -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-map-fill me-2 brand-leaf"></i>Plantation Farm Management
+      </h1>
+      <p class="text-secondary small mb-0">
+        Manage coffee blocks, planting density, varietal blocks and agronomic activity schedules.
+      </p>
+    </div>
+
+    {% if current_user.is_manager %}
+    <div class="d-flex gap-2 mt-3 mt-md-0">
+      <button type="button" class="btn btn-outline-forest btn-sm" data-bs-toggle="modal" data-bs-target="#logActivityModal">
+        <i class="bi bi-journal-plus me-1"></i> Log Field Activity
+      </button>
+      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addBlockModal">
+        <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Estate Map & Summary Graphic Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h2 class="h6 fw-bold brand-forest mb-0">Estate Parcel &amp; Block Diagram</h2>
+          <span class="badge bg-cream text-dark border">Chikmagalur Main Holding</span>
+        </div>
+        <div class="card-body p-2 bg-light text-center">
+          <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}" alt="Estate Block Map" class="img-fluid rounded" style="max-height: 280px; width: 100%; object-fit: contain;">
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-4 d-flex flex-column justify-content-between">
+        <div>
+          <h2 class="h6 fw-bold brand-forest mb-3">Estate Area Summary</h2>
+          <div class="mb-3">
+            <span class="text-muted small d-block">TOTAL PLANTED AREA</span>
+            <div class="display-6 fw-bold brand-forest">{{ "%.2f"|format(total_hectares) }} <small class="fs-6 text-muted">Hectares</small></div>
+          </div>
+          <div class="mb-3">
+            <span class="text-muted small d-block">TOTAL REGISTERED BLOCKS</span>
+            <div class="h3 fw-bold text-dark">{{ pagination.total }}</div>
+          </div>
+        </div>
+        <div class="p-3 bg-light rounded-3">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-shield-check text-success"></i>
+            <strong class="small">Sustainable Arabica &amp; Robusta</strong>
+          </div>
+          <p class="small text-muted mb-0">
+            Shade-grown under silver oak, rosewood and fig canopy at 1,100m – 1,250m elevation.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('farm.farm_list') }}" class="row g-2 align-items-center">
+        <div class="col-12 col-md-5">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control border-start-0" name="search" value="{{ search or '' }}" placeholder="Search by block name, variety, or slope location...">
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+            <option value="Maintenance" {% if status_filter == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+            <option value="Replanting" {% if status_filter == 'Replanting' %}selected{% endif %}>Replanting</option>
+            <option value="Fallow" {% if status_filter == 'Fallow' %}selected{% endif %}>Fallow</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <button type="submit" class="btn btn-outline-forest w-100">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+        </div>
+        {% if search or status_filter %}
+        <div class="col-12 col-md-2">
+          <a href="{{ url_for('farm.farm_list') }}" class="btn btn-link text-secondary text-decoration-none w-100">Reset</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Block Cards Grid -->
+  <div class="row g-3 mb-4">
+    {% if blocks and blocks|length > 0 %}
+      {% for b in blocks %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 p-3 position-relative">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="badge bg-forest mb-1">{{ b.variety }}</span>
+              <h3 class="h6 fw-bold text-dark mb-0">{{ b.name }}</h3>
+            </div>
+            <span class="badge {% if b.status == 'Active' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
+              {{ b.status }}
+            </span>
+          </div>
+
+          <div class="my-2 py-2 border-top border-bottom">
+            <div class="row g-2 text-center" style="font-size: 0.85rem;">
+              <div class="col-6 border-end">
+                <span class="text-muted d-block small">AREA</span>
+                <strong class="brand-forest fs-6">{{ b.area }} {{ b.unit }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block small">ACTIVITIES</span>
+                <strong class="brand-coffee fs-6">{{ b.activities.count() }} logged</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="small text-muted mb-3">
+            <div><i class="bi bi-geo-alt me-1 text-danger"></i>{{ b.location or 'Elevation unspecified' }}</div>
+            {% if b.planting_date %}
+            <div><i class="bi bi-calendar3 me-1 text-primary"></i>Planted: {{ b.planting_date.strftime('%B %Y') }}</div>
+            {% endif %}
+          </div>
+
+          {% if current_user.is_manager %}
+          <div class="mt-auto pt-2 border-top d-flex justify-content-end">
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editBlockModal{{ b.id }}">
+              <i class="bi bi-pencil me-1"></i> Edit Block
+            </button>
+          </div>
+
+          <!-- Edit Block Modal -->
+          <div class="modal fade" id="editBlockModal{{ b.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <form method="POST" action="{{ url_for('farm.edit_block', block_id=b.id) }}">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Edit Block: {{ b.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Block Name</label>
+                      <input type="text" name="name" class="form-control" value="{{ b.name }}" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                      <div class="col-8">
+                        <label class="form-label small fw-semibold">Area</label>
+                        <input type="number" step="0.01" name="area" class="form-control" value="{{ b.area }}" required>
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small fw-semibold">Unit</label>
+                        <select name="unit" class="form-select">
+                          <option value="Hectares" {% if b.unit == 'Hectares' %}selected{% endif %}>Hectares</option>
+                          <option value="Acres" {% if b.unit == 'Acres' %}selected{% endif %}>Acres</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Coffee Variety</label>
+                      <input type="text" name="variety" class="form-control" value="{{ b.variety }}" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Location / Description</label>
+                      <input type="text" name="location" class="form-control" value="{{ b.location or '' }}">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label small fw-semibold">Status</label>
+                      <select name="status" class="form-select">
+                        <option value="Active" {% if b.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Maintenance" {% if b.status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                        <option value="Replanting" {% if b.status == 'Replanting' %}selected{% endif %}>Replanting</option>
+                        <option value="Fallow" {% if b.status == 'Fallow' %}selected{% endif %}>Fallow</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-forest btn-sm">Save Changes</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="empty-state-card">
+          <i class="bi bi-map fs-1 brand-leaf opacity-75 mb-2"></i>
+          <h4 class="h5 fw-bold brand-forest">No Plantation Blocks Found</h4>
+          <p class="text-secondary small mb-3">Add your first estate parcel or adjust your search filters.</p>
+          {% if current_user.is_manager %}
+          <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addBlockModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="d-flex justify-content-center mb-4">
+    <ul class="pagination pagination-sm">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.prev_num, search=search, status=status_filter) }}">Previous</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('farm.farm_list', page=p, search=search, status=status_filter) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.next_num, search=search, status=status_filter) }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
+  <!-- Recent Farm Activities Table -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h6 fw-bold brand-forest mb-0">Recent Agronomic &amp; Field Activities</h2>
+      <span class="badge bg-light text-secondary border">Estate Audit Trail</span>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_activities and recent_activities|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Date</th>
+              <th>Block</th>
+              <th>Activity Type</th>
+              <th>Inputs Applied</th>
+              <th>Notes</th>
+              <th>Supervisor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for act in recent_activities %}
+            <tr>
+              <td class="ps-3 text-secondary">{{ act.date.strftime('%d %b %Y') }}</td>
+              <td><strong>{{ act.block.name }}</strong></td>
+              <td>
+                <span class="badge bg-cream text-dark border px-2 py-1">{{ act.activity_type }}</span>
+              </td>
+              <td class="text-secondary">{{ act.input_quantity or 'None' }}</td>
+              <td class="text-secondary small">{{ act.notes or '--' }}</td>
+              <td><span class="badge bg-light text-dark border">{{ act.responsible_user or 'System' }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="p-4 text-center text-muted small">No field activities recorded yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Block -->
+<div class="modal fade" id="addBlockModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('farm.add_block') }}">
+        <div class="modal-header">
+          <h5 class="modal-title brand-forest fw-bold">Add Plantation Block</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Block Name *</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Block A - Arabica Ridge" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-8">
+              <label class="form-label small fw-semibold">Area Size *</label>
+              <input type="number" step="0.01" min="0.1" name="area" class="form-control" placeholder="12.5" required>
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-semibold">Unit</label>
+              <select name="unit" class="form-select">
+                <option value="Hectares">Hectares</option>
+                <option value="Acres">Acres</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Coffee Variety *</label>
+            <input type="text" name="variety" class="form-control" placeholder="e.g. Arabica Chandragiri / Robusta CxR" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Location / Elevation</label>
+            <input type="text" name="location" class="form-control" placeholder="e.g. North Ridge, 1180m ASL">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Planting Date</label>
+            <input type="date" name="planting_date" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Initial Status</label>
+            <select name="status" class="form-select">
+              <option value="Active">Active</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Replanting">Replanting</option>
+              <option value="Fallow">Fallow</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest btn-sm">Add Block</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Log Activity -->
+<div class="modal fade" id="logActivityModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('farm.log_activity') }}">
+        <div class="modal-header">
+          <h5 class="modal-title brand-forest fw-bold">Log Field Activity</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Target Plantation Block *</label>
+            <select name="block_id" class="form-select" required>
+              {% for b in blocks %}
+              <option value="{{ b.id }}">{{ b.name }} ({{ b.variety }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Activity Type *</label>
+            <select name="activity_type" class="form-select" required>
+              <option value="Fertilizer Application">Fertilizer Application</option>
+              <option value="Canopy Pruning">Canopy Pruning</option>
+              <option value="Drip Irrigation">Drip Irrigation</option>
+              <option value="Pest &amp; Rust Inspection">Pest &amp; Rust Inspection</option>
+              <option value="Shade Tree Lopping">Shade Tree Lopping</option>
+              <option value="Weeding &amp; Mulching">Weeding &amp; Mulching</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Date</label>
+            <input type="date" name="date" class="form-control" value="{{ date_today }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Input Quantity &amp; Material</label>
+            <input type="text" name="input_quantity" class="form-control" placeholder="e.g. 150 kg NPK 17-17-17 or 2000L">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Field Observation Notes</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Describe weather conditions, leaf observations, or field notes..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest btn-sm">Log Activity</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

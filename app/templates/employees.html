@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-people-fill me-2 brand-leaf"></i>Estate Workforce &amp; Employees
+      </h1>
+      <p class="text-secondary small mb-0">
+        Staff directory, roles, wage rates, employment status and contact registers.
+      </p>
+    </div>
+
+    {% if current_user.is_manager %}
+    <div class="mt-3 mt-md-0">
+      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+        <i class="bi bi-person-plus-fill me-1"></i> Register Employee
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Role Notice Alert for non-managers -->
+  {% if not current_user.is_manager %}
+  <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
+    <i class="bi bi-shield-lock-fill me-2 fs-5"></i>
+    <span><strong>Privacy Notice:</strong> Detailed wage rates and personal contact numbers of colleagues are restricted to estate administrators and managers under role security policies.</span>
+  </div>
+  {% endif %}
+
+  <!-- Search and Filters -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('employees.employee_list') }}" class="row g-2 align-items-center">
+        <div class="col-12 col-md-5">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control border-start-0" name="search" value="{{ search or '' }}" placeholder="Search by name, employee ID, or contact...">
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <select name="job_role" class="form-select">
+            <option value="">All Job Roles</option>
+            {% for r in distinct_roles %}
+            <option value="{{ r }}" {% if role_filter == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <select name="status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+            <option value="On Leave" {% if status_filter == 'On Leave' %}selected{% endif %}>On Leave</option>
+            <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-outline-forest flex-fill">
+            <i class="bi bi-funnel me-1"></i> Filter
+          </button>
+          {% if search or status_filter or role_filter %}
+          <a href="{{ url_for('employees.employee_list') }}" class="btn btn-light border text-secondary">Reset</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Employee Directory Table -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h2 class="h6 fw-bold brand-forest mb-0">Workforce Register</h2>
+      <span class="badge bg-light text-secondary border">Total Employees: {{ pagination.total }}</span>
+    </div>
+    <div class="card-body p-0">
+      {% if employees and employees|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Employee ID</th>
+              <th>Full Name</th>
+              <th>Job Designation</th>
+              <th>Contact</th>
+              <th>Daily Wage Rate</th>
+              <th>Status</th>
+              <th>Joining Date</th>
+              {% if current_user.is_manager %}
+              <th class="text-end pe-3">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for emp in employees %}
+            <tr>
+              <td class="ps-3">
+                <span class="badge bg-light text-dark border font-monospace">{{ emp.employee_code }}</span>
+              </td>
+              <td>
+                <span class="fw-semibold text-dark">{{ emp.name }}</span>
+                {% if emp.email and current_user.is_manager %}
+                <br><small class="text-muted">{{ emp.email }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-cream text-dark border">{{ emp.job_role }}</span>
+              </td>
+              <td>
+                {% if current_user.is_manager or (current_user.employee_code == emp.employee_code) %}
+                  <span class="text-dark">{{ emp.contact }}</span>
+                {% else %}
+                  <span class="text-muted font-monospace">+91-•••••••</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if current_user.is_manager %}
+                  <strong class="brand-forest">₹ {{ "%.2f"|format(emp.wage_rate) }}</strong> <small class="text-muted">/ day</small>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border" title="Wage rates hidden by role policy">
+                    <i class="bi bi-lock-fill me-1"></i>Restricted
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge {% if emp.status == 'Active' %}bg-success-subtle text-success border border-success-subtle{% elif emp.status == 'On Leave' %}bg-warning-subtle text-warning border border-warning-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+                  {{ emp.status }}
+                </span>
+              </td>
+              <td class="text-secondary small">
+                {{ emp.joining_date.strftime('%d %b %Y') if emp.joining_date else '--' }}
+              </td>
+              {% if current_user.is_manager %}
+              <td class="text-end pe-3">
+                <button class="btn btn-sm btn-outline-secondary p-1 px-2" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ emp.id }}" title="Edit Employee">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </td>
+
+              <!-- Edit Employee Modal -->
+              <div class="modal fade" id="editEmployeeModal{{ emp.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form method="POST" action="{{ url_for('employees.edit_employee', emp_id=emp.id) }}">
+                      <div class="modal-header">
+                        <h5 class="modal-title brand-forest fw-bold">Edit Employee: {{ emp.name }} ({{ emp.employee_code }})</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Full Name *</label>
+                          <input type="text" name="name" class="form-control" value="{{ emp.name }}" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold">Contact Phone *</label>
+                            <input type="text" name="contact" class="form-control" value="{{ emp.contact }}" required>
+                          </div>
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold">Email Address</label>
+                            <input type="email" name="email" class="form-control" value="{{ emp.email or '' }}">
+                          </div>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Job Designation *</label>
+                          <input type="text" name="job_role" class="form-control" value="{{ emp.job_role }}" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold">Daily Wage Rate (₹) *</label>
+                            <input type="number" step="0.01" min="0" name="wage_rate" class="form-control" value="{{ emp.wage_rate }}" required>
+                          </div>
+                          <div class="col-6">
+                            <label class="form-label small fw-semibold">Status</label>
+                            <select name="status" class="form-select">
+                              <option value="Active" {% if emp.status == 'Active' %}selected{% endif %}>Active</option>
+                              <option value="On Leave" {% if emp.status == 'On Leave' %}selected{% endif %}>On Leave</option>
+                              <option value="Inactive" {% if emp.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-forest btn-sm">Update Employee</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state-card border-0 py-5">
+        <i class="bi bi-people fs-1 brand-leaf opacity-75 mb-2"></i>
+        <h4 class="h5 fw-bold brand-forest">No Employees Found</h4>
+        <p class="text-secondary small mb-3">Try adjusting your search criteria or register new staff.</p>
+        {% if current_user.is_manager %}
+        <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+          <i class="bi bi-person-plus-fill me-1"></i> Register Employee
+        </button>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="d-flex justify-content-center mb-4">
+    <ul class="pagination pagination-sm">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('employees.employee_list', page=pagination.prev_num, search=search, job_role=role_filter, status=status_filter) }}">Previous</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('employees.employee_list', page=p, search=search, job_role=role_filter, status=status_filter) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('employees.employee_list', page=pagination.next_num, search=search, job_role=role_filter, status=status_filter) }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+{% if current_user.is_manager %}
+<!-- Modal: Add Employee -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('employees.add_employee') }}">
+        <div class="modal-header">
+          <h5 class="modal-title brand-forest fw-bold">Register New Employee</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2 mb-3">
+            <div class="col-5">
+              <label class="form-label small fw-semibold">Employee ID *</label>
+              <input type="text" name="employee_code" class="form-control" placeholder="e.g. EMP004" required>
+            </div>
+            <div class="col-7">
+              <label class="form-label small fw-semibold">Full Name *</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. Suresh Kumar" required>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Contact Phone *</label>
+              <input type="text" name="contact" class="form-control" placeholder="+91-9845011111" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Email Address</label>
+              <input type="email" name="email" class="form-control" placeholder="optional@domain.com">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Job Designation *</label>
+            <input type="text" name="job_role" class="form-control" placeholder="e.g. Field Pruning Specialist, Pulper Operator" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Daily Wage Rate (₹) *</label>
+              <input type="number" step="0.01" min="0" name="wage_rate" class="form-control" placeholder="650.00" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Initial Status</label>
+              <select name="status" class="form-select">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Joining Date</label>
+            <input type="date" name="joining_date" class="form-control" value="{{ date_today }}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-forest btn-sm">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
