@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} | AI-Powered Smart Coffee Estate</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 & Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Custom Estate Theme Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if current_user %}
+<div class="app-container">
+  <!-- Sidebar Navigation -->
+  <aside class="app-sidebar" id="appSidebar">
+    <div class="sidebar-header">
+      <div class="rounded-circle p-2 bg-leaf d-flex align-items-center justify-content-center text-white" style="width: 38px; height: 38px;">
+        <i class="bi bi-tree-fill fs-5"></i>
+      </div>
+      <div>
+        <div class="sidebar-brand-title">COFFEE ESTATE</div>
+        <div class="sidebar-brand-subtitle">Smart Agriculture AI</div>
+      </div>
+    </div>
+
+    <!-- User Role Profile Badge -->
+    <div class="px-3 py-2 my-2 mx-2 rounded" style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255,255,255,0.06);">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="text-truncate">
+          <small class="text-white-50 d-block" style="font-size: 0.7rem;">LOGGED IN USER</small>
+          <strong class="text-white text-truncate d-block" style="font-size: 0.85rem;">{{ current_user.username }}</strong>
+        </div>
+        <span class="badge {% if current_user.role == 'Admin' %}badge-role-admin{% elif current_user.role == 'Estate Manager' %}badge-role-manager{% else %}badge-role-employee{% endif %}">
+          {{ current_user.role }}
+        </span>
+      </div>
+      {% if current_user.employee_code %}
+      <div class="mt-1" style="font-size: 0.72rem; color: #a3c2a8;">
+        <i class="bi bi-person-badge"></i> ID: {{ current_user.employee_code }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Navigation Menu (Aligned with 20 Blueprint Pages) -->
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Overview</div>
+      <a href="{{ url_for('dashboard.dashboard') }}" class="sidebar-link {% if request.path == '/dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-1x2"></i>
+        <span>3. Smart Dashboard</span>
+      </a>
+
+      <div class="nav-section-title">Core Operations</div>
+      <a href="#farm" class="sidebar-link text-white-50">
+        <i class="bi bi-map"></i>
+        <span>4. Farm Management</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
+      </a>
+      <a href="#weather" class="sidebar-link text-white-50">
+        <i class="bi bi-cloud-sun"></i>
+        <span>5. Weather Advisor</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 5</span>
+      </a>
+      <a href="#harvest" class="sidebar-link text-white-50">
+        <i class="bi bi-basket"></i>
+        <span>8. Harvest Management</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
+      </a>
+      <a href="#tasks" class="sidebar-link text-white-50">
+        <i class="bi bi-check2-square"></i>
+        <span>14. Task Management</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
+      </a>
+      <a href="#inventory" class="sidebar-link text-white-50">
+        <i class="bi bi-box-seam"></i>
+        <span>17. Inventory Tracking</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
+      </a>
+
+      <div class="nav-section-title">Workforce &amp; Attendance</div>
+      <a href="#employees" class="sidebar-link text-white-50">
+        <i class="bi bi-people"></i>
+        <span>10. Employees</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 2</span>
+      </a>
+      <a href="#face-reg" class="sidebar-link text-white-50">
+        <i class="bi bi-person-bounding-box"></i>
+        <span>11. Face Registration</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 3</span>
+      </a>
+      <a href="#face-att" class="sidebar-link text-white-50">
+        <i class="bi bi-camera"></i>
+        <span>12. Face Attendance</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 3</span>
+      </a>
+      <a href="#manual-att" class="sidebar-link text-white-50">
+        <i class="bi bi-clipboard-check"></i>
+        <span>13. Manual / Offline Att.</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 3</span>
+      </a>
+      {% if current_user.is_manager %}
+      <a href="#payroll" class="sidebar-link text-white-50">
+        <i class="bi bi-cash-stack"></i>
+        <span>15. Payroll Management</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 4</span>
+      </a>
+      {% endif %}
+
+      <div class="nav-section-title">AI Agriculture &amp; Models</div>
+      <a href="#disease" class="sidebar-link text-white-50">
+        <i class="bi bi-virus"></i>
+        <span>6. Disease Detection AI</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+      </a>
+      <a href="#ripeness" class="sidebar-link text-white-50">
+        <i class="bi bi-record-circle"></i>
+        <span>7. Cherry Ripeness AI</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+      </a>
+      <a href="#yield" class="sidebar-link text-white-50">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>9. AI Yield Prediction</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+      </a>
+      <a href="#chat" class="sidebar-link text-white-50">
+        <i class="bi bi-chat-dots"></i>
+        <span>18. AI Estate Chatbot</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 5</span>
+      </a>
+
+      <div class="nav-section-title">System &amp; Intelligence</div>
+      <a href="#reports" class="sidebar-link text-white-50">
+        <i class="bi bi-file-earmark-bar-graph"></i>
+        <span>19. Reports &amp; Analytics</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 4</span>
+      </a>
+      {% if current_user.is_admin %}
+      <a href="#settings" class="sidebar-link text-white-50">
+        <i class="bi bi-sliders"></i>
+        <span>20. Settings &amp; Security</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 7</span>
+      </a>
+      {% endif %}
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="d-flex align-items-center justify-content-between">
+        <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-light text-decoration-none" title="View Splash Screen">
+          <i class="bi bi-arrow-repeat"></i> Splash
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-danger">
+          <i class="bi bi-box-arrow-right"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Container -->
+  <div class="main-content-wrapper">
+    <!-- Top Navbar -->
+    <header class="app-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-link link-dark d-lg-none p-0 fs-4" id="sidebarToggle" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <span class="badge bg-cream text-dark border px-2 py-1 me-2" style="font-size: 0.78rem;">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ estate_location }}
+          </span>
+          <span class="text-secondary small d-none d-sm-inline">
+            <i class="bi bi-shield-check text-success me-1"></i>Server-side RBAC active
+          </span>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle fs-5 brand-forest"></i>
+            <span class="d-none d-md-inline fw-semibold">{{ current_user.username }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li class="px-3 py-1">
+              <small class="text-muted d-block">Account Role</small>
+              <strong>{{ current_user.role }}</strong>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Body & Flashes -->
+    <main class="page-body">
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow-sm" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Error State fallback if passed directly -->
+      {% if error_code %}
+      <div class="card border-danger shadow-sm my-4">
+        <div class="card-body text-center p-5">
+          <h1 class="display-3 text-danger fw-bold">{{ error_code }}</h1>
+          <h3 class="mb-3">{{ error_title }}</h3>
+          <p class="text-muted mb-4">{{ error_message }}</p>
+          <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-forest">
+            <i class="bi bi-house-door me-2"></i>Return to Dashboard
+          </a>
+        </div>
+      </div>
+      {% else %}
+        {% block content %}{% endblock %}
+      {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-top py-3 px-4 text-center text-muted small mt-auto">
+      <span>AI-Powered Smart Coffee Estate Management System • Stage 1 Foundation Active</span>
+    </footer>
+  </div>
+</div>
+{% else %}
+<!-- Unauthenticated Layout (Login, Loading, Forgot Password) -->
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container pt-3" style="max-width: 500px; position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1060;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block auth_content %}{% endblock %}
+</main>
+{% endif %}
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Mobile sidebar toggle
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('appSidebar');
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('show');
+    });
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

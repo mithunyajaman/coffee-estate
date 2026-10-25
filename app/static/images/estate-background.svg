@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E392A"/>
+      <stop offset="40%" stop-color="#2D5A40"/>
+      <stop offset="75%" stop-color="#4E7C57"/>
+      <stop offset="100%" stop-color="#8DA785"/>
+    </linearGradient>
+    <linearGradient id="sunGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" stop-opacity="0.7"/>
+      <stop offset="60%" stop-color="#F59E0B" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#1E392A" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hillFar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2C4E3B"/>
+      <stop offset="100%" stop-color="#1B3326"/>
+    </linearGradient>
+    <linearGradient id="hillMid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#244433"/>
+      <stop offset="100%" stop-color="#14281E"/>
+    </linearGradient>
+    <linearGradient id="hillNear" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1B3627"/>
+      <stop offset="100%" stop-color="#0E1C15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky & Sunrise Glow -->
+  <rect width="1920" height="1080" fill="url(#skyGrad)"/>
+  <circle cx="1250" cy="380" r="320" fill="url(#sunGlow)"/>
+
+  <!-- Distant Western Ghats Mountain Range (Chikmagalur / Baba Budangiri) -->
+  <path d="M0 580 Q 280 420, 620 490 T 1300 460 Q 1650 410, 1920 520 L 1920 1080 L 0 1080 Z" fill="url(#hillFar)" opacity="0.85"/>
+  <!-- Mist layer -->
+  <path d="M0 640 Q 400 590, 960 620 T 1920 610 L 1920 680 L 0 680 Z" fill="#E2EDE4" opacity="0.18"/>
+
+  <!-- Mid-distance hills with shade tree canopy -->
+  <path d="M0 690 Q 350 560, 820 660 T 1550 620 Q 1780 640, 1920 670 L 1920 1080 L 0 1080 Z" fill="url(#hillMid)"/>
+
+  <!-- Tall Silver Oak Shade Trees (Silhouettes) -->
+  <g fill="#112419" opacity="0.8">
+    <!-- Tree 1 -->
+    <path d="M 310 750 L 314 360 L 318 750 Z"/>
+    <ellipse cx="316" cy="380" rx="36" ry="60"/>
+    <ellipse cx="328" cy="350" rx="42" ry="70"/>
+    <ellipse cx="304" cy="340" rx="30" ry="55"/>
+    <!-- Tree 2 -->
+    <path d="M 740 760 L 744 320 L 748 760 Z"/>
+    <ellipse cx="746" cy="340" rx="48" ry="85"/>
+    <ellipse cx="760" cy="300" rx="55" ry="90"/>
+    <ellipse cx="732" cy="290" rx="40" ry="65"/>
+    <!-- Tree 3 -->
+    <path d="M 1480 730 L 1484 310 L 1488 730 Z"/>
+    <ellipse cx="1486" cy="330" rx="50" ry="90"/>
+    <ellipse cx="1500" cy="280" rx="60" ry="100"/>
+    <!-- Tree 4 -->
+    <path d="M 1680 740 L 1683 380 L 1687 740 Z"/>
+    <ellipse cx="1685" cy="400" rx="38" ry="65"/>
+  </g>
+
+  <!-- Foreground Terraced Coffee Bushes Ridge -->
+  <path d="M0 790 Q 480 710, 1020 780 T 1920 740 L 1920 1080 L 0 1080 Z" fill="url(#hillNear)"/>
+
+  <!-- Coffee Bush Clusters & Red Cherries (Foreground) -->
+  <g fill="#183B29">
+    <ellipse cx="120" cy="880" rx="140" ry="80"/>
+    <ellipse cx="320" cy="890" rx="150" ry="90"/>
+    <ellipse cx="540" cy="870" rx="160" ry="85"/>
+    <ellipse cx="780" cy="895" rx="170" ry="95"/>
+    <ellipse cx="1040" cy="880" rx="175" ry="90"/>
+    <ellipse cx="1320" cy="900" rx="190" ry="95"/>
+    <ellipse cx="1620" cy="875" rx="180" ry="90"/>
+    <ellipse cx="1860" cy="890" rx="160" ry="85"/>
+  </g>
+
+  <!-- Red Ripe Coffee Cherries Clusters -->
+  <g fill="#DC2626" opacity="0.95">
+    <circle cx="210" cy="850" r="7"/><circle cx="222" cy="848" r="8"/><circle cx="218" cy="858" r="7"/><circle cx="228" cy="856" r="6"/>
+    <circle cx="430" cy="840" r="8"/><circle cx="442" cy="838" r="7"/><circle cx="438" cy="849" r="8"/>
+    <circle cx="680" cy="855" r="8"/><circle cx="692" cy="851" r="7"/><circle cx="686" cy="863" r="8"/>
+    <circle cx="940" cy="845" r="9"/><circle cx="954" cy="842" r="8"/><circle cx="948" cy="856" r="8"/>
+    <circle cx="1220" cy="860" r="9"/><circle cx="1234" cy="856" r="8"/><circle cx="1228" cy="870" r="8"/>
+    <circle cx="1510" cy="840" r="8"/><circle cx="1524" cy="836" r="8"/><circle cx="1518" cy="849" r="7"/>
+    <circle cx="1780" cy="850" r="8"/><circle cx="1792" cy="847" r="7"/><circle cx="1786" cy="859" r="8"/>
+  </g>
+</svg>

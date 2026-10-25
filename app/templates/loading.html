@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Loading Estate System{% endblock %}
+
+{% block extra_head %}
+<style>
+  .loading-hero {
+    min-height: 100vh;
+    width: 100%;
+    background: 
+      linear-gradient(135deg, rgba(35, 71, 53, 0.88) 0%, rgba(18, 38, 28, 0.92) 100%),
+      url("{{ url_for('static', filename='images/estate-background.svg') }}") center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loading-card {
+    background: rgba(246, 243, 233, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 2.75rem 2.25rem;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  .pulse-logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--color-forest-green), var(--color-leaf-green));
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 0 0 rgba(95, 134, 99, 0.7);
+    animation: pulse-ring 2s infinite cubic-bezier(0.66, 0, 0, 1);
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(95, 134, 99, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 18px rgba(95, 134, 99, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(95, 134, 99, 0);
+    }
+  }
+
+  .progress-bar-custom {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 15%;
+    background: linear-gradient(90deg, var(--color-leaf-green), var(--color-forest-green));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+</style>
+{% endblock %}
+
+{% block auth_content %}
+<div class="loading-hero">
+  <div class="loading-card" role="region" aria-live="polite">
+    <!-- Estate Icon -->
+    <div class="pulse-logo" id="logoContainer">
+      <i class="bi bi-tree-fill" style="font-size: 2.4rem;"></i>
+    </div>
+
+    <!-- Title & Domain -->
+    <h1 class="h3 fw-bold brand-forest mb-1">AI-Powered Smart Coffee Estate</h1>
+    <p class="text-muted small mb-3">Management &amp; Decision Support System • Chikmagalur</p>
+
+    <!-- Progress Indicator -->
+    <div class="progress-bar-custom">
+      <div class="progress-fill" id="progressFill" style="width: 25%;"></div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <small class="text-secondary" id="statusMessage">Checking database connectivity...</small>
+      <small class="fw-bold brand-forest" id="percentText">25%</small>
+    </div>
+
+    <!-- Recoverable Error Fallback Area (Initially Hidden) -->
+    <div id="errorFallback" class="d-none mt-4 p-3 rounded bg-white border border-danger-subtle text-start">
+      <div class="d-flex align-items-center text-danger mb-2">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <strong class="small">Connection delayed or degraded</strong>
+      </div>
+      <p class="small text-secondary mb-3" id="errorDetails">
+        Initialization took longer than expected. You can retry the connection or proceed directly to login.
+      </p>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="retryLoading()">
+          <i class="bi bi-arrow-clockwise me-1"></i> Retry
+        </button>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-forest flex-fill text-decoration-none text-center">
+          Proceed to Login <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-3 border-top border-light-subtle">
+      <small class="text-muted" style="font-size: 0.75rem;">
+        <i class="bi bi-shield-check text-success me-1"></i>Role-Based Access Control • SSL Ready
+      </small>
+    </div>
+  </div>
+</div>
+
+<script>
+  let progress = 25;
+  const fill = document.getElementById('progressFill');
+  const percentText = document.getElementById('percentText');
+  const statusMsg = document.getElementById('statusMessage');
+  const errorBox = document.getElementById('errorFallback');
+  let healthChecked = false;
+  let targetUrl = "{{ url_for('auth.login') }}";
+
+  function setProgress(val, msg) {
+    progress = Math.min(val, 100);
+    fill.style.width = progress + '%';
+    percentText.innerText = progress + '%';
+    if (msg) statusMsg.innerText = msg;
+  }
+
+  // Real health check call to server
+  async function initSystem() {
+    setProgress(35, "Connecting to database...");
+
+    const timeout = setTimeout(() => {
+      if (!healthChecked) {
+        showError("Database connection timed out. Server might still be launching.");
+      }
+    }, 7000);
+
+    try {
+      const response = await fetch("{{ url_for('main.health_check') }}");
+      const data = await response.json();
+      clearTimeout(timeout);
+      healthChecked = true;
+
+      if (data.status === "healthy" || data.database === "connected") {
+        setProgress(70, "Verifying role security and session...");
+        
+        if (data.authenticated) {
+          targetUrl = "{{ url_for('dashboard.dashboard') }}";
+        } else {
+          targetUrl = "{{ url_for('auth.login') }}";
+        }
+
+        setTimeout(() => {
+          setProgress(100, "Ready! Redirecting...");
+          setTimeout(() => {
+            window.location.href = targetUrl;
+          }, 450);
+        }, 500);
+      } else {
+        showError("Database reported degraded status: " + data.database);
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      showError("Unable to reach backend API. Check if Flask server is running.");
+    }
+  }
+
+  function showError(msg) {
+    fill.style.background = "#DC2626";
+    statusMsg.innerText = "Connection issue encountered.";
+    statusMsg.classList.add("text-danger");
+    if (msg) {
+      document.getElementById('errorDetails').innerText = msg;
+    }
+    errorBox.classList.remove('d-none');
+  }
+
+  function retryLoading() {
+    errorBox.classList.add('d-none');
+    fill.style.background = "";
+    statusMsg.classList.remove("text-danger");
+    healthChecked = false;
+    setProgress(15, "Retrying initialization...");
+    setTimeout(initSystem, 300);
+  }
+
+  // Start initialization immediately
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initSystem, 400);
+  });
+</script>
+{% endblock %}

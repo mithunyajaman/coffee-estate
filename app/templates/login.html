@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block extra_head %}
+<style>
+  .login-hero {
+    min-height: 100vh;
+    width: 100%;
+    background: 
+      linear-gradient(135deg, rgba(35, 71, 53, 0.85) 0%, rgba(18, 38, 28, 0.90) 100%),
+      url("{{ url_for('static', filename='images/estate-background.svg') }}") center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .login-card {
+    background: #F6F3E9;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 18px;
+    padding: 2.5rem 2.25rem;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  .input-icon-wrap {
+    position: relative;
+  }
+
+  .input-icon-wrap .icon-left {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+  }
+
+  .input-icon-wrap input {
+    padding-left: 42px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+  }
+
+  .input-icon-wrap .btn-toggle-pw {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #64748b;
+    padding: 4px 8px;
+  }
+
+  .demo-badge-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px dashed #5F8663;
+    background: #ffffff;
+    color: var(--color-forest-green);
+    transition: all 0.15s ease;
+  }
+  .demo-badge-btn:hover {
+    background: #234735;
+    color: #ffffff;
+  }
+</style>
+{% endblock %}
+
+{% block auth_content %}
+<div class="login-hero">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="d-inline-flex p-3 rounded-circle bg-forest text-white mb-3 shadow-sm">
+        <i class="bi bi-shield-lock-fill fs-3"></i>
+      </div>
+      <h2 class="h4 fw-bold brand-forest mb-1">Estate Portal Sign In</h2>
+      <p class="text-secondary small mb-0">AI-Powered Smart Coffee Estate Management</p>
+    </div>
+
+    <!-- Login Form -->
+    <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}" id="loginForm">
+      <!-- Username or Employee ID -->
+      <div class="mb-3">
+        <label for="identifier" class="form-label small fw-semibold text-dark">
+          Username or Employee ID
+        </label>
+        <div class="input-icon-wrap">
+          <i class="bi bi-person-fill icon-left"></i>
+          <input
+            type="text"
+            class="form-control form-control-lg fs-6"
+            id="identifier"
+            name="identifier"
+            value="{{ identifier or '' }}"
+            placeholder="e.g. admin, manager, EMP001"
+            required
+            autocomplete="username"
+            autofocus
+          >
+        </div>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">
+          <i class="bi bi-info-circle me-1"></i>Role permissions are derived server-side from your stored account.
+        </div>
+      </div>
+
+      <!-- Password with Show/Hide -->
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label for="password" class="form-label small fw-semibold text-dark mb-0">Password</label>
+          <a href="{{ url_for('auth.forgot_password') }}" class="small brand-leaf text-decoration-none fw-medium">
+            Forgot password?
+          </a>
+        </div>
+        <div class="input-icon-wrap">
+          <i class="bi bi-key-fill icon-left"></i>
+          <input
+            type="password"
+            class="form-control form-control-lg fs-6"
+            id="password"
+            name="password"
+            placeholder="••••••••••••"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="btn-toggle-pw" id="togglePasswordBtn" aria-label="Toggle password visibility">
+            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-forest btn-lg w-100 mt-2 mb-3 shadow-sm" id="submitBtn">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </button>
+
+      <!-- Optional Face Attendance preview button -->
+      <button type="button" class="btn btn-outline-secondary btn-sm w-100 mb-3" disabled title="Coming in Stage 3">
+        <i class="bi bi-person-bounding-box me-1"></i> Sign In with Face ID (Stage 3)
+      </button>
+
+      <!-- Seed Quick-Fill Demo Helpers -->
+      <div class="p-3 bg-white rounded border border-light-subtle">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <small class="fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Quick Fill Test Accounts</small>
+          <span class="badge badge-demo">TEST SEED</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="demo-badge-btn" onclick="fillCreds('admin', 'AdminPassword@123')">
+            <i class="bi bi-shield-check me-1"></i>Admin
+          </button>
+          <button type="button" class="demo-badge-btn" onclick="fillCreds('manager', 'ManagerPassword@123')">
+            <i class="bi bi-briefcase me-1"></i>Manager
+          </button>
+          <button type="button" class="demo-badge-btn" onclick="fillCreds('employee', 'EmployeePassword@123')">
+            <i class="bi bi-person-badge me-1"></i>Employee (EMP001)
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Footer Note -->
+    <div class="text-center mt-4">
+      <small class="text-muted" style="font-size: 0.74rem;">
+        Protected by rate limiting (10 req/min) &amp; secure session cookies.
+      </small>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Show / Hide password toggle
+  const toggleBtn = document.getElementById('togglePasswordBtn');
+  const passwordInput = document.getElementById('password');
+  const toggleIcon = document.getElementById('togglePasswordIcon');
+
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+  }
+
+  // Quick fill helper for testing
+  function fillCreds(user, pass) {
+    document.getElementById('identifier').value = user;
+    document.getElementById('password').value = pass;
+  }
+</script>
+{% endblock %}
