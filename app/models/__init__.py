@@ -5,6 +5,7 @@ from app.models.farm import EstateBlock, FarmActivity
 from app.models.harvest import HarvestRecord
 from app.models.task import Task
 from app.models.inventory import InventoryItem, StockTransaction
+from app.models.attendance import DailyAttendance, AttendanceEvent, FaceEnrollment
 
 __all__ = [
     "User",
@@ -16,4 +17,7 @@ __all__ = [
     "Task",
     "InventoryItem",
     "StockTransaction",
+    "DailyAttendance",
+    "AttendanceEvent",
+    "FaceEnrollment",
 ]

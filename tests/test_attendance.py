@@ -1,0 +1,233 @@
+import json
+import math
+from datetime import date
+from app.database import db
+from app.models.employee import Employee
+from app.models.attendance import DailyAttendance, AttendanceEvent, FaceEnrollment
+from app.models.audit import AuditLog
+
+# ==========================================
+# 1. Manual Attendance Tests (Page 13)
+# ==========================================
+
+def test_view_manual_attendance(client, auth_client):
+    """Authenticated users can view attendance muster roll."""
+    auth_client.login_manager()
+    resp = client.get("/attendance/manual")
+    assert resp.status_code == 200
+    assert b"Daily Attendance Roster" in resp.data
+
+def test_bulk_save_manual_attendance(client, auth_client):
+    """Manager can bulk-save daily attendance for workers."""
+    auth_client.login_manager()
+    emp = Employee.query.first() or Employee(employee_code="EMP_TEST", name="Test Worker", contact="111", job_role="Worker")
+    db.session.add(emp)
+    db.session.commit()
+
+    resp = client.post("/attendance/manual/bulk-save", data={
+        "date": "2026-10-26",
+        "shift": "Morning Shift",
+        f"status_{emp.id}": "Present",
+        f"reason_{emp.id}": "Regular morning shift"
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"Successfully saved attendance" in resp.data
+
+    record = DailyAttendance.query.filter_by(employee_id=emp.id, date=date(2026, 10, 26), shift="Morning Shift").first()
+    assert record is not None
+    assert record.status == "Present"
+
+    # Audit log recorded
+    audit = AuditLog.query.filter_by(action="MANUAL_ATTENDANCE_BULK_SAVE").first()
+    assert audit is not None
+
+
+# ==========================================
+# 2. Offline Sync & Conflict Detection
+# ==========================================
+
+def test_offline_sync_idempotency(client, auth_client):
+    """Idempotent sync: duplicate event UUIDs do not create duplicate records."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+    assert emp is not None
+
+    payload = {
+        "device_id": "Field Tablet #4",
+        "events": [
+            {
+                "event_uuid": "offline-uuid-101",
+                "employee_id": emp.id,
+                "date": "2026-10-26",
+                "shift": "General Shift",
+                "status": "Present",
+                "event_type": "Check-in"
+            }
+        ]
+    }
+
+    # First sync call
+    resp1 = client.post("/api/attendance/sync", json=payload)
+    assert resp1.status_code == 200
+    data1 = resp1.get_json()
+    assert data1["synced"] == 1
+
+    # Second sync call with exact same UUID (should be ignored idempotently)
+    resp2 = client.post("/api/attendance/sync", json=payload)
+    assert resp2.status_code == 200
+    data2 = resp2.get_json()
+    assert data2["synced"] == 0
+
+    events_count = AttendanceEvent.query.filter_by(event_uuid="offline-uuid-101").count()
+    assert events_count == 1
+
+def test_offline_sync_conflict_flagging(client, auth_client):
+    """Conflict detection: Offline record conflicting with online entry is flagged for manager review."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+
+    # Pre-existing online record marks employee Present
+    existing = DailyAttendance(
+        employee_id=emp.id,
+        date=date(2026, 10, 27),
+        shift="Morning Shift",
+        status="Present",
+        approved_by="Manager",
+    )
+    db.session.add(existing)
+    db.session.commit()
+
+    # Offline queue from field supervisor says employee was Absent
+    payload = {
+        "device_id": "Field Tablet #2",
+        "events": [
+            {
+                "event_uuid": "offline-conflict-uuid-202",
+                "employee_id": emp.id,
+                "date": "2026-10-27",
+                "shift": "Morning Shift",
+                "status": "Absent",
+                "event_type": "Check-in"
+            }
+        ]
+    }
+
+    resp = client.post("/api/attendance/sync", json=payload)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["conflicts"] == 1
+
+    db.session.refresh(existing)
+    assert existing.has_conflict is True
+    assert "Conflict between online status 'Present' and offline queue 'Absent'" in existing.correction_reason
+
+
+# ==========================================
+# 3. Biometric Consent & Face Registration
+# ==========================================
+
+def test_face_enrollment_requires_consent(client, auth_client):
+    """Enrolling without explicit consent is rejected under privacy rules."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+
+    resp = client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "consent": False,
+        "embedding": [0.1] * 128
+    })
+    assert resp.status_code == 400
+    assert "Explicit biometric consent is required" in resp.get_json()["error"]
+
+def test_face_enrollment_success_and_revocation(client, auth_client):
+    """Enroll mathematical vector and allow permanent deletion."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+    vector = [0.25] * 128
+
+    resp_enroll = client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "consent": True,
+        "embedding": vector,
+        "threshold": 0.75
+    })
+    assert resp_enroll.status_code == 200
+    assert "registered" in resp_enroll.get_json()["message"]
+
+    enr = FaceEnrollment.query.filter_by(employee_id=emp.id).first()
+    assert enr is not None
+    assert enr.consent_status is True
+    assert enr.enrollment_status == "Enrolled"
+
+    # Revoke enrollment
+    resp_revoke = client.post("/api/attendance/face-revoke", json={
+        "employee_id": emp.id
+    })
+    assert resp_revoke.status_code == 200
+    assert "permanently revoked" in resp_revoke.get_json()["message"]
+
+    enr_after = FaceEnrollment.query.filter_by(employee_id=emp.id).first()
+    assert enr_after is None
+
+
+# ==========================================
+# 4. Face Attendance Verification & Thresholds
+# ==========================================
+
+def test_face_verify_success_and_duplicate_check(client, auth_client):
+    """Verified match records check-in and rejects duplicate clock-ins within 5 minutes."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+    target_vector = [0.5] * 128
+
+    # Enroll employee
+    client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "consent": True,
+        "embedding": target_vector,
+        "threshold": 0.75
+    })
+
+    # First clock-in: Identical vector (100% match)
+    resp1 = client.post("/api/attendance/face-verify", json={
+        "vector": target_vector,
+        "event_type": "Check-in"
+    })
+    assert resp1.status_code == 200
+    data1 = resp1.get_json()
+    assert data1["matched"] is True
+    assert data1["confidence"] >= 0.75
+    assert data1["employee_code"] == emp.employee_code
+
+    # Second immediate clock-in: Duplicate prevention triggers 409 Conflict
+    resp2 = client.post("/api/attendance/face-verify", json={
+        "vector": target_vector,
+        "event_type": "Check-in"
+    })
+    assert resp2.status_code == 409
+    assert "Duplicate event" in resp2.get_json()["warning"]
+
+def test_face_verify_low_confidence_rejected_with_fallback(client, auth_client):
+    """Uncertain matches below confidence threshold are rejected with manual fallback."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+
+    # Enroll vector of all 1.0s
+    client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "consent": True,
+        "embedding": [1.0] * 128,
+        "threshold": 0.75
+    })
+
+    # Test with orthogonal / mismatched vector (e.g. all 0.0s or random low similarity)
+    mismatched = [0.0] * 128
+    resp = client.post("/api/attendance/face-verify", json={
+        "vector": mismatched,
+        "event_type": "Check-in"
+    })
+    assert resp.status_code == 422
+    data = resp.get_json()
+    assert data["matched"] is False
+    assert "below required threshold" in data["error"]
+    assert "fallback_url" in data

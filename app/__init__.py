@@ -25,6 +25,7 @@ def create_app(config_class=Config):
     from app.routes.employees import employees_bp
     from app.routes.tasks import tasks_bp
     from app.routes.inventory import inventory_bp
+    from app.routes.attendance import attendance_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -34,6 +35,7 @@ def create_app(config_class=Config):
     app.register_blueprint(employees_bp)
     app.register_blueprint(tasks_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(attendance_bp)
 
     # Global context processors for templates
     @app.context_processor

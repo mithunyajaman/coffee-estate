@@ -9,6 +9,7 @@ from app.models.farm import EstateBlock
 from app.models.harvest import HarvestRecord
 from app.models.task import Task
 from app.models.inventory import InventoryItem
+from app.models.attendance import DailyAttendance
 from app.services.auth_service import login_required, roles_required, get_current_user
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -27,6 +28,9 @@ def dashboard():
     total_harvest_kg = db.session.query(func.coalesce(func.sum(HarvestRecord.actual_quantity), 0)).scalar()
     pending_tasks = Task.query.filter_by(status="Pending").count()
     low_stock_items = InventoryItem.query.filter(InventoryItem.current_balance <= InventoryItem.reorder_level).count()
+    today = date.today()
+    today_present = DailyAttendance.query.filter_by(date=today, status="Present").count()
+    attendance_pct = round((today_present / active_employees * 100), 1) if active_employees > 0 else 0
 
     # Audit logs for manager/admin recent activity feed
     recent_audits = []
@@ -40,8 +44,8 @@ def dashboard():
         "active_employees": active_employees,
         "total_users": total_users,
         "active_blocks_count": active_blocks,
-        "today_attendance_pct": 0,     # Stage 3 will populate from Attendance
-        "today_present_count": 0,
+        "today_attendance_pct": attendance_pct,
+        "today_present_count": today_present,
         "harvest_this_month_kg": float(total_harvest_kg),
         "pending_tasks_count": pending_tasks,
         "low_stock_items_count": low_stock_items,

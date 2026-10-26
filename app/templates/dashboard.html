@@ -49,6 +49,24 @@
       </a>
     </div>
 
+    <!-- Today's Attendance KPI -->
+    <div class="col-12 col-sm-6 col-xl-3">
+      <a href="{{ url_for('attendance.manual_attendance') }}" class="text-decoration-none">
+        <div class="kpi-card h-100 border-accent">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="kpi-title">Today's Attendance</div>
+            <div class="p-2 rounded bg-light brand-coffee">
+              <i class="bi bi-calendar2-check-fill fs-5"></i>
+            </div>
+          </div>
+          <div class="kpi-value mt-2">{{ kpis.today_attendance_pct }}<small class="fs-6 text-muted">%</small></div>
+          <div class="kpi-meta text-muted">
+            <span><strong>{{ kpis.today_present_count }}</strong> workers on duty</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
     <!-- Plantation Blocks -->
     <div class="col-12 col-sm-6 col-xl-3">
       <a href="{{ url_for('farm.farm_list') }}" class="text-decoration-none">
