@@ -65,6 +65,10 @@
         <i class="bi bi-map"></i>
         <span>4. Farm Management</span>
       </a>
+      <a href="{{ url_for('pesticides.index') }}" class="sidebar-link {% if request.path.startswith('/pesticides') %}active{% endif %}">
+        <i class="bi bi-shield-shaded"></i>
+        <span>Pesticides &amp; Spraying</span>
+      </a>
       <a href="#weather" class="sidebar-link text-white-50">
         <i class="bi bi-cloud-sun"></i>
         <span>5. Weather Advisor</span>

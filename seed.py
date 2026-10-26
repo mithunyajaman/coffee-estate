@@ -447,6 +447,86 @@ def seed_database():
                 db.session.commit()
                 print("  + Seeded Face Biometric Enrollment for Ramesh Poojary (EMP001)")
 
+        # 11. Seed Pesticide Application Records
+        from app.models.pesticide import PesticideApplication
+        print("[Seed] Seeding Pesticide & Crop Protection records...")
+        block_a = EstateBlock.query.filter_by(name="Block A - Arabica North Ridge").first()
+        block_b = EstateBlock.query.filter_by(name="Block B - Robusta Central Valley").first()
+        block_c = EstateBlock.query.filter_by(name="Block C - Shade Nursery & Micro-Lot").first()
+
+        if block_a and not PesticideApplication.query.filter_by(block_id=block_a.id).first():
+            p_item = InventoryItem.query.filter(InventoryItem.name.ilike("%Copper%")).first()
+            inv_id = p_item.id if p_item else None
+
+            # 1. Active quarantine on Block A (Leaf rust)
+            p1 = PesticideApplication(
+                block_id=block_a.id,
+                date=today - timedelta(days=5),
+                pesticide_name="Copper Oxychloride 50% WP (Bordeaux Mixture)",
+                category="Fungicide",
+                target_pest="Coffee Leaf Rust (Hemileia vastatrix)",
+                dosage="500g per 200L water (0.25%)",
+                quantity_used=12.5,
+                unit="kg",
+                application_method="Knapsack Sprayer",
+                pre_harvest_interval_days=14,
+                re_entry_interval_hours=24,
+                weather_condition="Clear sunrise, 22°C, 65% RH",
+                safety_ppe="Respirator mask, goggles, nitrile gloves, chemical apron",
+                inventory_item_id=inv_id,
+                operator_name="Basavaraj Naik (Spraying Squad A)",
+                supervised_by="Deepak Kulkarni",
+                notes="Targeted upper & lower canopy foliage before southwest monsoon",
+            )
+            db.session.add(p1)
+
+            # 2. Cleared quarantine on Block B (Berry borer)
+            if block_b:
+                p2 = PesticideApplication(
+                    block_id=block_b.id,
+                    date=today - timedelta(days=18),
+                    pesticide_name="Beauveria bassiana 1.15% WP (Biopesticide)",
+                    category="Bio-pesticide",
+                    target_pest="Coffee Berry Borer (Hypothenemus hampei)",
+                    dosage="1 kg per 200L water",
+                    quantity_used=8.0,
+                    unit="kg",
+                    application_method="Tractor Mist Blower",
+                    pre_harvest_interval_days=7,
+                    re_entry_interval_hours=12,
+                    weather_condition="Overcast, High humidity (80% RH)",
+                    safety_ppe="Standard mask & rubber gloves",
+                    operator_name="Ramesh Poojary",
+                    supervised_by="Deepak Kulkarni",
+                    notes="Biological entomopathogenic fungus applied during green bean hardening stage",
+                )
+                db.session.add(p2)
+
+            # 3. Active quarantine on Block C (Stem borer swab)
+            if block_c:
+                p3 = PesticideApplication(
+                    block_id=block_c.id,
+                    date=today - timedelta(days=2),
+                    pesticide_name="Chlorpyrifos 20% EC + Lime Slurry",
+                    category="Insecticide",
+                    target_pest="White Stem Borer (Xylotrechus quadripes)",
+                    dosage="500 ml / 200L water with 10% lime slurry",
+                    quantity_used=5.0,
+                    unit="Liters",
+                    application_method="Stem Painting / Swabbing",
+                    pre_harvest_interval_days=30,
+                    re_entry_interval_hours=48,
+                    weather_condition="Sunny, Dry morning",
+                    safety_ppe="Full chemical PPE, face shield, heavy rubber gauntlets",
+                    operator_name="Pruning & Swabbing Team",
+                    supervised_by="Vikram Gowda",
+                    notes="Applied to main trunk and thick primaries up to 1.2m height",
+                )
+                db.session.add(p3)
+
+            db.session.commit()
+            print("  + Seeded 3 Pesticide Application Records with PHI quarantine intervals.")
+
         print("[Seed] All records seeded successfully.")
 
 if __name__ == "__main__":
