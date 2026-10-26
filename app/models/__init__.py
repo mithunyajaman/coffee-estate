@@ -6,6 +6,7 @@ from app.models.harvest import HarvestRecord
 from app.models.task import Task
 from app.models.inventory import InventoryItem, StockTransaction
 from app.models.attendance import DailyAttendance, AttendanceEvent, FaceEnrollment
+from app.models.payroll import PayrollRecord, SalaryAdvance
 
 __all__ = [
     "User",
@@ -20,4 +21,6 @@ __all__ = [
     "DailyAttendance",
     "AttendanceEvent",
     "FaceEnrollment",
+    "PayrollRecord",
+    "SalaryAdvance",
 ]

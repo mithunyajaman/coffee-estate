@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salary Slip - {{ employee.name }} ({{ record.period_label }})</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primary: #234735;
+      --secondary: #5F8663;
+      --accent: #7A4D2B;
+      --cream: #F6F3E9;
+    }
+    body {
+      background-color: #f4f6f8;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #333;
+      padding: 2rem 0;
+    }
+    .slip-container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .watermark-banner {
+      background: #fff3cd;
+      border: 1px dashed #ffeeba;
+      color: #856404;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+    .watermark-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 5.5rem;
+      font-weight: 900;
+      color: rgba(122, 77, 43, 0.05);
+      pointer-events: none;
+      text-transform: uppercase;
+      white-space: nowrap;
+      user-select: none;
+      z-index: 0;
+    }
+    .slip-header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .brand-title {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin-bottom: 0.2rem;
+    }
+    .brand-sub {
+      color: #666;
+      font-size: 0.88rem;
+    }
+    .table-sm th {
+      background-color: #f8f9fa;
+      color: #555;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .net-pay-banner {
+      background-color: #e8f3ec;
+      border-left: 4px solid var(--secondary);
+      padding: 1rem;
+      border-radius: 4px;
+      margin: 1.5rem 0;
+    }
+    .signature-box {
+      margin-top: 3.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px dashed #aaa;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #666;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .slip-container {
+        box-shadow: none;
+        padding: 1.5cm;
+        max-width: 100%;
+      }
+      .watermark-bg {
+        color: rgba(0, 0, 0, 0.04) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container no-print mb-3 text-center" style="max-width: 820px;">
+  <div class="d-flex justify-content-between align-items-center">
+    <a href="{{ url_for('payroll.index') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Back to Payroll
+    </a>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-primary btn-sm px-4" style="background-color: var(--primary); border-color: var(--primary);">
+        <i class="bi bi-printer me-1"></i> Print / Save as PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="slip-container">
+  <div class="watermark-bg">SAMPLE PREVIEW</div>
+
+  <!-- Mandatory Sample Watermark Banner -->
+  <div class="watermark-banner">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    Sample Salary Slip Preview &bull; Not for Commercial Legal Tender &bull; Internal Estate Audit Document
+  </div>
+
+  <div class="slip-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="brand-title">
+        <i class="bi bi-tree me-1" style="color: var(--secondary);"></i>
+        Emerald Heights Coffee Estate
+      </div>
+      <div class="brand-sub">Kalyangundi Division, Chikmagalur, Karnataka - 577101</div>
+      <div class="brand-sub text-muted" style="font-size: 0.78rem;">Registration No: KA-CKM-EST-2018-0921 &bull; Labor Dept Reg: EST-L-4491</div>
+    </div>
+    <div class="text-end">
+      <span class="badge {% if record.status == 'Disbursed' %}bg-success{% elif record.status == 'Approved' %}bg-primary{% else %}bg-warning text-dark{% endif %} px-3 py-2 text-uppercase mb-1">
+        {{ record.status }}
+      </span>
+      <div class="text-muted small">Slip ID: <strong>#PAY-{{ "%05d"|format(record.id) }}</strong></div>
+      <div class="text-muted small">Period: <strong>{{ record.period_label }}</strong></div>
+    </div>
+  </div>
+
+  <!-- Employee Details -->
+  <div class="row g-3 mb-4" style="font-size: 0.9rem;">
+    <div class="col-md-6">
+      <table class="table table-sm table-borderless mb-0">
+        <tbody>
+          <tr>
+            <td class="text-muted py-1" style="width: 38%;">Employee Code:</td>
+            <td class="fw-bold py-1">{{ employee.employee_code }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Employee Name:</td>
+            <td class="fw-bold py-1">{{ employee.name }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Designation / Role:</td>
+            <td class="py-1">{{ employee.job_role }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Joining Date:</td>
+            <td class="py-1">{{ employee.joining_date.strftime('%d-%b-%Y') if employee.joining_date else 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <table class="table table-sm table-borderless mb-0">
+        <tbody>
+          <tr>
+            <td class="text-muted py-1" style="width: 38%;">Pay Period:</td>
+            <td class="fw-semibold py-1">{{ record.period_start.strftime('%d %b %Y') }} to {{ record.period_end.strftime('%d %b %Y') }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Disbursal Method:</td>
+            <td class="py-1">{{ record.payment_method }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Reference No:</td>
+            <td class="py-1 text-truncate" style="max-width: 180px;">{{ record.payment_reference or 'Pending' }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-1">Daily Wage Rate:</td>
+            <td class="fw-bold py-1 text-success">&#8377; {{ "{:,.2f}".format(record.daily_wage) }} / day</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Attendance Tracing Section -->
+  <div class="card mb-4 border-0" style="background-color: #fafbfc; border: 1px solid #e9ecef !important;">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0 text-muted fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+          <i class="bi bi-clock-history me-1"></i> Verified Attendance Muster Trace
+        </h6>
+        <span class="badge bg-secondary-subtle text-secondary border">Approved Roster Records</span>
+      </div>
+      <div class="row text-center g-2">
+        <div class="col-3">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">PRESENT DAYS</small>
+            <span class="fw-bold text-success fs-6">{{ record.present_days }}</span>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">HALF DAYS (0.5x)</small>
+            <span class="fw-bold text-warning fs-6">{{ record.half_days }}</span>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-white">
+            <small class="text-muted d-block" style="font-size: 0.72rem;">ABSENT DAYS</small>
+            <span class="fw-bold text-danger fs-6">{{ record.absent_days }}</span>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="p-2 border rounded bg-white border-success">
+            <small class="text-muted d-block fw-semibold" style="font-size: 0.72rem;">PAYABLE DAYS</small>
+            <span class="fw-bold text-primary fs-6">{{ record.payable_days }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wage Breakdown Tables -->
+  <div class="row g-4 mb-3">
+    <!-- Earnings Column -->
+    <div class="col-6">
+      <div class="border rounded p-3 h-100">
+        <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom" style="font-size: 0.8rem; color: var(--primary);">
+          <i class="bi bi-plus-circle-fill text-success me-1"></i> Earnings Breakdown
+        </h6>
+        <table class="table table-sm table-borderless mb-0" style="font-size: 0.88rem;">
+          <tbody>
+            <tr>
+              <td>Basic Wage Pay<br><small class="text-muted">({{ record.payable_days }} days &times; &#8377;{{ "{:,.2f}".format(record.daily_wage) }})</small></td>
+              <td class="text-end fw-semibold align-middle">&#8377; {{ "{:,.2f}".format((record.payable_days|float) * (record.daily_wage|float)) }}</td>
+            </tr>
+            <tr>
+              <td>Approved Overtime<br><small class="text-muted">({{ record.overtime_hours }} hrs &times; &#8377;{{ "{:,.2f}".format(record.overtime_rate) }}/hr)</small></td>
+              <td class="text-end fw-semibold align-middle">&#8377; {{ "{:,.2f}".format(record.overtime_pay) }}</td>
+            </tr>
+          </tbody>
+          <tfoot class="border-top">
+            <tr>
+              <th class="pt-2">Gross Earnings (A):</th>
+              <th class="text-end pt-2 text-success">&#8377; {{ "{:,.2f}".format(record.gross_pay) }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Deductions Column -->
+    <div class="col-6">
+      <div class="border rounded p-3 h-100">
+        <h6 class="fw-bold text-uppercase mb-3 pb-2 border-bottom" style="font-size: 0.8rem; color: var(--accent);">
+          <i class="bi bi-dash-circle-fill text-danger me-1"></i> Deductions Breakdown
+        </h6>
+        <table class="table table-sm table-borderless mb-0" style="font-size: 0.88rem;">
+          <tbody>
+            <tr>
+              <td>Wage Advances Deducted<br><small class="text-muted">Repayment from ledger</small></td>
+              <td class="text-end fw-semibold align-middle">&#8377; {{ "{:,.2f}".format(record.advances) }}</td>
+            </tr>
+            <tr>
+              <td>Statutory / Other Deductions<br><small class="text-muted">Tools, Welfare &amp; Canteen</small></td>
+              <td class="text-end fw-semibold align-middle">&#8377; {{ "{:,.2f}".format(record.deductions) }}</td>
+            </tr>
+          </tbody>
+          <tfoot class="border-top">
+            <tr>
+              <th class="pt-2">Total Deductions (B):</th>
+              <th class="text-end pt-2 text-danger">&#8377; {{ "{:,.2f}".format((record.advances|float) + (record.deductions|float)) }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Net Payable Highlight Banner -->
+  <div class="net-pay-banner d-flex justify-content-between align-items-center">
+    <div>
+      <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.78rem;">Net Take-Home Pay (A &minus; B)</div>
+      <small class="text-muted">Gross Earnings (&#8377;{{ "{:,.2f}".format(record.gross_pay) }}) minus Deductions (&#8377;{{ "{:,.2f}".format((record.advances|float) + (record.deductions|float)) }})</small>
+    </div>
+    <div class="text-end">
+      <div class="fs-3 fw-bold" style="color: var(--primary);">&#8377; {{ "{:,.2f}".format(record.net_pay) }}</div>
+      <small class="text-success fw-semibold">Processed &amp; Verified</small>
+    </div>
+  </div>
+
+  {% if record.notes %}
+  <div class="alert alert-light border small text-muted mb-4 py-2">
+    <strong>Remarks:</strong> {{ record.notes }}
+  </div>
+  {% endif %}
+
+  <!-- Signatures -->
+  <div class="row signature-box">
+    <div class="col-4">
+      <div>Prepared By: <strong>{{ record.generated_by or 'System Automator' }}</strong></div>
+      <div class="text-muted">Payroll Officer</div>
+    </div>
+    <div class="col-4">
+      <div>Approved By: <strong>{{ record.approved_by or 'Pending Verification' }}</strong></div>
+      <div class="text-muted">Estate General Manager</div>
+    </div>
+    <div class="col-4">
+      <div>Acknowledged By: <strong>{{ employee.name }}</strong></div>
+      <div class="text-muted">Employee Signature</div>
+    </div>
+  </div>
+
+  <div class="text-center text-muted mt-4" style="font-size: 0.72rem;">
+    This is a computer-generated sample payslip document from the AI-Powered Smart Coffee Estate Management System.
+  </div>
+</div>
+
+</body>
+</html>

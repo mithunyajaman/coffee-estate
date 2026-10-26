@@ -102,3 +102,15 @@ def roles_required(*allowed_roles):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+def manager_required(f):
+    """Convenience decorator restricting access to Admin and Estate Manager roles."""
+    return roles_required("Admin", "Estate Manager")(f)
+
+
+def admin_required(f):
+    """Convenience decorator restricting access strictly to Admin role."""
+    return roles_required("Admin")(f)
+
+

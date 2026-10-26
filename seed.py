@@ -18,6 +18,9 @@ from app.models.farm import EstateBlock, FarmActivity
 from app.models.harvest import HarvestRecord
 from app.models.task import Task
 from app.models.inventory import InventoryItem, StockTransaction
+from app.models.attendance import DailyAttendance
+from app.models.payroll import PayrollRecord, SalaryAdvance
+from app.services.payroll_service import generate_payroll_record
 
 def seed_database():
     app = create_app()
@@ -334,6 +337,93 @@ def seed_database():
 
             db.session.commit()
             print("  + Added sample InventoryItems and initial stock ledger.")
+
+        # 8. Seed Attendance Records for EMP001 and EMP002 for current period
+        print("[Seed] Seeding Attendance Muster for current period...")
+        emp1 = Employee.query.filter_by(employee_code="EMP001").first()
+        emp2 = Employee.query.filter_by(employee_code="EMP002").first()
+
+        today = date.today()
+        # Seed 14 days of attendance ending today
+        if emp1:
+            for days_ago in range(14, -1, -1):
+                att_date = today - timedelta(days=days_ago)
+                status_1 = "Present"
+                if days_ago == 4:
+                    status_1 = "Half-day"
+                elif days_ago == 8:
+                    status_1 = "Absent"
+
+                existing_1 = DailyAttendance.query.filter_by(employee_id=emp1.id, date=att_date, shift="Morning Shift").first()
+                if not existing_1:
+                    db.session.add(DailyAttendance(
+                        employee_id=emp1.id,
+                        date=att_date,
+                        shift="Morning Shift",
+                        status=status_1,
+                        approved_by="Deepak Kulkarni",
+                    ))
+
+            if emp2:
+                for days_ago in range(14, -1, -1):
+                    att_date = today - timedelta(days=days_ago)
+                    status_2 = "Present"
+                    if days_ago == 6:
+                        status_2 = "Half-day"
+                    elif days_ago == 11:
+                        status_2 = "Absent"
+
+                    existing_2 = DailyAttendance.query.filter_by(employee_id=emp2.id, date=att_date, shift="Morning Shift").first()
+                    if not existing_2:
+                        db.session.add(DailyAttendance(
+                            employee_id=emp2.id,
+                            date=att_date,
+                            shift="Morning Shift",
+                            status=status_2,
+                            approved_by="Deepak Kulkarni",
+                        ))
+            db.session.commit()
+
+        # 9. Seed Salary Advances and Sample Payroll
+        print("[Seed] Seeding Stage 4 Payroll & Advances...")
+        if emp1:
+            existing_adv = SalaryAdvance.query.filter_by(employee_id=emp1.id).first()
+            if not existing_adv:
+                adv = SalaryAdvance(
+                    employee_id=emp1.id,
+                    amount=1500.00,
+                    request_date=today - timedelta(days=5),
+                    reason="Medical emergency & clinic visit",
+                    status="Approved",
+                    approved_by="Deepak Kulkarni",
+                )
+                db.session.add(adv)
+                db.session.commit()
+
+            start_period = today.replace(day=1)
+            if today.month == 12:
+                end_period = date(today.year, 12, 31)
+            else:
+                end_period = date.fromordinal(date(today.year, today.month + 1, 1).toordinal() - 1)
+            
+            p_record = generate_payroll_record(
+                employee_id=emp1.id,
+                start_date=start_period,
+                end_date=end_period,
+                period_label=today.strftime("%B %Y"),
+                overtime_hours=8.0,
+                overtime_rate=120.00,
+                advances_amount=1500.00,
+                deductions_amount=350.00,
+                generated_by="manager",
+                notes="Verified against biometric muster and supervisor log",
+            )
+            p_record.status = "Approved"
+            p_record.approved_by = "Deepak Kulkarni"
+            from datetime import datetime, timezone
+            p_record.approved_at = datetime.now(timezone.utc)
+            db.session.commit()
+            print(f"  + Generated sample PayrollRecord: Net Pay = INR {p_record.net_pay}")
 
         print("[Seed] All records seeded successfully.")
 

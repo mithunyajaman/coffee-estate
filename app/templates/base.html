@@ -100,13 +100,10 @@
         <i class="bi bi-clipboard-check"></i>
         <span>13. Manual / Offline Att.</span>
       </a>
-      {% if current_user.is_manager %}
-      <a href="#payroll" class="sidebar-link text-white-50">
+      <a href="{{ url_for('payroll.index') }}" class="sidebar-link {% if request.path.startswith('/payroll') %}active{% endif %}">
         <i class="bi bi-cash-stack"></i>
         <span>15. Payroll Management</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 4</span>
       </a>
-      {% endif %}
 
       <div class="nav-section-title">AI Agriculture &amp; Models</div>
       <a href="#disease" class="sidebar-link text-white-50">
@@ -131,10 +128,9 @@
       </a>
 
       <div class="nav-section-title">System &amp; Intelligence</div>
-      <a href="#reports" class="sidebar-link text-white-50">
+      <a href="{{ url_for('reports.index') }}" class="sidebar-link {% if request.path.startswith('/reports') %}active{% endif %}">
         <i class="bi bi-file-earmark-bar-graph"></i>
         <span>19. Reports &amp; Analytics</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 4</span>
       </a>
       {% if current_user.is_admin %}
       <a href="#settings" class="sidebar-link text-white-50">
