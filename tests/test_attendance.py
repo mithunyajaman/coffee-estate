@@ -231,3 +231,48 @@ def test_face_verify_low_confidence_rejected_with_fallback(client, auth_client):
     assert data["matched"] is False
     assert "below required threshold" in data["error"]
     assert "fallback_url" in data
+
+
+def test_employee_cannot_drop_attendance(client, auth_client):
+    """Field workers receive 403 Forbidden when attempting to view or drop manual attendance."""
+    auth_client.login_employee()
+    
+    # Attempt to view manual roster
+    resp_view = client.get("/attendance/manual")
+    assert resp_view.status_code == 403
+
+    # Attempt to bulk-save attendance
+    resp_save = client.post("/attendance/manual/bulk-save", data={"date": "2026-10-26", "shift": "Morning Shift"})
+    assert resp_save.status_code == 403
+
+
+def test_green_coffee_targeted_face_verification(client, auth_client):
+    """Admin/Manager can verify a specific employee's face and mark Green Coffee (Present)."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+    target_vector = [0.8] * 128
+
+    # Enroll employee
+    client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "consent": True,
+        "embedding": target_vector,
+        "threshold": 0.75
+    })
+
+    # Targeted verification
+    resp = client.post("/api/attendance/face-verify", json={
+        "vector": target_vector,
+        "employee_id": emp.id,
+        "event_type": "Check-in"
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["matched"] is True
+    assert data["coffee_status"] == "Green Coffee"
+    assert data["status"] == "Present"
+
+    # Check daily attendance was updated as Present
+    daily = DailyAttendance.query.filter_by(employee_id=emp.id, date=date.today()).first()
+    assert daily is not None
+    assert daily.status == "Present"

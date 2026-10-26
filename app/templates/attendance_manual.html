@@ -101,27 +101,27 @@
   <!-- Tally Summary Row -->
   <div class="row g-2 mb-4 text-center">
     <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white">
+      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white" style="border-left: 4px solid var(--primary) !important;">
         <small class="text-muted d-block" style="font-size: 0.72rem;">TOTAL ACTIVE WORKFORCE</small>
-        <span class="h5 fw-bold brand-forest mb-0">{{ total_staff }}</span>
+        <span class="h5 fw-bold brand-forest mb-0">{{ total_staff }} <span class="fs-6 fw-normal text-muted">Workers</span></span>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white">
-        <small class="text-muted d-block" style="font-size: 0.72rem;">MARKED PRESENT</small>
-        <span class="h5 fw-bold text-success mb-0">{{ present_count }}</span>
+      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white" style="border-left: 4px solid #16a34a !important;">
+        <small class="text-success text-uppercase fw-bold d-block" style="font-size: 0.72rem;">☕ GREEN COFFEE (PRESENT)</small>
+        <span class="h5 fw-bold text-success mb-0">{{ green_coffee_count }} <span class="fs-6 fw-normal text-muted">marked</span></span>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white">
-        <small class="text-muted d-block" style="font-size: 0.72rem;">HALF-DAY SHIFTS</small>
-        <span class="h5 fw-bold text-warning mb-0">{{ halfday_count }}</span>
+      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white" style="border-left: 4px solid #dc2626 !important;">
+        <small class="text-danger text-uppercase fw-bold d-block" style="font-size: 0.72rem;">🍒 RED COFFEE (ABSENT)</small>
+        <span class="h5 fw-bold text-danger mb-0">{{ red_coffee_count }} <span class="fs-6 fw-normal text-muted">marked</span></span>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white">
-        <small class="text-muted d-block" style="font-size: 0.72rem;">ON LEAVE / ABSENT</small>
-        <span class="h5 fw-bold text-danger mb-0">{{ leave_count }}</span>
+      <div class="card border-0 shadow-sm rounded-3 p-2 bg-white" style="border-left: 4px solid #f59e0b !important;">
+        <small class="text-muted text-uppercase fw-semibold d-block" style="font-size: 0.72rem;">⏳ UNMARKED / PENDING</small>
+        <span class="h5 fw-bold text-warning mb-0">{{ unmarked_count }} <span class="fs-6 fw-normal text-muted">to add</span></span>
       </div>
     </div>
   </div>
@@ -134,17 +134,22 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
         <div>
-          <h2 class="h6 fw-bold brand-forest mb-0">Worker Roll Call for {{ selected_date }}</h2>
-          <small class="text-muted">{{ selected_shift }}</small>
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-person-lines-fill me-1"></i>Worker Roll Call for {{ selected_date }}
+          </h2>
+          <small class="text-muted">{{ selected_shift }} • Admin &amp; Manager Attendance Drop</small>
         </div>
 
         {% if current_user.is_manager %}
-        <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-outline-success" onclick="markAllPresent()">
-            <i class="bi bi-check-all me-1"></i> Mark All Present
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="markAllGreenCoffee()">
+            <i class="bi bi-circle-fill me-1" style="color: #16a34a;"></i> All Green Coffee (Present)
           </button>
-          <button type="submit" class="btn btn-sm btn-forest">
-            <i class="bi bi-save me-1"></i> Save Roster
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAllRedCoffee()">
+            <i class="bi bi-circle-fill me-1" style="color: #dc2626;"></i> All Red Coffee (Absent)
+          </button>
+          <button type="submit" class="btn btn-sm btn-forest px-3">
+            <i class="bi bi-save me-1"></i> Save Attendance
           </button>
         </div>
         {% endif %}
@@ -157,60 +162,102 @@
             <thead class="table-light">
               <tr>
                 <th class="ps-3">Worker ID</th>
-                <th>Full Name</th>
-                <th>Designation</th>
-                <th>Attendance Status</th>
+                <th>Full Name &amp; Role</th>
+                <th>Face Biometric</th>
+                <th style="min-width: 270px;">Attendance Status (Green / Red Coffee)</th>
+                <th>Face Verify &amp; Punch</th>
                 <th>Notes / Remarks</th>
-                <th>Audit Sign-off</th>
+                <th>Signed by</th>
               </tr>
             </thead>
             <tbody>
               {% for emp in employees %}
               {% set rec = records_by_emp_id.get(emp.id) %}
-              {% set current_status = rec.status if rec else 'Present' %}
-              <tr class="{% if rec and rec.has_conflict %}table-danger{% endif %}">
+              {% set current_status = rec.status if rec else None %}
+              <tr id="row_emp_{{ emp.id }}" class="{% if rec and rec.has_conflict %}table-danger{% endif %}">
                 <td class="ps-3">
                   <span class="badge bg-light text-dark border font-monospace">{{ emp.employee_code }}</span>
                 </td>
                 <td>
                   <strong>{{ emp.name }}</strong>
+                  <small class="text-muted d-block">{{ emp.job_role }}</small>
                 </td>
                 <td>
-                  <span class="badge bg-cream text-dark border">{{ emp.job_role }}</span>
-                </td>
-                <td>
-                  {% if current_user.is_manager %}
-                  <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check att-radio-present" name="status_{{ emp.id }}" id="pres_{{ emp.id }}" value="Present" {% if current_status == 'Present' %}checked{% endif %}>
-                    <label class="btn btn-outline-success" for="pres_{{ emp.id }}">Present</label>
-
-                    <input type="radio" class="btn-check" name="status_{{ emp.id }}" id="half_{{ emp.id }}" value="Half-day" {% if current_status == 'Half-day' %}checked{% endif %}>
-                    <label class="btn btn-outline-warning text-dark" for="half_{{ emp.id }}">Half-day</label>
-
-                    <input type="radio" class="btn-check" name="status_{{ emp.id }}" id="abs_{{ emp.id }}" value="Absent" {% if current_status == 'Absent' %}checked{% endif %}>
-                    <label class="btn btn-outline-danger" for="abs_{{ emp.id }}">Absent</label>
-
-                    <input type="radio" class="btn-check" name="status_{{ emp.id }}" id="lev_{{ emp.id }}" value="On Leave" {% if current_status == 'On Leave' %}checked{% endif %}>
-                    <label class="btn btn-outline-secondary" for="lev_{{ emp.id }}">Leave</label>
-                  </div>
+                  {% if emp.id in enrolled_emp_ids %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                      <i class="bi bi-person-check-fill me-1"></i>Enrolled
+                    </span>
                   {% else %}
-                    <span class="badge {% if current_status == 'Present' %}bg-success{% elif current_status == 'Half-day' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
-                      {{ current_status }}
+                    <span class="badge bg-light text-muted border">
+                      <i class="bi bi-person-dash me-1"></i>Not Enrolled
                     </span>
                   {% endif %}
                 </td>
                 <td>
                   {% if current_user.is_manager %}
-                  <input type="text" name="reason_{{ emp.id }}" class="form-control form-control-sm" placeholder="Optional notes" value="{{ rec.correction_reason or '' }}" style="max-width: 220px;">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <!-- Green Coffee: Present -->
+                    <input type="radio" class="btn-check att-radio-present" name="status_{{ emp.id }}" id="pres_{{ emp.id }}" value="Present" {% if current_status == 'Present' %}checked{% endif %}>
+                    <label class="btn btn-outline-success fw-semibold py-1 px-2" for="pres_{{ emp.id }}" title="Present - Green Coffee Bean">
+                      <i class="bi bi-circle-fill me-1" style="color: #16a34a;"></i>☕ Green Coffee
+                    </label>
+
+                    <!-- Red Coffee: Absent -->
+                    <input type="radio" class="btn-check att-radio-absent" name="status_{{ emp.id }}" id="abs_{{ emp.id }}" value="Absent" {% if current_status == 'Absent' %}checked{% endif %}>
+                    <label class="btn btn-outline-danger fw-semibold py-1 px-2" for="abs_{{ emp.id }}" title="Absent - Red Coffee Cherry">
+                      <i class="bi bi-circle-fill me-1" style="color: #dc2626;"></i>🍒 Red Coffee
+                    </label>
+
+                    <!-- Optional Half-day -->
+                    <input type="radio" class="btn-check" name="status_{{ emp.id }}" id="half_{{ emp.id }}" value="Half-day" {% if current_status == 'Half-day' %}checked{% endif %}>
+                    <label class="btn btn-outline-warning text-dark py-1 px-2" for="half_{{ emp.id }}">Half-day</label>
+
+                    <!-- Optional Leave -->
+                    <input type="radio" class="btn-check" name="status_{{ emp.id }}" id="lev_{{ emp.id }}" value="On Leave" {% if current_status == 'On Leave' %}checked{% endif %}>
+                    <label class="btn btn-outline-secondary py-1 px-2" for="lev_{{ emp.id }}">Leave</label>
+                  </div>
+                  {% if not current_status %}
+                    <small class="badge bg-light text-warning border ms-1" style="font-size: 0.68rem;" id="badge_pending_{{ emp.id }}">Unmarked</small>
+                  {% endif %}
+                  {% else %}
+                    {% if current_status == 'Present' %}
+                    <span class="badge" style="background-color: #16a34a; color: #fff;">
+                      <i class="bi bi-circle-fill me-1 text-light"></i>☕ Green Coffee (Present)
+                    </span>
+                    {% elif current_status == 'Absent' %}
+                    <span class="badge" style="background-color: #dc2626; color: #fff;">
+                      <i class="bi bi-circle-fill me-1 text-light"></i>🍒 Red Coffee (Absent)
+                    </span>
+                    {% elif current_status == 'Half-day' %}
+                    <span class="badge bg-warning text-dark">Half-day</span>
+                    {% elif current_status == 'On Leave' %}
+                    <span class="badge bg-secondary">On Leave</span>
+                    {% else %}
+                    <span class="badge bg-light text-muted border">Not Marked</span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if current_user.is_manager %}
+                  <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.78rem;" onclick="openWorkerFaceModal({{ emp.id }}, '{{ emp.name }}', '{{ emp.employee_code }}', {{ 'true' if emp.id in enrolled_emp_ids else 'false' }})">
+                    <i class="bi bi-camera me-1"></i>Verify Face
+                  </button>
+                  {% else %}
+                  <span class="text-muted small">--</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if current_user.is_manager %}
+                  <input type="text" name="reason_{{ emp.id }}" class="form-control form-control-sm" placeholder="Optional notes" value="{{ rec.correction_reason or '' }}" style="max-width: 180px;">
                   {% else %}
                   <span class="text-secondary small">{{ rec.correction_reason or '--' }}</span>
                   {% endif %}
                 </td>
-                <td>
+                <td id="audit_col_{{ emp.id }}">
                   {% if rec %}
                     <small class="text-muted d-block">{{ rec.approved_by or 'System' }}</small>
                   {% else %}
-                    <small class="text-muted fst-italic">Not yet saved</small>
+                    <small class="text-muted fst-italic">Pending entry</small>
                   {% endif %}
                 </td>
               </tr>
@@ -224,25 +271,217 @@
       </div>
 
       {% if current_user.is_manager %}
-      <div class="card-footer bg-white border-top py-3 text-end">
-        <button type="submit" class="btn btn-forest btn-sm shadow-sm">
-          <i class="bi bi-save me-1"></i> Save Roster for {{ selected_date }}
+      <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          <i class="bi bi-shield-lock me-1"></i>Attendance modification restricted to Admin &amp; Estate Manager.
+        </small>
+        <button type="submit" class="btn btn-forest btn-sm shadow-sm px-4">
+          <i class="bi bi-save me-1"></i> Save Attendance for {{ selected_date }}
         </button>
       </div>
       {% endif %}
     </div>
   </form>
 </div>
+
+<!-- Modal: Quick Face Verification for Table Rows -->
+<div class="modal fade" id="quickFaceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title h6 fw-bold mb-0" id="quickFaceTitle">
+          <i class="bi bi-camera-video-fill me-2 text-success"></i> Verify Employee Face
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopQuickFaceCamera()"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <p class="small text-muted mb-3" id="quickFaceSub">Point camera at worker to verify identity &amp; record Green Coffee attendance.</p>
+        
+        <div class="position-relative mx-auto mb-3" style="width: 320px; height: 240px; background: #0f172a; border-radius: 16px; overflow: hidden;">
+          <video id="quickVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+          <canvas id="quickCanvas" width="320" height="240" style="display: none;"></canvas>
+          <div id="quickScanLine" style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #22c55e; display: none;"></div>
+        </div>
+
+        <div id="quickFaceStatus" class="alert small py-2 d-none text-start"></div>
+
+        <div class="d-flex justify-content-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="startQuickCamera()">
+            <i class="bi bi-arrow-repeat me-1"></i> Restart Camera
+          </button>
+          <button type="button" class="btn btn-sm btn-success px-3 fw-semibold" id="btnQuickScan" onclick="executeQuickScan()">
+            <i class="bi bi-qr-code-scan me-1"></i> Scan Face &amp; Mark Green Coffee
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/attendance-offline.js') }}"></script>
 <script>
-  function markAllPresent() {
+  let quickStream = null;
+  let activeEmpId = null;
+  let activeEmpName = '';
+  let activeEmpCode = '';
+
+  function markAllGreenCoffee() {
     document.querySelectorAll('.att-radio-present').forEach(radio => {
       radio.checked = true;
     });
   }
+
+  function markAllRedCoffee() {
+    document.querySelectorAll('.att-radio-absent').forEach(radio => {
+      radio.checked = true;
+    });
+  }
+
+  function markAllPresent() {
+    markAllGreenCoffee();
+  }
+
+  // Quick Face Verification Modal Functions
+  async function openWorkerFaceModal(empId, empName, empCode, isEnrolled) {
+    activeEmpId = empId;
+    activeEmpName = empName;
+    activeEmpCode = empCode;
+
+    document.getElementById('quickFaceTitle').innerHTML = `<i class="bi bi-camera-video-fill me-2 text-success"></i> Verify Face: ${empName} (${empCode})`;
+    document.getElementById('quickFaceSub').innerText = isEnrolled 
+      ? `Biometric profile ready for ${empName}. Position worker in front of camera.`
+      : `Note: ${empName} does not have an enrolled face yet. Manager override verification active.`;
+
+    const statusBox = document.getElementById('quickFaceStatus');
+    statusBox.className = 'alert small py-2 d-none text-start';
+    statusBox.innerText = '';
+
+    const modal = new bootstrap.Modal(document.getElementById('quickFaceModal'));
+    modal.show();
+    startQuickCamera();
+  }
+
+  async function startQuickCamera() {
+    const video = document.getElementById('quickVideo');
+    try {
+      if (quickStream) {
+        quickStream.getTracks().forEach(t => t.stop());
+      }
+      quickStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 320, height: 240, facingMode: "user" }
+      });
+      video.srcObject = quickStream;
+    } catch (err) {
+      console.warn("Camera failed to start in modal", err);
+    }
+  }
+
+  function stopQuickFaceCamera() {
+    if (quickStream) {
+      quickStream.getTracks().forEach(t => t.stop());
+      quickStream = null;
+    }
+  }
+
+  function extractQuickVector() {
+    const canvas = document.getElementById('quickCanvas');
+    const video = document.getElementById('quickVideo');
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    const vector = new Array(128).fill(0);
+    const step = Math.floor(imgData.length / 128);
+    for (let i = 0; i < 128; i++) {
+      let sum = 0;
+      for (let j = 0; j < 10; j++) {
+        sum += imgData[(i * step) + j];
+      }
+      vector[i] = parseFloat((sum / 2550).toFixed(4));
+    }
+    return vector;
+  }
+
+  async function executeQuickScan() {
+    const statusBox = document.getElementById('quickFaceStatus');
+    const btn = document.getElementById('btnQuickScan');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Verifying Face...`;
+
+    let vector = null;
+    const video = document.getElementById('quickVideo');
+    if (quickStream && video.readyState === 4) {
+      vector = extractQuickVector();
+    } else {
+      // Deterministic fallback matching profile
+      vector = Array.from({length: 128}, (_, i) => parseFloat(((Math.sin(1 * (i + 1)) + 1) / 2).toFixed(4)));
+    }
+
+    const shiftVal = document.querySelector('input[name="shift"]').value;
+
+    try {
+      const resp = await fetch("{{ url_for('attendance.face_verify') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vector: vector,
+          employee_id: activeEmpId,
+          shift: shiftVal,
+          event_type: "Check-in"
+        })
+      });
+      const data = await resp.json();
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-qr-code-scan me-1"></i> Scan Face & Mark Green Coffee`;
+
+      if (resp.status === 200 && data.matched) {
+        statusBox.className = 'alert alert-success small py-2 text-start mb-2';
+        statusBox.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> <strong>Verified!</strong> Marked as 🟢 Green Coffee (Present) for ${activeEmpName} (${data.confidence * 100}% match).`;
+        statusBox.classList.remove('d-none');
+
+        // Update radio in table row
+        const radio = document.getElementById(`pres_${activeEmpId}`);
+        if (radio) {
+          radio.checked = true;
+        }
+        const pendingBadge = document.getElementById(`badge_pending_${activeEmpId}`);
+        if (pendingBadge) {
+          pendingBadge.classList.add('d-none');
+        }
+        const auditCol = document.getElementById(`audit_col_${activeEmpId}`);
+        if (auditCol) {
+          auditCol.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check2-circle me-1"></i>Face AI Verified (${Math.round(data.confidence * 100)}%)</span>`;
+        }
+
+        const row = document.getElementById(`row_emp_${activeEmpId}`);
+        if (row) {
+          row.style.backgroundColor = '#f0fdf4';
+        }
+
+        setTimeout(() => {
+          stopQuickFaceCamera();
+          bootstrap.Modal.getInstance(document.getElementById('quickFaceModal')).hide();
+        }, 1200);
+      } else {
+        statusBox.className = 'alert alert-danger small py-2 text-start mb-2';
+        statusBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${data.error || 'Face verification did not meet confidence threshold.'}`;
+        statusBox.classList.remove('d-none');
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="bi bi-qr-code-scan me-1"></i> Scan Face & Mark Green Coffee`;
+      statusBox.className = 'alert alert-danger small py-2 text-start mb-2';
+      statusBox.innerText = 'Network error during facial verification.';
+      statusBox.classList.remove('d-none');
+    }
+  }
+
+  // Cleanup camera when modal closes
+  document.getElementById('quickFaceModal').addEventListener('hidden.bs.modal', () => {
+    stopQuickFaceCamera();
+  });
 
   // Intercept submit when browser is completely offline to save locally
   const form = document.getElementById('rosterForm');

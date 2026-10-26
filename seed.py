@@ -338,51 +338,8 @@ def seed_database():
             db.session.commit()
             print("  + Added sample InventoryItems and initial stock ledger.")
 
-        # 8. Seed Attendance Records for EMP001 and EMP002 for current period
-        print("[Seed] Seeding Attendance Muster for current period...")
-        emp1 = Employee.query.filter_by(employee_code="EMP001").first()
-        emp2 = Employee.query.filter_by(employee_code="EMP002").first()
-
-        today = date.today()
-        # Seed 14 days of attendance ending today
-        if emp1:
-            for days_ago in range(14, -1, -1):
-                att_date = today - timedelta(days=days_ago)
-                status_1 = "Present"
-                if days_ago == 4:
-                    status_1 = "Half-day"
-                elif days_ago == 8:
-                    status_1 = "Absent"
-
-                existing_1 = DailyAttendance.query.filter_by(employee_id=emp1.id, date=att_date, shift="Morning Shift").first()
-                if not existing_1:
-                    db.session.add(DailyAttendance(
-                        employee_id=emp1.id,
-                        date=att_date,
-                        shift="Morning Shift",
-                        status=status_1,
-                        approved_by="Deepak Kulkarni",
-                    ))
-
-            if emp2:
-                for days_ago in range(14, -1, -1):
-                    att_date = today - timedelta(days=days_ago)
-                    status_2 = "Present"
-                    if days_ago == 6:
-                        status_2 = "Half-day"
-                    elif days_ago == 11:
-                        status_2 = "Absent"
-
-                    existing_2 = DailyAttendance.query.filter_by(employee_id=emp2.id, date=att_date, shift="Morning Shift").first()
-                    if not existing_2:
-                        db.session.add(DailyAttendance(
-                            employee_id=emp2.id,
-                            date=att_date,
-                            shift="Morning Shift",
-                            status=status_2,
-                            approved_by="Deepak Kulkarni",
-                        ))
-            db.session.commit()
+        # 8. Attendance Records: Kept empty per user request ("data I will add, you don't add")
+        print("[Seed] Attendance data will be entered by estate administrator/manager directly.")
 
         # 9. Seed Salary Advances and Sample Payroll
         print("[Seed] Seeding Stage 4 Payroll & Advances...")

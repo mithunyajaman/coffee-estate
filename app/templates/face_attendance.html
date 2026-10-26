@@ -82,18 +82,32 @@
     <!-- Camera Kiosk Column -->
     <div class="col-12 col-lg-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
-        <!-- Event Type Selector (Check-in / Check-out) -->
-        <div class="d-inline-flex justify-content-center mb-3">
-          <div class="btn-group p-1 bg-light rounded-pill border" role="group">
-            <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckIn" value="Check-in" checked>
-            <label class="btn btn-sm btn-outline-success rounded-pill px-4" for="btnCheckIn">
-              <i class="bi bi-box-arrow-in-right me-1"></i> Check-in (Muster Start)
-            </label>
+        <!-- Event Type Selector (Check-in / Check-out) & Employee Target -->
+        <div class="row g-2 mb-3 justify-content-center">
+          <div class="col-md-6">
+            <select id="selTargetEmployee" class="form-select form-select-sm">
+              <option value="">-- Auto-detect (Match any enrolled worker) --</option>
+              {% for e in employees %}
+              <option value="{{ e.id }}" {% if e.id not in enrolled_emp_ids %}class="text-muted"{% endif %}>
+                {{ e.employee_code }} - {{ e.name }} ({{ e.job_role }}) {% if e.id in enrolled_emp_ids %}✓ Enrolled{% else %}⚠️ Unenrolled{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Select worker to verify specifically, or leave on auto-detect</small>
+          </div>
 
-            <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckOut" value="Check-out">
-            <label class="btn btn-sm btn-outline-danger rounded-pill px-4" for="btnCheckOut">
-              <i class="bi bi-box-arrow-right me-1"></i> Check-out (Shift End)
-            </label>
+          <div class="col-md-6">
+            <div class="btn-group p-1 bg-light rounded-pill border w-100" role="group">
+              <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckIn" value="Check-in" checked>
+              <label class="btn btn-sm btn-outline-success rounded-pill w-50" for="btnCheckIn">
+                <i class="bi bi-circle-fill me-1" style="color: #16a34a;"></i> ☕ Check-in (Green Coffee)
+              </label>
+
+              <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckOut" value="Check-out">
+              <label class="btn btn-sm btn-outline-danger rounded-pill w-50" for="btnCheckOut">
+                <i class="bi bi-box-arrow-right me-1"></i> Shift End (Check-out)
+              </label>
+            </div>
           </div>
         </div>
 
@@ -119,7 +133,7 @@
             <i class="bi bi-camera-video me-1"></i> Start Camera
           </button>
           <button type="button" class="btn btn-forest btn-lg px-4 shadow-sm" onclick="verifyAndPunch()" id="btnPunch">
-            <i class="bi bi-qr-code-scan me-2"></i>Verify &amp; Punch Attendance
+            <i class="bi bi-qr-code-scan me-2"></i>Verify Face &amp; Record ☕ Green Coffee (Present)
           </button>
         </div>
 
@@ -145,8 +159,8 @@
               <small class="text-muted font-monospace">{{ ev.employee.employee_code if ev.employee else '--' }} • {{ ev.event_type }}</small>
             </div>
             <div class="text-end">
-              <span class="badge bg-success-subtle text-success border border-success-subtle d-block mb-1">
-                {{ ((ev.confidence or 0.85) * 100) | int }}% match
+              <span class="badge mb-1 d-block" style="background-color: #16a34a; color: #fff; font-size: 0.72rem;">
+                <i class="bi bi-circle-fill me-1 text-light" style="font-size: 0.5rem;"></i>☕ Green Coffee ({{ ((ev.confidence or 0.85) * 100) | int }}%)
               </span>
               <small class="text-secondary" style="font-size: 0.72rem;">{{ ev.timestamp.strftime('%H:%M:%S UTC') }}</small>
             </div>
@@ -223,6 +237,7 @@
     scanBeam.style.display = 'block';
 
     const eventType = document.querySelector('input[name="event_type_choice"]:checked').value;
+    const targetEmpId = document.getElementById('selTargetEmployee') ? document.getElementById('selTargetEmployee').value : '';
     
     // Extract vector from camera, or use default sample vector if camera unavailable
     let vector = null;
@@ -239,7 +254,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           vector: vector,
-          event_type: eventType
+          event_type: eventType,
+          employee_id: targetEmpId || null
         })
       });
 
@@ -251,10 +267,13 @@
         resultBanner.classList.add('alert-success');
         resultBanner.innerHTML = `
           <div class="d-flex align-items-center">
-            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+            <span class="fs-2 me-3">☕</span>
             <div>
-              <strong class="d-block">${res.message}</strong>
-              <small class="text-secondary font-monospace">Employee: ${res.employee_name} (${res.employee_code}) • Time: ${res.timestamp}</small>
+              <div class="badge px-2 py-1 mb-1" style="background-color: #16a34a; color: #fff;">
+                <i class="bi bi-circle-fill me-1" style="font-size: 0.6rem;"></i>Green Coffee (Present) Recorded
+              </div>
+              <strong class="d-block text-dark">${res.message}</strong>
+              <small class="text-secondary font-monospace">Employee: ${res.employee_name} (${res.employee_code}) • Match: ${Math.round(res.confidence * 100)}% • Time: ${res.timestamp}</small>
             </div>
           </div>
         `;

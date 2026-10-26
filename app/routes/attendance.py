@@ -18,8 +18,9 @@ attendance_bp = Blueprint("attendance", __name__)
 
 @attendance_bp.route("/attendance/manual", methods=["GET"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def manual_attendance():
-    """Page 13: Manual and Offline Attendance Entry with conflict review panel."""
+    """Page 13: Manual and Offline Attendance Entry (Admin & Manager only)."""
     current_user = get_current_user()
     selected_date_str = request.args.get("date") or str(date.today())
     selected_shift = request.args.get("shift") or "Morning Shift"
@@ -36,26 +37,35 @@ def manual_attendance():
     existing_records = DailyAttendance.query.filter_by(date=att_date, shift=selected_shift).all()
     records_by_emp_id = {r.employee_id: r for r in existing_records}
 
+    # Identify enrolled biometric faces
+    enrolled_emp_ids = {e.employee_id for e in FaceEnrollment.query.filter_by(enrollment_status="Enrolled").all()}
+
     # Identify any conflicts flagged by offline sync
     conflict_records = DailyAttendance.query.filter_by(date=att_date, shift=selected_shift, has_conflict=True).all()
 
-    # Tally
+    # Tally with Green Coffee (Present) and Red Coffee (Absent)
     total_staff = len(employees)
-    present_count = sum(1 for r in existing_records if r.status == "Present")
+    green_coffee_count = sum(1 for r in existing_records if r.status == "Present")
+    red_coffee_count = sum(1 for r in existing_records if r.status == "Absent")
     halfday_count = sum(1 for r in existing_records if r.status == "Half-day")
-    leave_count = sum(1 for r in existing_records if r.status in ("On Leave", "Absent"))
+    leave_count = sum(1 for r in existing_records if r.status == "On Leave")
+    unmarked_count = max(0, total_staff - len(records_by_emp_id))
 
     return render_template(
         "attendance_manual.html",
         employees=employees,
         records_by_emp_id=records_by_emp_id,
+        enrolled_emp_ids=enrolled_emp_ids,
         conflict_records=conflict_records,
         selected_date=selected_date_str,
         selected_shift=selected_shift,
         total_staff=total_staff,
-        present_count=present_count,
+        green_coffee_count=green_coffee_count,
+        red_coffee_count=red_coffee_count,
+        present_count=green_coffee_count, # Backwards-compatible
+        leave_count=red_coffee_count + leave_count,
         halfday_count=halfday_count,
-        leave_count=leave_count,
+        unmarked_count=unmarked_count,
         current_user=current_user,
     )
 
@@ -361,20 +371,25 @@ def face_revoke():
 @attendance_bp.route("/attendance/face-checkin", methods=["GET"])
 @login_required
 def face_attendance_page():
-    """Page 12: Face Attendance Verification with camera guide and manual fallback."""
+    """Page 12: Face Attendance Verification with camera guide and employee selection."""
     current_user = get_current_user()
+    employees = Employee.query.filter_by(status="Active").order_by(Employee.employee_code.asc()).all()
     today_records = DailyAttendance.query.filter_by(date=date.today()).all()
     today_events = (
         AttendanceEvent.query.filter_by(method="Face")
         .order_by(AttendanceEvent.timestamp.desc())
-        .limit(8)
+        .limit(10)
         .all()
     )
 
-    enrolled_count = FaceEnrollment.query.filter_by(enrollment_status="Enrolled").count()
+    enrolled_list = FaceEnrollment.query.filter_by(enrollment_status="Enrolled").all()
+    enrolled_count = len(enrolled_list)
+    enrolled_emp_ids = {e.employee_id for e in enrolled_list}
 
     return render_template(
         "face_attendance.html",
+        employees=employees,
+        enrolled_emp_ids=enrolled_emp_ids,
         today_events=today_events,
         enrolled_count=enrolled_count,
         current_user=current_user,
@@ -401,30 +416,49 @@ def face_verify():
     data = request.get_json(silent=True) or {}
     sample_vector = data.get("vector") # 128D mathematical vector
     event_type = data.get("event_type", "Check-in") # Check-in or Check-out
+    target_emp_id = data.get("employee_id")
+    shift = data.get("shift", "Morning Shift")
 
     if not sample_vector or not isinstance(sample_vector, list):
         return jsonify({"matched": False, "error": "No valid facial template extracted from frame."}), 400
 
-    # Retrieve all active enrolled biometric profiles
-    enrollments = FaceEnrollment.query.filter_by(enrollment_status="Enrolled").all()
-    if not enrollments:
-        return jsonify({
-            "matched": False,
-            "error": "No enrolled biometric profiles found in database. Please enroll first."
-        }), 404
-
     best_match = None
     best_similarity = 0.0
 
-    for enr in enrollments:
+    # If a specific employee is targeted for verification
+    if target_emp_id and str(target_emp_id).isdigit():
+        enr = FaceEnrollment.query.filter_by(employee_id=int(target_emp_id), enrollment_status="Enrolled").first()
+        if not enr:
+            emp = db.session.get(Employee, int(target_emp_id))
+            emp_name = emp.name if emp else f"ID #{target_emp_id}"
+            return jsonify({
+                "matched": False,
+                "error": f"{emp_name} has not registered a face template yet. Please enroll first in Face Registration."
+            }), 404
         try:
             stored_vector = json.loads(enr.protected_template)
-            sim = cosine_similarity(sample_vector, stored_vector)
-            if sim > best_similarity:
-                best_similarity = sim
-                best_match = enr
+            best_similarity = cosine_similarity(sample_vector, stored_vector)
+            best_match = enr
         except Exception:
-            continue
+            return jsonify({"matched": False, "error": "Invalid biometric template format."}), 500
+    else:
+        # 1:N match across all enrolled profiles
+        enrollments = FaceEnrollment.query.filter_by(enrollment_status="Enrolled").all()
+        if not enrollments:
+            return jsonify({
+                "matched": False,
+                "error": "No enrolled biometric profiles found in database. Please enroll first."
+            }), 404
+
+        for enr in enrollments:
+            try:
+                stored_vector = json.loads(enr.protected_template)
+                sim = cosine_similarity(sample_vector, stored_vector)
+                if sim > best_similarity:
+                    best_similarity = sim
+                    best_match = enr
+            except Exception:
+                continue
 
     threshold = best_match.confidence_threshold if best_match else 0.75
 
@@ -452,8 +486,11 @@ def face_verify():
         return jsonify({
             "matched": True,
             "confidence": round(best_similarity, 3),
+            "employee_id": emp.id,
             "employee_name": emp.name,
             "employee_code": emp.employee_code,
+            "status": "Present",
+            "coffee_status": "Green Coffee",
             "warning": f"Duplicate event: {emp.name} already recorded a {event_type} at {recent_dup.timestamp.strftime('%H:%M:%S UTC')}."
         }), 409
 
@@ -470,24 +507,27 @@ def face_verify():
     )
     db.session.add(att_event)
 
-    # Upsert daily attendance record
+    # Upsert daily attendance record as Green Coffee (Present)
     today = date.today()
     daily = DailyAttendance.query.filter_by(
         employee_id=emp.id,
         date=today,
-        shift="Morning Shift"
+        shift=shift
     ).first()
 
     if not daily:
         daily = DailyAttendance(
             employee_id=emp.id,
             date=today,
-            shift="Morning Shift",
+            shift=shift,
             status="Present",
-            approved_by="Face Verification AI",
+            approved_by=f"Face AI ({current_user.username})",
             has_conflict=False,
         )
         db.session.add(daily)
+    else:
+        daily.status = "Present"
+        daily.approved_by = f"Face AI ({current_user.username})"
 
     db.session.commit()
 
@@ -496,7 +536,7 @@ def face_verify():
         entity_type="AttendanceEvent",
         entity_id=str(emp.id),
         outcome="SUCCESS",
-        details=f"Verified {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence for {event_type}.",
+        details=f"Verified {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence. Marked Green Coffee (Present).",
         actor_id=current_user.id,
         actor_username=current_user.username,
     )
@@ -504,9 +544,12 @@ def face_verify():
     return jsonify({
         "matched": True,
         "confidence": round(best_similarity, 3),
+        "employee_id": emp.id,
         "employee_name": emp.name,
         "employee_code": emp.employee_code,
+        "status": "Present",
+        "coffee_status": "Green Coffee",
         "event_type": event_type,
         "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S UTC"),
-        "message": f"Welcome, {emp.name}! {event_type} recorded successfully ({round(best_similarity * 100, 1)}% match).",
+        "message": f"Welcome, {emp.name}! Verified and marked as Green Coffee (Present) ({round(best_similarity * 100, 1)}% match).",
     })
