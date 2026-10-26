@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}AI Yield Prediction - Harvest Forecasting{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>AI Yield Prediction
+      </h1>
+      <p class="text-secondary small mb-0">
+        Forecast seasonal coffee crop outturn (50kg bags &amp; metric tons) and revenue projections per plantation block.
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <span class="badge bg-cream text-dark border px-3 py-2 rounded-pill fw-bold">
+        <i class="bi bi-rulers me-1 text-success"></i>Estate Area: {{ "%.2f"|format(total_area) }} Hectares
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Left Column: Simulation Inputs -->
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-sliders me-1 text-primary"></i>Agronomic Forecasting Parameters
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          <form id="yieldForm" onsubmit="event.preventDefault(); runYieldPrediction();">
+            <!-- Block Selection -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Target Plantation Parcel *</label>
+              <select id="blockSelect" name="block_id" class="form-select" onchange="runYieldPrediction()">
+                {% for b in blocks %}
+                <option value="{{ b.id }}" {% if loop.first %}selected{% endif %}>
+                  {{ b.block_letter }} - {{ b.name }} ({{ b.coffee_type }}, {{ b.area }} ha)
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Blossom Showers (March/April) -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label class="form-label small fw-semibold">Blossom Showers (Rainfall in mm)</label>
+                <span id="blossomVal" class="small fw-bold text-primary">35 mm</span>
+              </div>
+              <input type="range" class="form-range" id="blossomRange" min="5" max="80" value="35" step="1" oninput="document.getElementById('blossomVal').textContent = this.value + ' mm'; runYieldPrediction();">
+              <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                <span>Drought (&lt;15mm)</span>
+                <span class="text-success fw-bold">Ideal (25-45mm)</span>
+                <span>Excess (&gt;60mm)</span>
+              </div>
+            </div>
+
+            <!-- Backing Showers (May) -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label class="form-label small fw-semibold">Backing Showers (Rainfall in mm)</label>
+                <span id="backingVal" class="small fw-bold text-primary">50 mm</span>
+              </div>
+              <input type="range" class="form-range" id="backingRange" min="10" max="100" value="50" step="1" oninput="document.getElementById('backingVal').textContent = this.value + ' mm'; runYieldPrediction();">
+              <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
+                <span>Inadequate (&lt;30mm)</span>
+                <span class="text-success fw-bold">Optimal (40-65mm)</span>
+                <span>Heavy</span>
+              </div>
+            </div>
+
+            <!-- Fertilizer Dosage -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label class="form-label small fw-semibold">NPK Fertilizer Dosage (kg/ha)</label>
+                <span id="npkVal" class="small fw-bold text-success">120 kg/ha</span>
+              </div>
+              <input type="range" class="form-range" id="npkRange" min="40" max="250" value="120" step="5" oninput="document.getElementById('npkVal').textContent = this.value + ' kg/ha'; runYieldPrediction();">
+            </div>
+
+            <!-- Shade Canopy Level -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label class="form-label small fw-semibold">Shade Canopy Density (%)</label>
+                <span id="shadeVal" class="small fw-bold text-dark">60%</span>
+              </div>
+              <input type="range" class="form-range" id="shadeRange" min="20" max="90" value="60" step="5" oninput="document.getElementById('shadeVal').textContent = this.value + '%'; runYieldPrediction();">
+            </div>
+
+            <!-- Pest Incidence -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between">
+                <label class="form-label small fw-semibold">Pest / Rust Incidence Loss (%)</label>
+                <span id="pestVal" class="small fw-bold text-danger">5%</span>
+              </div>
+              <input type="range" class="form-range" id="pestRange" min="0" max="30" value="5" step="1" oninput="document.getElementById('pestVal').textContent = this.value + '%'; runYieldPrediction();">
+            </div>
+
+            <button type="submit" class="btn btn-forest w-100 py-2 fw-semibold shadow-sm">
+              <i class="bi bi-arrow-repeat me-1"></i> Recalculate Prediction
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Forecast Results & Financials -->
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-calculator me-1 text-success"></i>Projected Crop Outturn &amp; Revenue
+          </h2>
+          <span class="badge bg-cream text-dark border" id="blockBadge">Block A - Arabica</span>
+        </div>
+        <div class="card-body p-4">
+          <!-- Primary Highlight Metric -->
+          <div class="p-4 rounded-4 mb-4 text-white shadow-sm" style="background: linear-gradient(135deg, #1e3a2f 0%, #2e5946 100%);">
+            <span class="small text-white-50 text-uppercase fw-semibold" style="letter-spacing: 0.8px;">PROJECTED TOTAL CLEAN COFFEE</span>
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="display-5 fw-bold" id="cleanKgDisplay">15,697</span>
+              <span class="h4 fw-normal text-white-50">kg</span>
+              <span class="badge bg-white bg-opacity-25 ms-auto fs-6 px-3 py-2" id="metricTonsDisplay">15.70 MT</span>
+            </div>
+            <div class="small text-white-50 mt-2 d-flex align-items-center gap-1">
+              <i class="bi bi-info-circle"></i> Equivalent to approximately <strong class="text-white" id="cherryKgDisplay">94,182 kg</strong> of fresh ripe cherries.
+            </div>
+          </div>
+
+          <!-- Secondary Metric Tiles -->
+          <div class="row g-3 mb-4 text-center">
+            <div class="col-6 col-md-4">
+              <div class="p-3 bg-light rounded-4 border">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">50kg Jute Bags</span>
+                <span class="h3 fw-bold brand-coffee" id="bagsDisplay">313</span>
+                <div class="small text-secondary">Standard Bags</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="p-3 bg-light rounded-4 border">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Yield Density</span>
+                <span class="h3 fw-bold brand-forest" id="yieldHaDisplay">1,255</span>
+                <div class="small text-secondary">kg / Hectare</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="p-3 rounded-4 border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Projected Revenue</span>
+                <span class="h3 fw-bold text-success" id="revenueDisplay">₹54,77,500</span>
+                <div class="small text-muted">Est. Farmgate</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Environmental Multipliers Breakdown -->
+          <div class="mb-4">
+            <h4 class="h6 fw-bold brand-forest mb-2">
+              <i class="bi bi-bar-chart-steps me-1 text-warning"></i>Environmental Yield Influencers:
+            </h4>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle small mb-0 border">
+                <thead class="table-light">
+                  <tr>
+                    <th>Factor</th>
+                    <th>Status</th>
+                    <th>Agronomic Impact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Blossom Rainfall</strong></td>
+                    <td id="factorBlossomText" class="text-success fw-bold">+15% Triggering</td>
+                    <td class="text-muted">Optimal flowering without bud rot</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Backing Showers</strong></td>
+                    <td id="factorBackingText" class="text-success fw-bold">+5% Fruit Set</td>
+                    <td class="text-muted">Secures pin-head cherry retention</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Fertilizer &amp; Canopy</strong></td>
+                    <td id="factorNutritionText" class="text-primary fw-bold">Balanced</td>
+                    <td class="text-muted">Supports biennial bearing cycle</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Pest/Rust Deduction</strong></td>
+                    <td id="factorLossText" class="text-danger fw-bold">-5% Loss</td>
+                    <td class="text-muted">Deducted for pest damage</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Models calibrated on 10-year Central Coffee Research Institute (CCRI) guidelines.</small>
+            <a href="{{ url_for('harvest.harvest_list') }}" class="btn btn-outline-forest btn-sm">
+              <i class="bi bi-basket me-1"></i> Compare with Actuals
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function runYieldPrediction() {
+  const blockId = document.getElementById('blockSelect').value;
+  const blossom = document.getElementById('blossomRange').value;
+  const backing = document.getElementById('backingRange').value;
+  const npk = document.getElementById('npkRange').value;
+  const shade = document.getElementById('shadeRange').value;
+  const pest = document.getElementById('pestRange').value;
+
+  fetch("{{ url_for('ai.predict_yield') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      block_id: blockId,
+      blossom_showers: blossom,
+      backing_showers: backing,
+      npk_dosage: npk,
+      shade_pct: shade,
+      pest_incidence: pest
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success && data.prediction) {
+      const p = data.prediction;
+      document.getElementById('blockBadge').textContent = p.block_name + ' (' + p.coffee_type + ')';
+      document.getElementById('cleanKgDisplay').textContent = Number(p.predicted_clean_kg).toLocaleString();
+      document.getElementById('metricTonsDisplay').textContent = p.predicted_metric_tons + ' MT';
+      document.getElementById('cherryKgDisplay').textContent = Number(p.predicted_cherry_kg).toLocaleString() + ' kg';
+      document.getElementById('bagsDisplay').textContent = p.predicted_50kg_bags;
+      document.getElementById('yieldHaDisplay').textContent = Number(p.yield_per_ha).toLocaleString();
+      document.getElementById('revenueDisplay').textContent = '₹' + Number(p.projected_revenue_inr).toLocaleString();
+
+      const f = p.factors;
+      document.getElementById('factorBlossomText').textContent = (f.blossom_factor >= 1.0 ? '+' : '') + Math.round((f.blossom_factor - 1) * 100) + '%';
+      document.getElementById('factorBackingText').textContent = (f.backing_factor >= 1.0 ? '+' : '') + Math.round((f.backing_factor - 1) * 100) + '%';
+      document.getElementById('factorNutritionText').textContent = Math.round(f.nutrition_factor * 100) + '% efficiency';
+      document.getElementById('factorLossText').textContent = '-' + pest + '% Loss';
+    }
+  })
+  .catch(err => console.error(err));
+}
+
+// Auto-run prediction on load
+document.addEventListener('DOMContentLoaded', runYieldPrediction);
+</script>
+{% endblock %}

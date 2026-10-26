@@ -29,6 +29,7 @@ def create_app(config_class=Config):
     from app.routes.payroll import payroll_bp
     from app.routes.reports import reports_bp
     from app.routes.pesticides import pesticides_bp
+    from app.routes.ai import ai_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -42,6 +43,7 @@ def create_app(config_class=Config):
     app.register_blueprint(payroll_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(pesticides_bp)
+    app.register_blueprint(ai_bp)
 
     # Global context processors for templates
     @app.context_processor

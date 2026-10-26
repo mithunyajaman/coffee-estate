@@ -52,6 +52,7 @@ def parse_date_filters():
     return start_date, end_date, preset
 
 
+@reports_bp.route("", methods=["GET"])
 @reports_bp.route("/", methods=["GET"])
 @login_required
 def index():

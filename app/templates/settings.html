@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Settings &amp; Security - System Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-sliders me-2 text-secondary"></i>Settings &amp; Security
+      </h1>
+      <p class="text-secondary small mb-0">
+        Estate system configuration, facial recognition matching thresholds, and security audit log tracing.
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <span class="badge bg-cream text-dark border px-3 py-2 rounded-pill fw-bold">
+        <i class="bi bi-shield-lock-fill me-1 text-danger"></i>Admin Portal Only
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Estate Profile Settings -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-gear-fill me-1 text-primary"></i>Estate Operational Configuration
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('ai.settings') }}">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Estate Name</label>
+              <input type="text" class="form-control" value="Chikmagalur Main Holding Estate" readonly>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Elevation ASL</label>
+                <input type="text" class="form-control" value="1,150m - 1,300m" readonly>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Primary Currency</label>
+                <input type="text" class="form-control" value="INR (₹)" readonly>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Facial Verification Threshold</label>
+              <div class="input-group">
+                <input type="number" class="form-control" value="75" min="50" max="95">
+                <span class="input-group-text">% Match</span>
+              </div>
+              <small class="text-muted">Prevents buddy-punching &amp; proxy attendance check-ins.</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Attendance Marker Scheme</label>
+              <div class="d-flex gap-2">
+                <span class="badge bg-success px-3 py-2">☕ Green Coffee (Present)</span>
+                <span class="badge bg-danger px-3 py-2">🍒 Red Coffee (Absent)</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-forest btn-sm">
+              <i class="bi bi-save me-1"></i> Save Configuration
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security & Diagnostics -->
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-shield-check me-1 text-success"></i>System Diagnostics &amp; Database Health
+          </h2>
+        </div>
+        <div class="card-body p-4">
+          <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-dark">Database Engine:</span>
+              <span class="badge bg-success-subtle text-success border">SQLite 3 / SQLAlchemy 2.0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-dark">RBAC Security Guard:</span>
+              <span class="badge bg-success-subtle text-success border">Strict Server-side Enforcement</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small fw-bold text-dark">AI Vision Engine:</span>
+              <span class="badge bg-primary-subtle text-primary border">Canvas / Color Hue Segmentation</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-cream rounded-3 border">
+            <h3 class="h6 fw-bold brand-forest mb-2">Database Backup &amp; CSV Exports</h3>
+            <p class="small text-secondary mb-3">All records (attendance, harvest, pesticides, payroll) can be exported on the Reports &amp; Analytics page.</p>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-outline-forest btn-sm">
+              <i class="bi bi-file-earmark-bar-graph me-1"></i> Go to Reports &amp; CSV Exports
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Cherry Ripeness AI - Harvest Quality{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-record-circle me-2 text-danger"></i>Cherry Ripeness AI
+      </h1>
+      <p class="text-secondary small mb-0">
+        Computer vision color segmentation for coffee cherry ripeness percentages, sugar Brix estimation, and specialty harvest timing.
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+        <i class="bi bi-eye-fill me-1"></i> Vision Scanner Active &bull; RGB Color Index
+      </span>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Left Column: Cluster Scanner -->
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-camera me-1 text-primary"></i>Scan Coffee Cherry Cluster
+          </h2>
+        </div>
+        <div class="card-body p-4 d-flex flex-column justify-content-between">
+          <div>
+            <!-- Drop Zone / Preview -->
+            <div id="dropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative mb-3 cursor-pointer" style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <input type="file" id="fileInput" accept="image/*" class="position-absolute w-100 h-100 opacity-0 top-0 start-0 cursor-pointer">
+              <div id="previewContainer" class="d-none w-100 text-center">
+                <img id="imagePreview" src="" alt="Cluster Preview" class="img-fluid rounded-3 shadow-sm mb-2" style="max-height: 180px; object-fit: contain;">
+                <div class="small text-muted" id="previewFileName">cluster.jpg</div>
+              </div>
+              <div id="uploadPrompt">
+                <i class="bi bi-camera-fill display-5 text-muted mb-2"></i>
+                <div class="fw-semibold text-dark">Upload cluster photo or test a preset</div>
+                <div class="small text-muted">Evaluates cherry color hue &amp; maturation</div>
+              </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.72rem;">
+                <i class="bi bi-sliders me-1 text-primary"></i>Select Test Harvest Cluster:
+              </label>
+              <div class="d-flex flex-column gap-1">
+                <button type="button" class="btn btn-outline-success btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('optimal', 'Optimal Specialty Cherries')">
+                  <span>🔴 <strong>Optimal Ripe Harvest</strong> (Specialty Grade)</span>
+                  <span class="badge bg-success">~89% Ripe</span>
+                </button>
+                <button type="button" class="btn btn-outline-warning btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('early', 'Early Green Cherries')">
+                  <span>🟢 <strong>Early Picking</strong> (High Green Content)</span>
+                  <span class="badge bg-warning text-dark">~54% Unripe</span>
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('late', 'Late Season Raisins')">
+                  <span>🟤 <strong>Late Season Raisins</strong> (Over-ripe)</span>
+                  <span class="badge bg-danger">~42% Overripe</span>
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('mixed', 'Uneven Maturation')">
+                  <span>🟡 <strong>Mixed Maturity</strong> (Fly Picking Required)</span>
+                  <span class="badge bg-secondary">Mixed</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" id="scanBtn" class="btn btn-forest w-100 py-2 fw-semibold shadow-sm" onclick="runRipenessScan()">
+            <i class="bi bi-cpu me-1"></i> Analyze Ripeness Ratios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Results & Ripeness Breakdown -->
+    <div class="col-12 col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-pie-chart-fill me-1 text-success"></i>Ripeness Segmentation &amp; Quality Index
+          </h2>
+          <span id="gradeBadge" class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-6">
+            Specialty Grade A
+          </span>
+        </div>
+        <div class="card-body p-4">
+          <!-- Multi-Color Distribution Bar -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between text-muted small mb-1 fw-bold">
+              <span>COLOR MATURATION SPECTRUM</span>
+              <span id="sugarBrixText" class="text-danger">Sugar Index: 22.5° Brix</span>
+            </div>
+            <div class="progress rounded-pill shadow-sm" style="height: 24px;">
+              <div id="barRipe" class="progress-bar bg-danger fw-bold" role="progressbar" style="width: 89%;" title="Ripe">
+                89% Ripe
+              </div>
+              <div id="barUnripe" class="progress-bar bg-success fw-bold" role="progressbar" style="width: 7%;" title="Unripe">
+                7%
+              </div>
+              <div id="barOverripe" class="progress-bar bg-dark fw-bold" role="progressbar" style="width: 4%;" title="Overripe">
+                4%
+              </div>
+            </div>
+          </div>
+
+          <!-- 3-Metrics Cards Row -->
+          <div class="row g-3 text-center mb-4">
+            <div class="col-4">
+              <div class="p-3 rounded-4 border" style="background-color: #fef2f2; border-color: #fecaca !important;">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Ripe Cherries</span>
+                <span class="display-6 fw-bold text-danger" id="valRipe">89.4%</span>
+                <div class="small text-danger fw-semibold mt-1">🔴 Crimson Red</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 rounded-4 border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Unripe Fruit</span>
+                <span class="display-6 fw-bold text-success" id="valUnripe">7.2%</span>
+                <div class="small text-success fw-semibold mt-1">🟢 Raw Green</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 rounded-4 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Overripe / Pods</span>
+                <span class="display-6 fw-bold text-dark" id="valOverripe">3.4%</span>
+                <div class="small text-secondary fw-semibold mt-1">🟤 Dry Raisin</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Harvest Recommendation Card -->
+          <div class="p-3 rounded-4 border mb-4" style="background-color: #fbfbf7; border-left: 5px solid #16a34a !important;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-check-circle-fill text-success fs-5"></i>
+              <strong class="h6 fw-bold text-dark mb-0" id="recommendationTitle">Specialty Harvest Approved</strong>
+            </div>
+            <p class="small text-secondary mb-2" id="recommendationText">
+              Begin immediate harvest! Highest mucilage sweetness with over 88% red cherries. Ideal for washed Arabica parchment processing.
+            </p>
+            <div class="small text-muted">
+              <i class="bi bi-info-circle me-1"></i><strong>Processing Advice:</strong> Feed directly into pulper within 8 hours of picking to prevent uncontrolled fermentation.
+            </div>
+          </div>
+
+          <!-- Action Links -->
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('harvest.harvest_list') }}" class="btn btn-forest btn-sm py-2 px-3">
+              <i class="bi bi-basket me-1"></i> Log Harvest Weight
+            </a>
+            <a href="{{ url_for('farm.farm_list') }}" class="btn btn-outline-secondary btn-sm py-2 px-3">
+              <i class="bi bi-map me-1"></i> View Farm Blocks
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let activePreset = "optimal";
+
+function loadRipenessPreset(presetKey, title) {
+  activePreset = presetKey;
+  const prompt = document.getElementById('uploadPrompt');
+  const preview = document.getElementById('previewContainer');
+  const img = document.getElementById('imagePreview');
+  const fn = document.getElementById('previewFileName');
+
+  prompt.classList.add('d-none');
+  preview.classList.remove('d-none');
+
+  if (presetKey === 'optimal') {
+    img.src = "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80";
+  } else {
+    img.src = "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&q=80";
+  }
+  fn.textContent = title + " (Sample)";
+  runRipenessScan();
+}
+
+function runRipenessScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Segmenting Colors...';
+
+  fetch("{{ url_for('ai.analyze_ripeness') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ preset: activePreset })
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cpu me-1"></i> Analyze Ripeness Ratios';
+    if (data.success && data.result) {
+      const r = data.result;
+      document.getElementById('valRipe').textContent = r.ripe_pct + '%';
+      document.getElementById('valUnripe').textContent = r.unripe_pct + '%';
+      document.getElementById('valOverripe').textContent = r.overripe_pct + '%';
+      
+      document.getElementById('barRipe').style.width = r.ripe_pct + '%';
+      document.getElementById('barRipe').textContent = r.ripe_pct + '% Ripe';
+
+      document.getElementById('barUnripe').style.width = r.unripe_pct + '%';
+      document.getElementById('barUnripe').textContent = r.unripe_pct > 8 ? r.unripe_pct + '%' : '';
+
+      document.getElementById('barOverripe').style.width = r.overripe_pct + '%';
+      document.getElementById('barOverripe').textContent = r.overripe_pct > 8 ? r.overripe_pct + '%' : '';
+
+      document.getElementById('gradeBadge').textContent = r.grade;
+      document.getElementById('sugarBrixText').textContent = 'Sugar Index: ' + r.brix;
+      document.getElementById('recommendationTitle').textContent = r.title;
+      document.getElementById('recommendationText').textContent = r.recommendation;
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-cpu me-1"></i> Analyze Ripeness Ratios';
+    console.error(err);
+  });
+}
+</script>
+{% endblock %}

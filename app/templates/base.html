@@ -69,10 +69,10 @@
         <i class="bi bi-shield-shaded"></i>
         <span>Pesticides &amp; Spraying</span>
       </a>
-      <a href="#weather" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.weather_advisor') }}" class="sidebar-link {% if request.path.startswith('/weather') or request.path.startswith('/ai/weather') %}active{% endif %}">
         <i class="bi bi-cloud-sun"></i>
         <span>5. Weather Advisor</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 5</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Live</span>
       </a>
       <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">
         <i class="bi bi-basket"></i>
@@ -110,37 +110,38 @@
       </a>
 
       <div class="nav-section-title">AI Agriculture &amp; Models</div>
-      <a href="#disease" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.disease_detection') }}" class="sidebar-link {% if request.path.startswith('/ai/disease') or request.path.startswith('/disease') %}active{% endif %}">
         <i class="bi bi-virus"></i>
         <span>6. Disease Detection AI</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
       </a>
-      <a href="#ripeness" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.cherry_ripeness') }}" class="sidebar-link {% if request.path.startswith('/ai/ripeness') or request.path.startswith('/ripeness') %}active{% endif %}">
         <i class="bi bi-record-circle"></i>
         <span>7. Cherry Ripeness AI</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
       </a>
-      <a href="#yield" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.yield_prediction') }}" class="sidebar-link {% if request.path.startswith('/ai/yield') or request.path.startswith('/yield') %}active{% endif %}">
         <i class="bi bi-graph-up-arrow"></i>
         <span>9. AI Yield Prediction</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 6</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
       </a>
-      <a href="#chat" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.chatbot') }}" class="sidebar-link {% if request.path.startswith('/ai/chatbot') or request.path.startswith('/ai/chat') or request.path.startswith('/chatbot') %}active{% endif %}">
         <i class="bi bi-chat-dots"></i>
         <span>18. AI Estate Chatbot</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 5</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
       </a>
 
       <div class="nav-section-title">System &amp; Intelligence</div>
       <a href="{{ url_for('reports.index') }}" class="sidebar-link {% if request.path.startswith('/reports') %}active{% endif %}">
         <i class="bi bi-file-earmark-bar-graph"></i>
         <span>19. Reports &amp; Analytics</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
       </a>
       {% if current_user.is_admin %}
-      <a href="#settings" class="sidebar-link text-white-50">
+      <a href="{{ url_for('ai.settings') }}" class="sidebar-link {% if request.path.startswith('/settings') or request.path.startswith('/ai/settings') %}active{% endif %}">
         <i class="bi bi-sliders"></i>
         <span>20. Settings &amp; Security</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Stage 7</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Admin</span>
       </a>
       {% endif %}
     </nav>

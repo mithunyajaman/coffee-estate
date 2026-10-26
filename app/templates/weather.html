@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Weather Advisor - Estate Meteorology{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h3 fw-bold brand-forest mb-1">
+        <i class="bi bi-cloud-sun-fill me-2 text-warning"></i>Weather Advisor
+      </h1>
+      <p class="text-secondary small mb-0">
+        Chikmagalur Western Ghats micro-climate forecasts, blossom shower triggers, and chemical spraying windows.
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <span class="badge bg-cream text-dark border px-3 py-2 rounded-pill fw-bold">
+        <i class="bi bi-geo-alt-fill me-1 text-danger"></i>1,150m ASL &bull; Chikmagalur Station
+      </span>
+    </div>
+  </div>
+
+  <!-- Today's Weather Hero Banner -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 text-white" style="background: linear-gradient(135deg, #1e3a2f 0%, #2b5643 100%);">
+    <div class="card-body p-4">
+      <div class="row align-items-center g-4">
+        <div class="col-12 col-md-4 text-center text-md-start border-end-md">
+          <span class="small text-white-50 text-uppercase fw-semibold">CURRENT ESTATE CONDITIONS</span>
+          <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mt-1">
+            <i class="bi bi-brightness-high display-4 text-warning"></i>
+            <div>
+              <div class="display-4 fw-bold">26°C</div>
+              <div class="text-white-50 small">Partly Sunny &bull; Mild Breeze</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-5">
+          <div class="row g-2 text-center text-white-50 small">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">78%</span>
+              Humidity
+            </div>
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">12 km/h</span>
+              Wind SW
+            </div>
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">20%</span>
+              Precipitation
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-3 text-center text-md-end">
+          <div class="p-3 rounded-4 bg-white bg-opacity-10 text-start">
+            <span class="badge bg-success mb-1">Optimal Spray Window</span>
+            <div class="small text-white">Ideal conditions for Copper Oxychloride (COC) &amp; fertilizer broadcast today.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7-Day Forecast Grid -->
+  <h2 class="h6 fw-bold brand-forest mb-3">
+    <i class="bi bi-calendar-week me-1 text-primary"></i>7-Day Agronomic Forecast &amp; Spray Windows
+  </h2>
+  <div class="row g-3 mb-4">
+    {% for day in forecast %}
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 {% if loop.first %}border-2 border-forest{% endif %}">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong class="text-dark">{{ day.day }}</strong>
+          <small class="text-muted">{{ day.date }}</small>
+        </div>
+        <div class="d-flex align-items-center gap-3 my-2">
+          <i class="bi {{ day.icon }} fs-2 text-warning"></i>
+          <div>
+            <div class="h5 fw-bold mb-0 text-dark">{{ day.temp_high }}° <small class="text-muted fs-6">/ {{ day.temp_low }}°C</small></div>
+            <small class="text-secondary">{{ day.condition }}</small>
+          </div>
+        </div>
+        <div class="mt-2 pt-2 border-top small">
+          <div class="d-flex justify-content-between text-muted mb-1">
+            <span>Humidity: {{ day.humidity }}%</span>
+            <span>Rain: {{ day.rain_chance }}%</span>
+          </div>
+          <div class="p-2 rounded bg-light border text-secondary" style="font-size: 0.76rem;">
+            <i class="bi bi-shield-check text-success me-1"></i>{{ day.spray_advice }}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
