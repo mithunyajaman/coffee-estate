@@ -46,6 +46,7 @@ def index():
     total_qty_applied = sum(float(app.quantity_used) for app in applications)
     total_bags_applied = sum(int(app.bags_count or 0) for app in applications)
     total_weight_kg_applied = sum(float(app.computed_weight_kg) for app in applications)
+    total_employees_deployed = sum(int(app.total_employees_used or 1) for app in applications)
 
     # Find most prevalent target pest
     pest_counts = {}
@@ -59,6 +60,7 @@ def index():
         "total_qty_applied": round(total_qty_applied, 1),
         "total_bags_applied": total_bags_applied,
         "total_weight_kg_applied": round(total_weight_kg_applied, 1),
+        "total_employees_deployed": total_employees_deployed,
         "top_pest": top_pest,
     }
 
@@ -98,8 +100,15 @@ def add_application():
     weather = request.form.get("weather_condition", "Clear & Dry").strip()
     ppe = request.form.get("safety_ppe", "").strip()
     operator_name = request.form.get("operator_name", "").strip()
+    total_employees_raw = request.form.get("total_employees_used")
     notes = request.form.get("notes", "").strip()
     inventory_item_id = request.form.get("inventory_item_id")
+
+    # Parse workforce / employee count deployed
+    try:
+        total_employees_used = max(1, int(total_employees_raw)) if total_employees_raw else 1
+    except ValueError:
+        total_employees_used = 1
 
     # Parse bags and weight in kg
     bags_count = int(bags_count_raw) if bags_count_raw and bags_count_raw.isdigit() else 1
@@ -164,6 +173,7 @@ def add_application():
         bags_count=bags_count,
         bag_weight_kg=bag_weight_kg,
         total_weight_kg=total_weight_kg,
+        total_employees_used=total_employees_used,
         application_method=app_method,
         pre_harvest_interval_days=phi_days,
         re_entry_interval_hours=rei_hours,
@@ -199,7 +209,7 @@ def add_application():
         entity_type="PesticideApplication",
         entity_id=str(record.id),
         outcome="SUCCESS",
-        details=f"Applied {pesticide_name} ({qty_val} {unit}) on Block #{block_id_raw} for {target_pest}. PHI: {phi_days} days.",
+        details=f"Applied {pesticide_name} ({qty_val} {unit}, {bags_count} bags, {total_weight_kg} kg) on Block #{block_id_raw} on {app_date} using {total_employees_used} employees for {target_pest}. PHI: {phi_days} days.",
         actor_id=user.id,
         actor_username=user.username,
     )
@@ -244,10 +254,10 @@ def export_csv():
     writer = csv.writer(output)
 
     writer.writerow([
-        "Record ID", "Date", "Block Name", "Pesticide Name", "Category", "Target Pest/Disease",
+        "Record ID", "Date Applied", "Block Name", "Pesticide Name", "Category", "Target Pest/Disease",
         "Dosage", "Quantity Applied", "Unit", "Number of Bags", "Weight per Bag (kg)", "Total Weight (kg)",
-        "Application Method", "Pre-Harvest Interval (Days)",
-        "Safe Harvest Date", "Quarantine Status", "Re-entry (Hours)", "Weather", "Operator", "Supervisor", "Notes"
+        "Total Employees Used", "Application Method", "Pre-Harvest Interval (Days)",
+        "Safe Harvest Date", "Quarantine Status", "Re-entry (Hours)", "Weather", "Operator / Gang Lead", "Supervisor", "Notes"
     ])
 
     records = PesticideApplication.query.order_by(PesticideApplication.date.asc(), PesticideApplication.id.asc()).all()
@@ -265,6 +275,7 @@ def export_csv():
             r.bags_count or 1,
             float(r.bag_weight_kg or 0.0),
             float(r.computed_weight_kg),
+            r.total_employees_used or 1,
             r.application_method,
             r.pre_harvest_interval_days,
             r.safe_harvest_date.isoformat(),

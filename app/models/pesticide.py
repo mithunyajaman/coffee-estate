@@ -22,6 +22,9 @@ class PesticideApplication(db.Model):
     bag_weight_kg = db.Column(db.Numeric(10, 2), nullable=True, default=0.0) # Weight per individual bag in kg
     total_weight_kg = db.Column(db.Numeric(10, 2), nullable=True, default=0.0) # Total weight in kg (bags_count * bag_weight_kg or total kg applied)
     
+    # Workforce / Labor Deployment
+    total_employees_used = db.Column(db.Integer, nullable=False, default=1, server_default="1") # Total workers/employees deployed for spraying
+    
     application_method = db.Column(db.String(80), nullable=False, default="Knapsack Sprayer") # Knapsack Sprayer, Tractor Mist Blower, Stem Painting, Drenching
     
     # Safety & Compliance Intervals
@@ -75,12 +78,18 @@ class PesticideApplication(db.Model):
             return float(self.quantity_used)
         return float(self.quantity_used)
 
+    @property
+    def date_applied(self) -> date:
+        """Alias for application date."""
+        return self.date
+
     def to_dict(self):
         return {
             "id": self.id,
             "block_id": self.block_id,
             "block_name": self.block.name if self.block else None,
             "date": self.date.isoformat() if self.date else None,
+            "date_applied": self.date.isoformat() if self.date else None,
             "pesticide_name": self.pesticide_name,
             "category": self.category,
             "target_pest": self.target_pest,
@@ -90,6 +99,7 @@ class PesticideApplication(db.Model):
             "bags_count": self.bags_count or 1,
             "bag_weight_kg": float(self.bag_weight_kg or 0.0),
             "total_weight_kg": float(self.computed_weight_kg),
+            "total_employees_used": self.total_employees_used or 1,
             "application_method": self.application_method,
             "pre_harvest_interval_days": self.pre_harvest_interval_days,
             "safe_harvest_date": self.safe_harvest_date.isoformat(),

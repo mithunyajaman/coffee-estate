@@ -145,10 +145,12 @@ def test_pesticides_export_csv(client, auth_client, app):
     resp = client.get("/pesticides/export/csv")
     assert resp.status_code == 200
     assert resp.mimetype == "text/csv"
+    assert b"Date Applied" in resp.data
     assert b"Pesticide Name" in resp.data
     assert b"Number of Bags" in resp.data
     assert b"Weight per Bag (kg)" in resp.data
     assert b"Total Weight (kg)" in resp.data
+    assert b"Total Employees Used" in resp.data
     assert b"Export Chemical Test" in resp.data
     assert b"Leaf Spot" in resp.data
 
@@ -202,7 +204,7 @@ def test_pesticide_bags_and_weight_tracking(client, auth_client, app):
 
     auth_client.login_manager()
 
-    # Post an application with 4 bags of 25 kg each = 100 kg total
+    # Post an application with 4 bags of 25 kg each = 100 kg total and 3 employees
     resp = client.post("/pesticides/add", data={
         "block_id": str(block_id),
         "date": date.today().isoformat(),
@@ -213,8 +215,10 @@ def test_pesticide_bags_and_weight_tracking(client, auth_client, app):
         "bags_count": "4",
         "bag_weight_kg": "25.0",
         "total_weight_kg": "100.0",
+        "total_employees_used": "3",
         "quantity_used": "100.0",
         "unit": "kg",
+        "operator_name": "Suresh Gowda",
         "application_method": "Knapsack Sprayer",
         "pre_harvest_interval_days": "14",
         "re_entry_interval_hours": "24",
@@ -229,11 +233,15 @@ def test_pesticide_bags_and_weight_tracking(client, auth_client, app):
         assert float(rec.bag_weight_kg) == 25.0
         assert float(rec.total_weight_kg) == 100.0
         assert float(rec.computed_weight_kg) == 100.0
+        assert rec.total_employees_used == 3
+        assert rec.date == date.today()
 
         d = rec.to_dict()
         assert d["bags_count"] == 4
         assert d["bag_weight_kg"] == 25.0
         assert d["total_weight_kg"] == 100.0
+        assert d["total_employees_used"] == 3
+        assert d["date_applied"] == date.today().isoformat()
 
     # Verify rendering on UI
     resp_ui = client.get("/pesticides/")
@@ -241,4 +249,5 @@ def test_pesticide_bags_and_weight_tracking(client, auth_client, app):
     assert b"4 Bags" in resp_ui.data
     assert b"100.0 kg" in resp_ui.data
     assert b"25.00 kg / bag" in resp_ui.data
+    assert b"3 Workers" in resp_ui.data
     assert b"Copper Sulfate Blue Crystals" in resp_ui.data

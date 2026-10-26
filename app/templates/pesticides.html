@@ -59,9 +59,11 @@
     <div class="col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #d49a37 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Top Target Disease</small>
-          <h3 class="h5 fw-bold mt-1 mb-0 text-truncate text-dark" title="{{ summary.top_pest }}">{{ summary.top_pest }}</h3>
-          <small class="text-muted">Primary pest controlled</small>
+          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Employees Used</small>
+          <h3 class="h4 fw-bold mt-1 mb-0 text-dark">
+            {{ summary.total_employees_deployed }} <span class="fs-6 fw-normal text-muted">workers deployed</span>
+          </h3>
+          <small class="text-muted">Top target: {{ summary.top_pest }}</small>
         </div>
       </div>
     </div>
@@ -115,14 +117,14 @@
         <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
           <thead class="table-light">
             <tr>
-              <th>Date &amp; Block</th>
+              <th>Date Applied &amp; Block</th>
               <th>Pesticide &amp; Category</th>
               <th>Target Pest</th>
               <th>Bags &amp; Weight (kg)</th>
               <th>Dosage / Dilution</th>
               <th>Method</th>
               <th>Pre-Harvest Safety (PHI)</th>
-              <th>Operator / Supervisor</th>
+              <th>Employees &amp; Team</th>
               {% if is_manager %}
               <th class="text-end">Actions</th>
               {% endif %}
@@ -132,8 +134,10 @@
             {% for app in applications %}
             <tr>
               <td>
-                <div class="fw-bold">{{ app.date.strftime('%d-%b-%Y') }}</div>
-                <small class="text-muted">{{ app.block.name if app.block else 'General Block' }}</small>
+                <div class="fw-bold text-dark">
+                  <i class="bi bi-calendar-check text-primary me-1"></i>{{ app.date.strftime('%d-%b-%Y') }}
+                </div>
+                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ app.block.name if app.block else 'General Block' }}</small>
               </td>
               <td>
                 <div class="fw-semibold text-dark">{{ app.pesticide_name }}</div>
@@ -191,8 +195,13 @@
                 {% endif %}
               </td>
               <td>
-                <div>{{ app.operator_name or 'Sprayer Gang' }}</div>
-                <small class="text-muted">Sup: {{ app.supervised_by or 'Manager' }}</small>
+                <div class="mb-1">
+                  <span class="badge bg-secondary-subtle text-dark border fw-bold" style="font-size: 0.78rem;">
+                    <i class="bi bi-people-fill text-primary me-1"></i>{{ app.total_employees_used or 1 }} {% if (app.total_employees_used or 1) == 1 %}Worker{% else %}Workers{% endif %}
+                  </span>
+                </div>
+                <div class="fw-semibold text-dark small">{{ app.operator_name or 'Sprayer Gang' }}</div>
+                <small class="text-muted" style="font-size: 0.72rem;">Sup: {{ app.supervised_by or 'Manager' }}</small>
               </td>
               {% if is_manager %}
               <td class="text-end">
@@ -235,19 +244,19 @@
         
         <!-- Coffee Quick Presets -->
         <div class="alert alert-light border mb-3 p-2">
-          <small class="fw-bold text-uppercase d-block mb-1 text-muted" style="font-size: 0.7rem;">Quick Coffee Disease Presets (with Bags &amp; Weight in kg):</small>
+          <small class="fw-bold text-uppercase d-block mb-1 text-muted" style="font-size: 0.7rem;">Quick Coffee Disease Presets (with Bags, Weight &amp; Workforce):</small>
           <div class="d-flex flex-wrap gap-2">
-            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Copper Oxychloride 50% WP (Bordeaux)', 'Fungicide', 'Coffee Leaf Rust (Hemileia)', '500g / 200L water', 14, 24, 1, 25.0)">
-              Leaf Rust (1 Bag × 25kg)
+            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Copper Oxychloride 50% WP (Bordeaux)', 'Fungicide', 'Coffee Leaf Rust (Hemileia)', '500g / 200L water', 14, 24, 1, 25.0, 3)">
+              Leaf Rust (1 Bag × 25kg, 3 Workers)
             </button>
-            <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Beauveria bassiana 1.15% WP (Bio-agent)', 'Bio-pesticide', 'Coffee Berry Borer (Hypothenemus)', '1 kg / 200L water', 7, 12, 2, 5.0)">
-              Berry Borer (2 Bags × 5kg)
+            <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Beauveria bassiana 1.15% WP (Bio-agent)', 'Bio-pesticide', 'Coffee Berry Borer (Hypothenemus)', '1 kg / 200L water', 7, 12, 2, 5.0, 2)">
+              Berry Borer (2 Bags × 5kg, 2 Workers)
             </button>
-            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Chlorpyrifos 20% EC + Lime Swab', 'Insecticide', 'White Stem Borer (Xylotrechus)', '500 ml / 200L water (Swabbing)', 30, 48, 1, 25.0)">
-              Stem Borer Swab (1 Bag × 25kg)
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Chlorpyrifos 20% EC + Lime Swab', 'Insecticide', 'White Stem Borer (Xylotrechus)', '500 ml / 200L water (Swabbing)', 30, 48, 1, 25.0, 4)">
+              Stem Borer Swab (1 Bag × 25kg, 4 Workers)
             </button>
-            <button type="button" class="btn btn-outline-warning text-dark btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Hexaconazole 5% EC (Contaf)', 'Fungicide', 'Black Rot (Koleroga noxia)', '2 ml / Liter water', 15, 24, 1, 5.0)">
-              Black Rot / Koleroga (1 Bag × 5kg)
+            <button type="button" class="btn btn-outline-warning text-dark btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="setPreset('Hexaconazole 5% EC (Contaf)', 'Fungicide', 'Black Rot (Koleroga noxia)', '2 ml / Liter water', 15, 24, 1, 5.0, 2)">
+              Black Rot / Koleroga (1 Bag × 5kg, 2 Workers)
             </button>
           </div>
         </div>
@@ -262,8 +271,11 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label small fw-semibold">Application Date</label>
+            <label class="form-label small fw-semibold text-dark">
+              <i class="bi bi-calendar-event text-primary me-1"></i>Date of Application (Applied Date) <span class="text-danger">*</span>
+            </label>
             <input type="date" name="date" class="form-control form-control-sm" value="{{ today }}" required>
+            <small class="text-muted" style="font-size: 0.72rem;">Official date when pesticide was sprayed</small>
           </div>
 
           <div class="col-md-6">
@@ -381,9 +393,21 @@
               {% endfor %}
             </select>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold text-dark">
+              <i class="bi bi-people-fill text-primary me-1"></i>Total Employees Used <span class="text-danger">*</span>
+            </label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-person-check"></i></span>
+              <input type="number" min="1" step="1" name="total_employees_used" id="inpTotalEmployees" class="form-control" value="2" required>
+              <span class="input-group-text">Workers</span>
+            </div>
+            <small class="text-muted" style="font-size: 0.72rem;">Spraying gang laborers deployed</small>
+          </div>
+          <div class="col-md-3">
             <label class="form-label small fw-semibold">Operator / Gang Lead</label>
-            <input type="text" name="operator_name" class="form-control form-control-sm" placeholder="e.g. Ramesh Poojary (Spraying Team Alpha)">
+            <input type="text" name="operator_name" id="inpOperator" class="form-control form-control-sm" placeholder="e.g. Ramesh Poojary (Spraying Team Alpha)">
+            <small class="text-muted" style="font-size: 0.72rem;">Lead sprayer / supervisor</small>
           </div>
 
           <div class="col-12">
@@ -404,7 +428,7 @@
 </div>
 
 <script>
-function setPreset(name, category, pest, dosage, phi, rei, bags, weightPerBag) {
+function setPreset(name, category, pest, dosage, phi, rei, bags, weightPerBag, employees) {
   document.getElementById('inpPesticide').value = name;
   document.getElementById('inpCategory').value = category;
   document.getElementById('inpPest').value = pest;
@@ -413,6 +437,9 @@ function setPreset(name, category, pest, dosage, phi, rei, bags, weightPerBag) {
   document.getElementById('inpRei').value = rei;
   document.getElementById('inpBagsCount').value = bags;
   document.getElementById('inpBagWeightKg').value = weightPerBag;
+  if (document.getElementById('inpTotalEmployees')) {
+    document.getElementById('inpTotalEmployees').value = employees || 2;
+  }
   calculateWeight();
 }
 
