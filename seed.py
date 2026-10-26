@@ -503,6 +503,92 @@ def seed_database():
             db.session.commit()
             print("  + Seeded 3 Pesticide Application Records with PHI quarantine intervals.")
 
+        # 12. Seed Sprinkler & Weather / Rainfall Records
+        from app.models.weather_sprinkler import SprinklerLog, RainfallRecord
+        print("[Seed] Seeding Sprinkler Irrigation & Weather Rainfall records...")
+        if block_a and not SprinklerLog.query.filter_by(block_id=block_a.id).first():
+            s1 = SprinklerLog(
+                block_id=block_a.id,
+                date=today - timedelta(days=4),
+                start_time="06:30",
+                end_time="11:30",
+                duration_minutes=300, # 5 hours
+                sprinkler_type="Overhead Rain-Gun (Rotary 2.5 bar)",
+                water_source="Estate Lake / Bhadra Stream",
+                equivalent_mm=25.0,
+                fuel_used_liters=14.5,
+                operator_name="Suresh (Pump Operator)",
+                purpose="Blossom Shower Trigger",
+                notes="Overhead rain-gun run across 12.5 ha Arabica ridge. Floral bud swelling confirmed.",
+            )
+            db.session.add(s1)
+
+            if block_b:
+                s2 = SprinklerLog(
+                    block_id=block_b.id,
+                    date=today - timedelta(days=3),
+                    start_time="07:00",
+                    end_time="13:00",
+                    duration_minutes=360, # 6 hours
+                    sprinkler_type="Twin Nozzle Rain-Gun",
+                    water_source="Bhadra Catchment Stream",
+                    equivalent_mm=30.0,
+                    fuel_used_liters=18.0,
+                    operator_name="Ramesh Poojary",
+                    purpose="Backing Irrigation",
+                    notes="Robusta valley watering to support pin-head berry retention.",
+                )
+                db.session.add(s2)
+
+            if block_c:
+                s3 = SprinklerLog(
+                    block_id=block_c.id,
+                    date=today - timedelta(days=1),
+                    start_time="08:00",
+                    end_time="12:00",
+                    duration_minutes=240, # 4 hours
+                    sprinkler_type="Rotary Overhead Sprinkler Gang",
+                    water_source="Central Storage Tank #1",
+                    equivalent_mm=20.0,
+                    fuel_used_liters=10.0,
+                    operator_name="Vikram Gowda",
+                    purpose="Soil Moisture Upkeep",
+                    notes="Dense Kaveri hybrid plot moisture drenching.",
+                )
+                db.session.add(s3)
+
+            db.session.commit()
+            print("  + Seeded 3 Sprinkler Irrigation logs with minutes and start/end time tracking.")
+
+        if not RainfallRecord.query.first():
+            r1 = RainfallRecord(
+                date=today - timedelta(days=16),
+                rainfall_mm=38.5,
+                rain_type="Blossom Showers",
+                duration_hours=3.5,
+                recorded_by="Deepak Kulkarni",
+                notes="Excellent pre-monsoon blossom trigger rain across all estate blocks.",
+            )
+            r2 = RainfallRecord(
+                date=today - timedelta(days=9),
+                rainfall_mm=45.0,
+                rain_type="Backing Showers",
+                duration_hours=4.0,
+                recorded_by="Deepak Kulkarni",
+                notes="Optimal backing rain securing berry fruit set.",
+            )
+            r3 = RainfallRecord(
+                date=today - timedelta(days=2),
+                rainfall_mm=18.0,
+                rain_type="Pre-Monsoon Thundershower",
+                duration_hours=1.5,
+                recorded_by="Vikram Gowda",
+                notes="Afternoon convection shower; natural stream water level replenished.",
+            )
+            db.session.add_all([r1, r2, r3])
+            db.session.commit()
+            print("  + Seeded 3 Rain Gauge Records.")
+
         print("[Seed] All records seeded successfully.")
 
 if __name__ == "__main__":

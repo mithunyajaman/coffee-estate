@@ -549,36 +549,7 @@ def chatbot_query():
 
 
 # ==============================================================================
-# 5. WEATHER ADVISOR (Page 5)
-# ==============================================================================
-
-@ai_bp.route("/weather", methods=["GET"])
-@ai_bp.route("/weather/", methods=["GET"])
-@login_required
-def weather_advisor():
-    """Page 5: Weather Advisor."""
-    current_user = get_current_user()
-    today = date.today()
-
-    forecast = [
-        {"day": "Today", "date": today.strftime("%d %b"), "temp_high": 27, "temp_low": 18, "humidity": 78, "rain_chance": 20, "condition": "Partly Sunny", "icon": "bi-sun", "spray_advice": "Ideal for Copper Oxychloride Spraying"},
-        {"day": "Tomorrow", "date": (today + timedelta(days=1)).strftime("%d %b"), "temp_high": 26, "temp_low": 18, "humidity": 82, "rain_chance": 35, "condition": "Misty Morning, Afternoon Sun", "icon": "bi-cloud-sun", "spray_advice": "Good for Canopy Pruning"},
-        {"day": (today + timedelta(days=2)).strftime("%A"), "date": (today + timedelta(days=2)).strftime("%d %b"), "temp_high": 25, "temp_low": 17, "humidity": 85, "rain_chance": 50, "condition": "Scattered Showers", "icon": "bi-cloud-drizzle", "spray_advice": "Avoid chemical spray before rain"},
-        {"day": (today + timedelta(days=3)).strftime("%A"), "date": (today + timedelta(days=3)).strftime("%d %b"), "temp_high": 24, "temp_low": 17, "humidity": 88, "rain_chance": 65, "condition": "Moderate Monsoon Showers", "icon": "bi-cloud-rain", "spray_advice": "Monitor drain channels & stream"},
-        {"day": (today + timedelta(days=4)).strftime("%A"), "date": (today + timedelta(days=4)).strftime("%d %b"), "temp_high": 25, "temp_low": 18, "humidity": 84, "rain_chance": 40, "condition": "Overcast", "icon": "bi-clouds", "spray_advice": "Inspect leaves for Rust spore formation"},
-        {"day": (today + timedelta(days=5)).strftime("%A"), "date": (today + timedelta(days=5)).strftime("%d %b"), "temp_high": 26, "temp_low": 18, "humidity": 79, "rain_chance": 25, "condition": "Pleasant Sun", "icon": "bi-sun", "spray_advice": "Suitable for Fertilizer broadcast"},
-        {"day": (today + timedelta(days=6)).strftime("%A"), "date": (today + timedelta(days=6)).strftime("%d %b"), "temp_high": 27, "temp_low": 19, "humidity": 75, "rain_chance": 15, "condition": "Clear Blue Skies", "icon": "bi-brightness-high", "spray_advice": "Optimal for Cherry picking & Sun drying"},
-    ]
-
-    return render_template(
-        "weather.html",
-        forecast=forecast,
-        current_user=current_user
-    )
-
-
-# ==============================================================================
-# 6. SETTINGS & SYSTEM INTELLIGENCE (Page 20)
+# 5. SETTINGS & SYSTEM INTELLIGENCE (Page 20)
 # ==============================================================================
 
 @ai_bp.route("/settings", methods=["GET", "POST"])

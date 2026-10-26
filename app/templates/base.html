@@ -69,9 +69,9 @@
         <i class="bi bi-shield-shaded"></i>
         <span>Pesticides &amp; Spraying</span>
       </a>
-      <a href="{{ url_for('ai.weather_advisor') }}" class="sidebar-link {% if request.path.startswith('/weather') or request.path.startswith('/ai/weather') %}active{% endif %}">
-        <i class="bi bi-cloud-sun"></i>
-        <span>5. Weather Advisor</span>
+      <a href="{{ url_for('weather.weather_index') }}" class="sidebar-link {% if request.path.startswith('/weather') or request.path.startswith('/sprinkler') or request.path.startswith('/irrigation') %}active{% endif %}">
+        <i class="bi bi-cloud-rain-heavy"></i>
+        <span>5. Weather &amp; Sprinklers</span>
         <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Live</span>
       </a>
       <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">

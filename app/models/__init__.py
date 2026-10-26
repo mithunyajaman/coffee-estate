@@ -8,6 +8,7 @@ from app.models.inventory import InventoryItem, StockTransaction
 from app.models.attendance import DailyAttendance, AttendanceEvent, FaceEnrollment
 from app.models.payroll import PayrollRecord, SalaryAdvance
 from app.models.pesticide import PesticideApplication
+from app.models.weather_sprinkler import SprinklerLog, RainfallRecord
 
 __all__ = [
     "User",
@@ -25,4 +26,6 @@ __all__ = [
     "PayrollRecord",
     "SalaryAdvance",
     "PesticideApplication",
+    "SprinklerLog",
+    "RainfallRecord",
 ]
