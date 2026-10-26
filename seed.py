@@ -425,6 +425,28 @@ def seed_database():
             db.session.commit()
             print(f"  + Generated sample PayrollRecord: Net Pay = INR {p_record.net_pay}")
 
+        # 10. Seed Face Biometric Profile for EMP001 (Ramesh Poojary)
+        from app.models.attendance import FaceEnrollment
+        import json
+        if emp1:
+            existing_face = FaceEnrollment.query.filter_by(employee_id=emp1.id).first()
+            if not existing_face:
+                sample_vector = [round(((i * 7 + 13) % 100) / 100.0 - 0.5, 4) for i in range(128)]
+                v_mag = sum(x * x for x in sample_vector) ** 0.5
+                norm_vector = [round(x / v_mag, 5) for x in sample_vector]
+                
+                face_enr = FaceEnrollment(
+                    employee_id=emp1.id,
+                    consent_status=True,
+                    consent_timestamp=datetime.now(timezone.utc),
+                    protected_template=json.dumps(norm_vector),
+                    enrollment_status="Enrolled",
+                    confidence_threshold=0.75,
+                )
+                db.session.add(face_enr)
+                db.session.commit()
+                print("  + Seeded Face Biometric Enrollment for Ramesh Poojary (EMP001)")
+
         print("[Seed] All records seeded successfully.")
 
 if __name__ == "__main__":

@@ -90,3 +90,44 @@ def test_forgot_password_submission(client):
 
     log = AuditLog.query.filter_by(action="PASSWORD_RESET_REQUEST").first()
     assert log is not None
+
+
+def test_face_login_api(client, app):
+    """Tests Face Recognition login API endpoint."""
+    resp = client.post("/api/auth/face-login", json={
+        "simulate_employee_code": "EMP001"
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+    assert "Ramesh Poojary" in data["message"]
+
+    # Session should now be active
+    resp_dash = client.get("/dashboard")
+    assert resp_dash.status_code == 200
+
+
+def test_new_user_registration(client, app):
+    """Tests registration of new user and automatic employee account linking."""
+    resp = client.post("/register", data={
+        "name": "Priya Sharma",
+        "username": "priya_sharma",
+        "contact": "+91-9845099887",
+        "email": "priya@coffee-estate.local",
+        "role": "Employee",
+        "password": "SecurePassword@123",
+        "confirm_password": "SecurePassword@123",
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"Welcome to Emerald Heights Coffee Estate, Priya Sharma" in resp.data
+
+    with app.app_context():
+        from app.models.user import User
+        from app.models.employee import Employee
+        u = User.query.filter_by(username="priya_sharma").first()
+        assert u is not None
+        assert u.role == "Employee"
+        emp = Employee.query.filter_by(employee_code=u.employee_code).first()
+        assert emp is not None
+        assert emp.name == "Priya Sharma"
+
