@@ -16,6 +16,7 @@
   
   <!-- Custom Estate Theme Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+  <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/coffee-plant-logo.jpg') }}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -25,9 +26,7 @@
   <!-- Sidebar Navigation -->
   <aside class="app-sidebar" id="appSidebar">
     <div class="sidebar-header">
-      <div class="rounded-circle p-2 bg-leaf d-flex align-items-center justify-content-center text-white" style="width: 38px; height: 38px;">
-        <i class="bi bi-tree-fill fs-5"></i>
-      </div>
+      <img src="{{ url_for('static', filename='images/coffee-plant-logo.jpg') }}" alt="Original Coffee Plant Logo" class="rounded-circle shadow-sm flex-shrink-0" style="width: 44px; height: 44px; object-fit: cover; border: 2px solid #fcd34d;">
       <div>
         <div class="sidebar-brand-title">COFFEE ESTATE</div>
         <div class="sidebar-brand-subtitle">Smart Agriculture AI</div>
