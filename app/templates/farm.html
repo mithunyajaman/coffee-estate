@@ -29,21 +29,29 @@
 
   <!-- Estate Map & Varietal Area Breakdown Row -->
   <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-7">
+    <div class="col-12 col-xl-8">
       <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <h2 class="h6 fw-bold brand-forest mb-0">
-            <i class="bi bi-compass me-1 text-success"></i>Estate Parcel &amp; Block Diagram
-          </h2>
-          <span class="badge bg-cream text-dark border">Chikmagalur Main Holding</span>
+          <div>
+            <h2 class="h6 fw-bold brand-forest mb-0">
+              <i class="bi bi-map-fill me-1 text-success"></i>Estate Parcel &amp; Block Diagram
+            </h2>
+            <small class="text-muted">Chikmagalur Main Holding • 46.50 Hectares (~114.9 Acres)</small>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-cream text-dark border">Coorg &amp; Chikmagalur Zone</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" data-bs-toggle="modal" data-bs-target="#expandMapModal" title="Full Screen Diagram">
+              <i class="bi bi-arrows-fullscreen me-1"></i> Expand
+            </button>
+          </div>
         </div>
         <div class="card-body p-2 bg-light text-center d-flex align-items-center justify-content-center">
-          <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}" alt="Estate Block Map" class="img-fluid rounded" style="max-height: 270px; width: 100%; object-fit: contain;">
+          <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}?v=4" alt="Estate Block Map" class="img-fluid rounded-3 shadow-sm w-100" style="max-height: 380px; width: 100%; object-fit: contain;">
         </div>
       </div>
     </div>
 
-    <div class="col-12 col-lg-5">
+    <div class="col-12 col-xl-4">
       <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-column justify-content-between">
         <div>
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -546,6 +554,23 @@
           <button type="submit" class="btn btn-forest btn-sm">Log Activity</button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Expand Block Map -->
+<div class="modal fade" id="expandMapModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header bg-forest text-white py-2">
+        <h5 class="modal-title h6 fw-bold text-white mb-0">
+          <i class="bi bi-map-fill me-2 text-warning"></i>Estate Parcel &amp; Block Diagram (Full Resolution)
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2 bg-light text-center">
+        <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}?v=4" alt="Estate Block Map Full" class="img-fluid rounded-3 w-100" style="max-height: 80vh; object-fit: contain;">
+      </div>
     </div>
   </div>
 </div>
