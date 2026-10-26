@@ -65,13 +65,18 @@
         <i class="bi bi-map"></i>
         <span>4. Farm Management</span>
       </a>
+      <a href="{{ url_for('weather.sprinkler_index') }}" class="sidebar-link {% if request.path.startswith('/sprinkler') or request.path.startswith('/irrigation') %}active{% endif %}">
+        <i class="bi bi-droplet-half"></i>
+        <span>Sprinkler &amp; Irrigation</span>
+        <span class="badge bg-primary ms-auto" style="font-size: 0.65rem;">Water</span>
+      </a>
       <a href="{{ url_for('pesticides.index') }}" class="sidebar-link {% if request.path.startswith('/pesticides') %}active{% endif %}">
         <i class="bi bi-shield-shaded"></i>
         <span>Pesticides &amp; Spraying</span>
       </a>
-      <a href="{{ url_for('weather.weather_index') }}" class="sidebar-link {% if request.path.startswith('/weather') or request.path.startswith('/sprinkler') or request.path.startswith('/irrigation') %}active{% endif %}">
-        <i class="bi bi-cloud-rain-heavy"></i>
-        <span>5. Weather &amp; Sprinklers</span>
+      <a href="{{ url_for('weather.weather_index') }}" class="sidebar-link {% if request.path.startswith('/weather') %}active{% endif %}">
+        <i class="bi bi-cloud-sun"></i>
+        <span>5. Weather &amp; Rainfall</span>
         <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Live</span>
       </a>
       <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">

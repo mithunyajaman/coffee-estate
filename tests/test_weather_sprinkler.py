@@ -5,13 +5,22 @@ from app.models.weather_sprinkler import SprinklerLog, RainfallRecord
 from app.models.farm import EstateBlock
 
 def test_weather_page_load(client, auth_client, app):
-    """Test /weather page loads for authenticated users."""
+    """Test dedicated /weather page loads for authenticated users."""
     auth_client.login_manager()
     res = client.get("/weather")
     assert res.status_code == 200
     html = res.data.decode("utf-8")
-    assert "Weather" in html
-    assert "Sprinkler" in html
+    assert "Weather &amp; Rainfall Intelligence" in html or "Weather" in html
+    assert "Rain Gauge &amp; Rainfall History" in html or "Rain" in html
+
+def test_sprinkler_page_load(client, auth_client, app):
+    """Test separate /sprinkler page loads for authenticated users."""
+    auth_client.login_manager()
+    res = client.get("/sprinkler")
+    assert res.status_code == 200
+    html = res.data.decode("utf-8")
+    assert "Sprinkler &amp; Irrigation Water Records" in html or "Sprinkler" in html
+    assert "Plantation Sprinkler Runtime Muster" in html or "Minutes" in html
 
 def test_add_sprinkler_log_with_minutes(client, auth_client, app):
     """Test logging a sprinkler run with date, start/end time, and duration in minutes."""
@@ -25,7 +34,7 @@ def test_add_sprinkler_log_with_minutes(client, auth_client, app):
 
     auth_client.login_manager()
     res = client.post(
-        "/weather/sprinkler/add",
+        "/sprinkler/add",
         data={
             "block_id": str(block_id),
             "date": "2026-10-27",
@@ -87,7 +96,7 @@ def test_worker_cannot_add_sprinkler_log(client, auth_client, app):
 
     auth_client.login_employee()
     res = client.post(
-        "/weather/sprinkler/add",
+        "/sprinkler/add",
         data={
             "block_id": str(block_id),
             "date": "2026-10-27",
@@ -99,9 +108,9 @@ def test_worker_cannot_add_sprinkler_log(client, auth_client, app):
     assert res.status_code == 403
 
 def test_export_sprinkler_and_rainfall_csv(client, auth_client):
-    """Test CSV export downloads."""
+    """Test separate CSV export downloads for sprinkler and weather."""
     auth_client.login_manager()
-    res_s = client.get("/weather/sprinkler/export-csv")
+    res_s = client.get("/sprinkler/export-csv")
     assert res_s.status_code == 200
     assert "text/csv" in res_s.content_type
     assert "Duration Minutes" in res_s.data.decode("utf-8")
