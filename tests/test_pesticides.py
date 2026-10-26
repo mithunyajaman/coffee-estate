@@ -146,6 +146,9 @@ def test_pesticides_export_csv(client, auth_client, app):
     assert resp.status_code == 200
     assert resp.mimetype == "text/csv"
     assert b"Pesticide Name" in resp.data
+    assert b"Number of Bags" in resp.data
+    assert b"Weight per Bag (kg)" in resp.data
+    assert b"Total Weight (kg)" in resp.data
     assert b"Export Chemical Test" in resp.data
     assert b"Leaf Spot" in resp.data
 
@@ -185,3 +188,57 @@ def test_worker_cannot_add_or_delete_pesticide(client, auth_client, app):
     # Worker cannot delete -> 403 Forbidden
     resp_del = client.post(f"/pesticides/delete/{pid}")
     assert resp_del.status_code == 403
+
+
+def test_pesticide_bags_and_weight_tracking(client, auth_client, app):
+    """Verifies that pesticide bags count and weight in kg are correctly captured, computed, and displayed."""
+    with app.app_context():
+        block = EstateBlock.query.first()
+        if not block:
+            block = EstateBlock(name="Bags Block", area=5.0, unit="Hectares", variety="Arabica", location="Ridge")
+            db.session.add(block)
+            db.session.commit()
+        block_id = block.id
+
+    auth_client.login_manager()
+
+    # Post an application with 4 bags of 25 kg each = 100 kg total
+    resp = client.post("/pesticides/add", data={
+        "block_id": str(block_id),
+        "date": date.today().isoformat(),
+        "pesticide_name": "Copper Sulfate Blue Crystals",
+        "category": "Fungicide",
+        "target_pest": "Coffee Black Rot",
+        "dosage": "1 kg per 200L water",
+        "bags_count": "4",
+        "bag_weight_kg": "25.0",
+        "total_weight_kg": "100.0",
+        "quantity_used": "100.0",
+        "unit": "kg",
+        "application_method": "Knapsack Sprayer",
+        "pre_harvest_interval_days": "14",
+        "re_entry_interval_hours": "24",
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"Pesticide application logged successfully" in resp.data
+
+    with app.app_context():
+        rec = PesticideApplication.query.filter_by(pesticide_name="Copper Sulfate Blue Crystals").first()
+        assert rec is not None
+        assert rec.bags_count == 4
+        assert float(rec.bag_weight_kg) == 25.0
+        assert float(rec.total_weight_kg) == 100.0
+        assert float(rec.computed_weight_kg) == 100.0
+
+        d = rec.to_dict()
+        assert d["bags_count"] == 4
+        assert d["bag_weight_kg"] == 25.0
+        assert d["total_weight_kg"] == 100.0
+
+    # Verify rendering on UI
+    resp_ui = client.get("/pesticides/")
+    assert resp_ui.status_code == 200
+    assert b"4 Bags" in resp_ui.data
+    assert b"100.0 kg" in resp_ui.data
+    assert b"25.00 kg / bag" in resp_ui.data
+    assert b"Copper Sulfate Blue Crystals" in resp_ui.data

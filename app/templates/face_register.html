@@ -170,7 +170,7 @@
                     {% endif %}
                   </td>
                   <td>
-                    <span class="badge bg-light text-dark border">{{ int((enr.confidence_threshold if enr else 0.75) * 100) }}%</span>
+                    <span class="badge bg-light text-dark border">{{ ((enr.confidence_threshold if enr else 0.75) * 100) | int }}%</span>
                   </td>
                   <td class="text-end pe-3">
                     {% if enr %}

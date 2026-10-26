@@ -15,7 +15,13 @@ class PesticideApplication(db.Model):
     
     dosage = db.Column(db.String(100), nullable=False) # e.g. "500g per 200L water (0.25%)"
     quantity_used = db.Column(db.Numeric(10, 2), nullable=False, default=0.0) # Quantity of concentrate or solution
-    unit = db.Column(db.String(20), nullable=False, default="kg") # kg, Liters, ml, grams
+    unit = db.Column(db.String(20), nullable=False, default="kg") # kg, Liters, ml, grams, Bags
+    
+    # Bags & Weight in kg tracking
+    bags_count = db.Column(db.Integer, nullable=True, default=1) # Number of bags / containers
+    bag_weight_kg = db.Column(db.Numeric(10, 2), nullable=True, default=0.0) # Weight per individual bag in kg
+    total_weight_kg = db.Column(db.Numeric(10, 2), nullable=True, default=0.0) # Total weight in kg (bags_count * bag_weight_kg or total kg applied)
+    
     application_method = db.Column(db.String(80), nullable=False, default="Knapsack Sprayer") # Knapsack Sprayer, Tractor Mist Blower, Stem Painting, Drenching
     
     # Safety & Compliance Intervals
@@ -58,6 +64,17 @@ class PesticideApplication(db.Model):
         rem = (self.safe_harvest_date - date.today()).days
         return max(0, rem)
 
+    @property
+    def computed_weight_kg(self) -> float:
+        """Returns the total weight in kg, calculated from bags * bag_weight_kg or total_weight_kg/quantity_used."""
+        if self.total_weight_kg and float(self.total_weight_kg) > 0:
+            return float(self.total_weight_kg)
+        if self.bags_count and self.bag_weight_kg and float(self.bag_weight_kg) > 0:
+            return round(int(self.bags_count) * float(self.bag_weight_kg), 2)
+        if self.unit and self.unit.lower() == "kg":
+            return float(self.quantity_used)
+        return float(self.quantity_used)
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -70,6 +87,9 @@ class PesticideApplication(db.Model):
             "dosage": self.dosage,
             "quantity_used": float(self.quantity_used),
             "unit": self.unit,
+            "bags_count": self.bags_count or 1,
+            "bag_weight_kg": float(self.bag_weight_kg or 0.0),
+            "total_weight_kg": float(self.computed_weight_kg),
             "application_method": self.application_method,
             "pre_harvest_interval_days": self.pre_harvest_interval_days,
             "safe_harvest_date": self.safe_harvest_date.isoformat(),

@@ -44,6 +44,8 @@ def index():
     today = date.today()
     active_phi_count = sum(1 for app in applications if app.is_within_phi)
     total_qty_applied = sum(float(app.quantity_used) for app in applications)
+    total_bags_applied = sum(int(app.bags_count or 0) for app in applications)
+    total_weight_kg_applied = sum(float(app.computed_weight_kg) for app in applications)
 
     # Find most prevalent target pest
     pest_counts = {}
@@ -55,6 +57,8 @@ def index():
         "total_applications": len(applications),
         "active_quarantine_blocks": active_phi_count,
         "total_qty_applied": round(total_qty_applied, 1),
+        "total_bags_applied": total_bags_applied,
+        "total_weight_kg_applied": round(total_weight_kg_applied, 1),
         "top_pest": top_pest,
     }
 
@@ -84,6 +88,9 @@ def add_application():
     dosage = request.form.get("dosage", "").strip()
     qty_raw = request.form.get("quantity_used")
     unit = request.form.get("unit", "kg").strip()
+    bags_count_raw = request.form.get("bags_count")
+    bag_weight_kg_raw = request.form.get("bag_weight_kg")
+    total_weight_kg_raw = request.form.get("total_weight_kg")
     app_date_raw = request.form.get("date")
     app_method = request.form.get("application_method", "Knapsack Sprayer").strip()
     phi_days = int(request.form.get("pre_harvest_interval_days") or 14)
@@ -94,8 +101,31 @@ def add_application():
     notes = request.form.get("notes", "").strip()
     inventory_item_id = request.form.get("inventory_item_id")
 
+    # Parse bags and weight in kg
+    bags_count = int(bags_count_raw) if bags_count_raw and bags_count_raw.isdigit() else 1
+    try:
+        bag_weight_kg = float(bag_weight_kg_raw) if bag_weight_kg_raw else 0.0
+    except ValueError:
+        bag_weight_kg = 0.0
+
+    try:
+        total_weight_kg = float(total_weight_kg_raw) if total_weight_kg_raw else 0.0
+    except ValueError:
+        total_weight_kg = 0.0
+
+    # Auto calculate total weight if not directly passed but bags & bag weight given
+    if total_weight_kg <= 0 and bags_count and bag_weight_kg > 0:
+        total_weight_kg = round(bags_count * bag_weight_kg, 2)
+
+    # If quantity was not provided directly, default to total weight or bags count
+    if not qty_raw:
+        if total_weight_kg > 0:
+            qty_raw = str(total_weight_kg)
+        else:
+            qty_raw = str(bags_count)
+
     if not block_id_raw or not pesticide_name or not target_pest or not dosage or not qty_raw:
-        flash("Block, Pesticide Name, Target Pest, Dosage, and Quantity are required.", "danger")
+        flash("Block, Pesticide Name, Target Pest, Dosage, and Quantity/Bags are required.", "danger")
         return redirect(url_for("pesticides.index"))
 
     try:
@@ -105,6 +135,12 @@ def add_application():
     except ValueError:
         flash("Quantity must be a positive number.", "danger")
         return redirect(url_for("pesticides.index"))
+
+    # If total weight still 0 and unit is kg, adopt qty_val
+    if total_weight_kg <= 0 and unit.lower() == "kg":
+        total_weight_kg = qty_val
+        if bags_count >= 1 and bag_weight_kg <= 0:
+            bag_weight_kg = round(total_weight_kg / bags_count, 2)
 
     app_date = date.today()
     if app_date_raw:
@@ -125,6 +161,9 @@ def add_application():
         dosage=dosage,
         quantity_used=qty_val,
         unit=unit,
+        bags_count=bags_count,
+        bag_weight_kg=bag_weight_kg,
+        total_weight_kg=total_weight_kg,
         application_method=app_method,
         pre_harvest_interval_days=phi_days,
         re_entry_interval_hours=rei_hours,
@@ -140,7 +179,7 @@ def add_application():
 
     # If linked to inventory store, deduct stock automatically
     if inv_id:
-        item = InventoryItem.query.get(inv_id)
+        item = db.session.get(InventoryItem, inv_id)
         if item:
             item.current_balance = max(0.0, float(item.current_balance or 0.0) - qty_val)
             tx = StockTransaction(
@@ -177,7 +216,7 @@ def add_application():
 @roles_required("Admin", "Estate Manager")
 def delete_application(record_id):
     user = get_current_user()
-    record = PesticideApplication.query.get_or_404(record_id)
+    record = db.get_or_404(PesticideApplication, record_id)
     block_name = record.block.name if record.block else f"Block {record.block_id}"
     p_name = record.pesticide_name
 
@@ -206,7 +245,8 @@ def export_csv():
 
     writer.writerow([
         "Record ID", "Date", "Block Name", "Pesticide Name", "Category", "Target Pest/Disease",
-        "Dosage", "Quantity Applied", "Unit", "Application Method", "Pre-Harvest Interval (Days)",
+        "Dosage", "Quantity Applied", "Unit", "Number of Bags", "Weight per Bag (kg)", "Total Weight (kg)",
+        "Application Method", "Pre-Harvest Interval (Days)",
         "Safe Harvest Date", "Quarantine Status", "Re-entry (Hours)", "Weather", "Operator", "Supervisor", "Notes"
     ])
 
@@ -222,6 +262,9 @@ def export_csv():
             r.dosage,
             float(r.quantity_used),
             r.unit,
+            r.bags_count or 1,
+            float(r.bag_weight_kg or 0.0),
+            float(r.computed_weight_kg),
             r.application_method,
             r.pre_harvest_interval_days,
             r.safe_harvest_date.isoformat(),

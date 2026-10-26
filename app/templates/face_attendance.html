@@ -146,7 +146,7 @@
             </div>
             <div class="text-end">
               <span class="badge bg-success-subtle text-success border border-success-subtle d-block mb-1">
-                {{ int((ev.confidence or 0.85) * 100) }}% match
+                {{ ((ev.confidence or 0.85) * 100) | int }}% match
               </span>
               <small class="text-secondary" style="font-size: 0.72rem;">{{ ev.timestamp.strftime('%H:%M:%S UTC') }}</small>
             </div>
