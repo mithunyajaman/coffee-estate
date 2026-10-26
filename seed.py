@@ -129,37 +129,37 @@ def seed_database():
         # 3. Estate Blocks
         blocks_data = [
             {
-                "name": "Block A - Arabica North Ridge",
+                "name": "Block A - Arabica Coffee",
                 "area": 12.50,
                 "unit": "Hectares",
-                "variety": "Arabica Chandragiri",
+                "variety": "Arabica Coffee",
                 "location": "North Ridge, 1,180m ASL",
                 "planting_date": date(2018, 7, 10),
                 "status": "Active",
             },
             {
-                "name": "Block B - Robusta Central Valley",
+                "name": "Block B - Robusta Coffee",
                 "area": 18.00,
                 "unit": "Hectares",
-                "variety": "Robusta CxR",
+                "variety": "Robusta Coffee",
                 "location": "Central Valley, 1,020m ASL",
                 "planting_date": date(2016, 8, 20),
                 "status": "Active",
             },
             {
-                "name": "Block C - Shade Nursery & Micro-Lot",
+                "name": "Block C - Kaveri Coffee",
                 "area": 6.20,
                 "unit": "Hectares",
-                "variety": "Arabica S.795 Selection",
+                "variety": "Kaveri Coffee (Cauvery)",
                 "location": "East Stream Bank, 1,140m ASL",
                 "planting_date": date(2021, 9, 15),
                 "status": "Active",
             },
             {
-                "name": "Block D - South Terraces",
+                "name": "Block D - Arabica Terraces",
                 "area": 9.80,
                 "unit": "Hectares",
-                "variety": "Arabica SLN-9",
+                "variety": "Arabica Coffee",
                 "location": "South Slope Terraces, 1,220m ASL",
                 "planting_date": date(2019, 6, 5),
                 "status": "Maintenance",
@@ -167,17 +167,23 @@ def seed_database():
         ]
 
         for bdata in blocks_data:
-            existing_block = EstateBlock.query.filter_by(name=bdata["name"]).first()
+            existing_block = EstateBlock.query.filter(EstateBlock.name.like(f"{bdata['name'].split(' - ')[0]}%")).first()
             if not existing_block:
                 b = EstateBlock(**bdata)
                 db.session.add(b)
                 print(f"  + Added Estate Block: {bdata['name']}")
+            else:
+                existing_block.name = bdata["name"]
+                existing_block.variety = bdata["variety"]
+                existing_block.area = bdata["area"]
+                existing_block.unit = bdata["unit"]
+                existing_block.location = bdata["location"]
 
         db.session.commit()
 
         # 4. Farm Activities
-        block_a = EstateBlock.query.filter_by(name="Block A - Arabica North Ridge").first()
-        block_b = EstateBlock.query.filter_by(name="Block B - Robusta Central Valley").first()
+        block_a = EstateBlock.query.filter(EstateBlock.name.like("Block A%")).first()
+        block_b = EstateBlock.query.filter(EstateBlock.name.like("Block B%")).first()
         if block_a and FarmActivity.query.count() == 0:
             acts = [
                 FarmActivity(
@@ -340,6 +346,7 @@ def seed_database():
 
         # 8. Attendance Records: Kept empty per user request ("data I will add, you don't add")
         print("[Seed] Attendance data will be entered by estate administrator/manager directly.")
+        today = date.today()
 
         # 9. Seed Salary Advances and Sample Payroll
         print("[Seed] Seeding Stage 4 Payroll & Advances...")
@@ -407,9 +414,9 @@ def seed_database():
         # 11. Seed Pesticide Application Records
         from app.models.pesticide import PesticideApplication
         print("[Seed] Seeding Pesticide & Crop Protection records...")
-        block_a = EstateBlock.query.filter_by(name="Block A - Arabica North Ridge").first()
-        block_b = EstateBlock.query.filter_by(name="Block B - Robusta Central Valley").first()
-        block_c = EstateBlock.query.filter_by(name="Block C - Shade Nursery & Micro-Lot").first()
+        block_a = EstateBlock.query.filter(EstateBlock.name.like("Block A%")).first()
+        block_b = EstateBlock.query.filter(EstateBlock.name.like("Block B%")).first()
+        block_c = EstateBlock.query.filter(EstateBlock.name.like("Block C%")).first()
 
         if block_a and not PesticideApplication.query.filter_by(block_id=block_a.id).first():
             p_item = InventoryItem.query.filter(InventoryItem.name.ilike("%Copper%")).first()

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Farm Management{% endblock %}
+{% block title %}Farm Management - Coffee Estate Blocks{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
@@ -11,7 +11,7 @@
         <i class="bi bi-map-fill me-2 brand-leaf"></i>Plantation Farm Management
       </h1>
       <p class="text-secondary small mb-0">
-        Manage coffee blocks, planting density, varietal blocks and agronomic activity schedules.
+        Estate parcel blocks (Block A, Block B, Block C) structured neatly across Arabica Coffee, Robusta Coffee, and Kaveri Coffee.
       </p>
     </div>
 
@@ -27,54 +27,107 @@
     {% endif %}
   </div>
 
-  <!-- Estate Map & Summary Graphic Row -->
+  <!-- Estate Map & Varietal Area Breakdown Row -->
   <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-7">
       <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <h2 class="h6 fw-bold brand-forest mb-0">Estate Parcel &amp; Block Diagram</h2>
+          <h2 class="h6 fw-bold brand-forest mb-0">
+            <i class="bi bi-compass me-1 text-success"></i>Estate Parcel &amp; Block Diagram
+          </h2>
           <span class="badge bg-cream text-dark border">Chikmagalur Main Holding</span>
         </div>
-        <div class="card-body p-2 bg-light text-center">
-          <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}" alt="Estate Block Map" class="img-fluid rounded" style="max-height: 280px; width: 100%; object-fit: contain;">
+        <div class="card-body p-2 bg-light text-center d-flex align-items-center justify-content-center">
+          <img src="{{ url_for('static', filename='images/estate-block-map.svg') }}" alt="Estate Block Map" class="img-fluid rounded" style="max-height: 270px; width: 100%; object-fit: contain;">
         </div>
       </div>
     </div>
 
-    <div class="col-12 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100 p-4 d-flex flex-column justify-content-between">
+    <div class="col-12 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-column justify-content-between">
         <div>
-          <h2 class="h6 fw-bold brand-forest mb-3">Estate Area Summary</h2>
-          <div class="mb-3">
-            <span class="text-muted small d-block">TOTAL PLANTED AREA</span>
-            <div class="display-6 fw-bold brand-forest">{{ "%.2f"|format(total_hectares) }} <small class="fs-6 text-muted">Hectares</small></div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h6 fw-bold brand-forest mb-0">
+              <i class="bi bi-pie-chart-fill me-1 text-warning"></i>Coffee Varietal Distribution
+            </h2>
+            <span class="badge bg-cream text-dark border">{{ (all_blocks or blocks)|length }} Registered Blocks</span>
           </div>
-          <div class="mb-3">
-            <span class="text-muted small d-block">TOTAL REGISTERED BLOCKS</span>
-            <div class="h3 fw-bold text-dark">{{ pagination.total }}</div>
+
+          <!-- Varietal Cards -->
+          <div class="d-flex flex-column gap-2 mb-3">
+            <!-- Arabica Coffee -->
+            <div class="p-2 rounded-3 border d-flex justify-content-between align-items-center" style="background-color: #fffbeb; border-color: #fde68a !important;">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-2" style="background-color: #78350f; color: white;">
+                  <i class="bi bi-cup-hot-fill"></i>
+                </span>
+                <div>
+                  <strong class="d-block small text-dark">Arabica Coffee</strong>
+                  <small class="text-muted" style="font-size: 0.74rem;">Shade grown • Mild &amp; aromatic (1,150m+)</small>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-warning-subtle text-dark border border-warning fw-bold">{{ arabica_count }} Blocks</span>
+                <div class="small fw-bold text-dark mt-1">{{ "%.1f"|format(arabica_hectares) }} ha</div>
+              </div>
+            </div>
+
+            <!-- Robusta Coffee -->
+            <div class="p-2 rounded-3 border d-flex justify-content-between align-items-center" style="background-color: #fefce8; border-color: #fef08a !important;">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-2" style="background-color: #854d0e; color: white;">
+                  <i class="bi bi-shield-shaded"></i>
+                </span>
+                <div>
+                  <strong class="d-block small text-dark">Robusta Coffee</strong>
+                  <small class="text-muted" style="font-size: 0.74rem;">Warm valley • Bold &amp; high crema (900m+)</small>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-warning-subtle text-dark border border-warning fw-bold">{{ robusta_count }} Blocks</span>
+                <div class="small fw-bold text-dark mt-1">{{ "%.1f"|format(robusta_hectares) }} ha</div>
+              </div>
+            </div>
+
+            <!-- Kaveri Coffee -->
+            <div class="p-2 rounded-3 border d-flex justify-content-between align-items-center" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-circle p-2" style="background-color: #15803d; color: white;">
+                  <i class="bi bi-flower1"></i>
+                </span>
+                <div>
+                  <strong class="d-block small text-dark">Kaveri Coffee (Cauvery)</strong>
+                  <small class="text-muted" style="font-size: 0.74rem;">Catimor hybrid • Leaf rust resistant • High yield</small>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success-subtle text-success border border-success fw-bold">{{ kaveri_count }} Blocks</span>
+                <div class="small fw-bold text-dark mt-1">{{ "%.1f"|format(kaveri_hectares) }} ha</div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="p-3 bg-light rounded-3">
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <i class="bi bi-shield-check text-success"></i>
-            <strong class="small">Sustainable Arabica &amp; Robusta</strong>
+
+        <div class="p-2 bg-light rounded-3 border text-center">
+          <span class="text-muted small d-block">TOTAL PLANTED ESTATE AREA</span>
+          <div class="h5 fw-bold brand-forest mb-0">
+            {{ "%.2f"|format(total_hectares) }} <small class="text-muted fw-normal">Hectares (~{{ "%.1f"|format(total_hectares * 2.47105) }} Acres)</small>
           </div>
-          <p class="small text-muted mb-0">
-            Shade-grown under silver oak, rosewood and fig canopy at 1,100m – 1,250m elevation.
-          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Filter & Search Bar -->
+  <!-- Filter & Variety Quick Tabs -->
   <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-3">
-      <form method="GET" action="{{ url_for('farm.farm_list') }}" class="row g-2 align-items-center">
+      <!-- Search & Status Form -->
+      <form method="GET" action="{{ url_for('farm.farm_list') }}" class="row g-2 align-items-center mb-3">
+        <input type="hidden" name="variety" value="{{ variety_filter or '' }}">
         <div class="col-12 col-md-5">
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control border-start-0" name="search" value="{{ search or '' }}" placeholder="Search by block name, variety, or slope location...">
+            <input type="text" class="form-control border-start-0" name="search" value="{{ search or '' }}" placeholder="Search by Block A, B, C, variety, or elevation...">
           </div>
         </div>
         <div class="col-6 col-md-3">
@@ -91,12 +144,38 @@
             <i class="bi bi-funnel me-1"></i> Filter
           </button>
         </div>
-        {% if search or status_filter %}
+        {% if search or status_filter or variety_filter %}
         <div class="col-12 col-md-2">
-          <a href="{{ url_for('farm.farm_list') }}" class="btn btn-link text-secondary text-decoration-none w-100">Reset</a>
+          <a href="{{ url_for('farm.farm_list') }}" class="btn btn-link text-secondary text-decoration-none w-100">Reset Filters</a>
         </div>
         {% endif %}
       </form>
+
+      <!-- Quick Variety Selectors -->
+      <div class="d-flex flex-wrap gap-2 align-items-center pt-2 border-top">
+        <span class="small fw-bold text-muted text-uppercase me-2" style="font-size: 0.75rem;">
+          <i class="bi bi-filter-circle me-1"></i>Coffee Varieties:
+        </span>
+        <a href="{{ url_for('farm.farm_list', search=search, status=status_filter) }}" 
+           class="btn btn-sm rounded-pill px-3 py-1 {% if not variety_filter %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">
+          All Blocks
+        </a>
+        <a href="{{ url_for('farm.farm_list', variety='Arabica', search=search, status=status_filter) }}" 
+           class="btn btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm"
+           style="{% if variety_filter == 'Arabica' %}background: linear-gradient(135deg, #78350f, #92400e); border-color: #78350f; color: #ffffff;{% else %}background-color: #fffbeb; border-color: #f59e0b; color: #78350f;{% endif %}">
+          ☕ Arabica Coffee ({{ arabica_count }})
+        </a>
+        <a href="{{ url_for('farm.farm_list', variety='Robusta', search=search, status=status_filter) }}" 
+           class="btn btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm"
+           style="{% if variety_filter == 'Robusta' %}background: linear-gradient(135deg, #854d0e, #a16207); border-color: #854d0e; color: #ffffff;{% else %}background-color: #fefce8; border-color: #eab308; color: #854d0e;{% endif %}">
+          ☕ Robusta Coffee ({{ robusta_count }})
+        </a>
+        <a href="{{ url_for('farm.farm_list', variety='Kaveri', search=search, status=status_filter) }}" 
+           class="btn btn-sm rounded-pill px-3 py-1 fw-bold shadow-sm"
+           style="{% if variety_filter == 'Kaveri' %}background: linear-gradient(135deg, #15803d, #166534); border-color: #15803d; color: #ffffff;{% else %}background-color: #f0fdf4; border-color: #22c55e; color: #15803d;{% endif %}">
+          ☕ Kaveri Coffee ({{ kaveri_count }})
+        </a>
+      </div>
     </div>
   </div>
 
@@ -105,61 +184,114 @@
     {% if blocks and blocks|length > 0 %}
       {% for b in blocks %}
       <div class="col-12 col-md-6 col-xl-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4 p-3 position-relative">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <span class="badge bg-forest mb-1">{{ b.variety }}</span>
-              <h3 class="h6 fw-bold text-dark mb-0">{{ b.name }}</h3>
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative d-flex flex-column"
+             style="border-left: 5px solid {{ b.variety_theme.border_color }} !important; background: #ffffff;">
+          
+          <!-- Block Identifier Header -->
+          <div class="p-3 pb-2 d-flex justify-content-between align-items-center bg-white border-bottom border-light">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2 rounded-3 fw-bold text-uppercase fs-6 shadow-sm"
+                    style="background-color: #1f2937; color: #ffffff; letter-spacing: 0.5px;">
+                <i class="bi bi-grid-fill me-1 text-warning"></i>{{ b.block_letter }}
+              </span>
             </div>
-            <span class="badge {% if b.status == 'Active' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
-              {{ b.status }}
+            <span class="badge rounded-pill px-3 py-1 fw-semibold {% if b.status == 'Active' %}bg-success-subtle text-success border border-success-subtle{% elif b.status == 'Maintenance' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %}">
+              <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>{{ b.status }}
             </span>
           </div>
 
-          <div class="my-2 py-2 border-top border-bottom">
-            <div class="row g-2 text-center" style="font-size: 0.85rem;">
-              <div class="col-6 border-end">
-                <span class="text-muted d-block small">AREA</span>
-                <strong class="brand-forest fs-6">{{ b.area }} {{ b.unit }}</strong>
+          <!-- Coffee Variety Banner -->
+          <div class="px-3 py-2 text-white" style="background: {{ b.variety_theme.accent_gradient }};">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-white-50 text-uppercase fw-semibold" style="letter-spacing: 0.8px; font-size: 0.68rem;">COFFEE VARIETY</div>
+                <div class="h5 fw-bold mb-0 text-white d-flex align-items-center gap-1">
+                  <i class="bi {{ b.variety_theme.icon }} me-1"></i>{{ b.coffee_type }}
+                </div>
               </div>
-              <div class="col-6">
-                <span class="text-muted d-block small">ACTIVITIES</span>
-                <strong class="brand-coffee fs-6">{{ b.activities.count() }} logged</strong>
-              </div>
+              <span class="badge bg-white bg-opacity-25 text-white border border-white border-opacity-25 px-2 py-1 small">
+                {{ b.variety }}
+              </span>
+            </div>
+            <div class="text-white-50 mt-1" style="font-size: 0.74rem;">
+              <i class="bi bi-info-circle me-1"></i>{{ b.variety_theme.tagline }}
             </div>
           </div>
 
-          <div class="small text-muted mb-3">
-            <div><i class="bi bi-geo-alt me-1 text-danger"></i>{{ b.location or 'Elevation unspecified' }}</div>
-            {% if b.planting_date %}
-            <div><i class="bi bi-calendar3 me-1 text-primary"></i>Planted: {{ b.planting_date.strftime('%B %Y') }}</div>
-            {% endif %}
-          </div>
+          <!-- Block Details & Metrics -->
+          <div class="p-3 flex-grow-1 d-flex flex-column justify-content-between">
+            <div>
+              <h3 class="h6 fw-bold text-dark mb-2">{{ b.name }}</h3>
 
-          {% if current_user.is_manager %}
-          <div class="mt-auto pt-2 border-top d-flex justify-content-end">
-            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editBlockModal{{ b.id }}">
-              <i class="bi bi-pencil me-1"></i> Edit Block
-            </button>
+              <div class="p-2 rounded-3 mb-3" style="background-color: {{ b.variety_theme.bg_subtle }}; border: 1px dashed {{ b.variety_theme.border_color }};">
+                <div class="row g-2 text-center" style="font-size: 0.85rem;">
+                  <div class="col-6 border-end" style="border-color: rgba(0,0,0,0.08) !important;">
+                    <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Planted Area</span>
+                    <strong class="fs-6" style="color: {{ b.variety_theme.text_color }};">
+                      <i class="bi bi-rulers me-1"></i>{{ b.area }} {{ b.unit }}
+                    </strong>
+                  </div>
+                  <div class="col-6">
+                    <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Field Logs</span>
+                    <strong class="fs-6 text-secondary">
+                      <i class="bi bi-journal-text me-1"></i>{{ b.activities.count() }} logs
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="small text-secondary space-y-1 mb-2">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <i class="bi bi-geo-alt-fill text-danger flex-shrink-0"></i>
+                  <span class="text-truncate">{{ b.location or 'Elevation unspecified' }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-calendar-check text-primary flex-shrink-0"></i>
+                  <span>
+                    {% if b.planting_date %}
+                      Planted: <strong>{{ b.planting_date.strftime('%B %Y') }}</strong>
+                      {% if b.age_years is not none %}
+                        <span class="badge bg-light text-dark border ms-1">{{ b.age_years }} yrs</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted">Planting date not set</span>
+                    {% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+              <button class="btn btn-sm btn-outline-forest py-1 px-2" data-bs-toggle="modal" data-bs-target="#logActivityModal" onclick="document.getElementById('activityBlockSelect').value='{{ b.id }}';">
+                <i class="bi bi-journal-plus me-1"></i> Log Activity
+              </button>
+              {% if current_user.is_manager %}
+              <button class="btn btn-sm btn-outline-secondary py-1 px-2" data-bs-toggle="modal" data-bs-target="#editBlockModal{{ b.id }}">
+                <i class="bi bi-pencil me-1"></i> Edit Block
+              </button>
+              {% endif %}
+            </div>
           </div>
 
           <!-- Edit Block Modal -->
+          {% if current_user.is_manager %}
           <div class="modal fade" id="editBlockModal{{ b.id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
               <div class="modal-content">
                 <form method="POST" action="{{ url_for('farm.edit_block', block_id=b.id) }}">
                   <div class="modal-header">
-                    <h5 class="modal-title">Edit Block: {{ b.name }}</h5>
+                    <h5 class="modal-title brand-forest fw-bold">Edit {{ b.block_letter }}: {{ b.name }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                   </div>
                   <div class="modal-body">
                     <div class="mb-3">
-                      <label class="form-label small fw-semibold">Block Name</label>
+                      <label class="form-label small fw-semibold">Block Name *</label>
                       <input type="text" name="name" class="form-control" value="{{ b.name }}" required>
                     </div>
                     <div class="row g-2 mb-3">
                       <div class="col-8">
-                        <label class="form-label small fw-semibold">Area</label>
+                        <label class="form-label small fw-semibold">Area Size *</label>
                         <input type="number" step="0.01" name="area" class="form-control" value="{{ b.area }}" required>
                       </div>
                       <div class="col-4">
@@ -171,11 +303,16 @@
                       </div>
                     </div>
                     <div class="mb-3">
-                      <label class="form-label small fw-semibold">Coffee Variety</label>
-                      <input type="text" name="variety" class="form-control" value="{{ b.variety }}" required>
+                      <label class="form-label small fw-semibold">Coffee Variety *</label>
+                      <div class="d-flex flex-wrap gap-1 mb-2">
+                        <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #78350f; font-size: 0.75rem;" onclick="document.getElementById('editBlockVariety{{ b.id }}').value='Arabica Coffee'">☕ Arabica</button>
+                        <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #854d0e; font-size: 0.75rem;" onclick="document.getElementById('editBlockVariety{{ b.id }}').value='Robusta Coffee'">☕ Robusta</button>
+                        <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #15803d; font-size: 0.75rem;" onclick="document.getElementById('editBlockVariety{{ b.id }}').value='Kaveri Coffee (Cauvery)'">☕ Kaveri</button>
+                      </div>
+                      <input type="text" id="editBlockVariety{{ b.id }}" name="variety" class="form-control" value="{{ b.variety }}" required>
                     </div>
                     <div class="mb-3">
-                      <label class="form-label small fw-semibold">Location / Description</label>
+                      <label class="form-label small fw-semibold">Location / Elevation</label>
                       <input type="text" name="location" class="form-control" value="{{ b.location or '' }}">
                     </div>
                     <div class="mb-3">
@@ -202,14 +339,16 @@
       {% endfor %}
     {% else %}
       <div class="col-12">
-        <div class="empty-state-card">
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
           <i class="bi bi-map fs-1 brand-leaf opacity-75 mb-2"></i>
           <h4 class="h5 fw-bold brand-forest">No Plantation Blocks Found</h4>
-          <p class="text-secondary small mb-3">Add your first estate parcel or adjust your search filters.</p>
+          <p class="text-secondary small mb-3">Adjust your search or variety filter, or add a new block.</p>
           {% if current_user.is_manager %}
-          <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addBlockModal">
-            <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
-          </button>
+          <div>
+            <button type="button" class="btn btn-forest btn-sm" data-bs-toggle="modal" data-bs-target="#addBlockModal">
+              <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
+            </button>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -221,17 +360,17 @@
   <nav class="d-flex justify-content-center mb-4">
     <ul class="pagination pagination-sm">
       <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.prev_num, search=search, status=status_filter) }}">Previous</a>
+        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.prev_num, search=search, status=status_filter, variety=variety_filter) }}">Previous</a>
       </li>
       {% for p in pagination.iter_pages() %}
         {% if p %}
           <li class="page-item {% if p == pagination.page %}active{% endif %}">
-            <a class="page-link" href="{{ url_for('farm.farm_list', page=p, search=search, status=status_filter) }}">{{ p }}</a>
+            <a class="page-link" href="{{ url_for('farm.farm_list', page=p, search=search, status=status_filter, variety=variety_filter) }}">{{ p }}</a>
           </li>
         {% endif %}
       {% endfor %}
       <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.next_num, search=search, status=status_filter) }}">Next</a>
+        <a class="page-link" href="{{ url_for('farm.farm_list', page=pagination.next_num, search=search, status=status_filter, variety=variety_filter) }}">Next</a>
       </li>
     </ul>
   </nav>
@@ -240,7 +379,9 @@
   <!-- Recent Farm Activities Table -->
   <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-      <h2 class="h6 fw-bold brand-forest mb-0">Recent Agronomic &amp; Field Activities</h2>
+      <h2 class="h6 fw-bold brand-forest mb-0">
+        <i class="bi bi-journal-text me-1 text-primary"></i>Recent Agronomic &amp; Field Activities
+      </h2>
       <span class="badge bg-light text-secondary border">Estate Audit Trail</span>
     </div>
     <div class="card-body p-0">
@@ -251,6 +392,7 @@
             <tr>
               <th class="ps-3">Date</th>
               <th>Block</th>
+              <th>Coffee Variety</th>
               <th>Activity Type</th>
               <th>Inputs Applied</th>
               <th>Notes</th>
@@ -261,7 +403,15 @@
             {% for act in recent_activities %}
             <tr>
               <td class="ps-3 text-secondary">{{ act.date.strftime('%d %b %Y') }}</td>
-              <td><strong>{{ act.block.name }}</strong></td>
+              <td>
+                <span class="badge bg-dark text-white me-1">{{ act.block.block_letter }}</span>
+                <strong>{{ act.block.name }}</strong>
+              </td>
+              <td>
+                <span class="badge px-2 py-1" style="background-color: {{ act.block.variety_theme.badge_bg }}; color: white;">
+                  {{ act.block.coffee_type }}
+                </span>
+              </td>
               <td>
                 <span class="badge bg-cream text-dark border px-2 py-1">{{ act.activity_type }}</span>
               </td>
@@ -291,8 +441,14 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label small fw-semibold">Block Name *</label>
-            <input type="text" name="name" class="form-control" placeholder="e.g. Block A - Arabica Ridge" required>
+            <label class="form-label small fw-semibold">Block Identifier / Name *</label>
+            <div class="d-flex gap-1 mb-2">
+              <button type="button" class="btn btn-outline-dark btn-sm py-0 px-2 fw-semibold" style="font-size: 0.78rem;" onclick="setAddBlockPrefix('Block A - ')">Block A</button>
+              <button type="button" class="btn btn-outline-dark btn-sm py-0 px-2 fw-semibold" style="font-size: 0.78rem;" onclick="setAddBlockPrefix('Block B - ')">Block B</button>
+              <button type="button" class="btn btn-outline-dark btn-sm py-0 px-2 fw-semibold" style="font-size: 0.78rem;" onclick="setAddBlockPrefix('Block C - ')">Block C</button>
+              <button type="button" class="btn btn-outline-dark btn-sm py-0 px-2 fw-semibold" style="font-size: 0.78rem;" onclick="setAddBlockPrefix('Block D - ')">Block D</button>
+            </div>
+            <input type="text" id="addBlockNameInput" name="name" class="form-control" placeholder="e.g. Block A - Arabica Ridge" required>
           </div>
           <div class="row g-2 mb-3">
             <div class="col-8">
@@ -309,7 +465,12 @@
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Coffee Variety *</label>
-            <input type="text" name="variety" class="form-control" placeholder="e.g. Arabica Chandragiri / Robusta CxR" required>
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #78350f; font-size: 0.78rem;" onclick="setAddBlockVariety('Arabica Coffee')">☕ Arabica Coffee</button>
+              <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #854d0e; font-size: 0.78rem;" onclick="setAddBlockVariety('Robusta Coffee')">☕ Robusta Coffee</button>
+              <button type="button" class="btn btn-sm py-0 px-2 text-white" style="background-color: #15803d; font-size: 0.78rem;" onclick="setAddBlockVariety('Kaveri Coffee (Cauvery)')">☕ Kaveri Coffee</button>
+            </div>
+            <input type="text" id="addBlockVarietyInput" name="variety" class="form-control" placeholder="e.g. Arabica Chandragiri / Robusta CxR / Kaveri" required>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Location / Elevation</label>
@@ -350,9 +511,9 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Target Plantation Block *</label>
-            <select name="block_id" class="form-select" required>
-              {% for b in blocks %}
-              <option value="{{ b.id }}">{{ b.name }} ({{ b.variety }})</option>
+            <select id="activityBlockSelect" name="block_id" class="form-select" required>
+              {% for b in all_blocks or blocks %}
+              <option value="{{ b.id }}">{{ b.block_letter }} - {{ b.name }} ({{ b.coffee_type }})</option>
               {% endfor %}
             </select>
           </div>
@@ -388,4 +549,26 @@
     </div>
   </div>
 </div>
+
+<script>
+function setAddBlockPrefix(prefix) {
+  const inp = document.getElementById('addBlockNameInput');
+  if (inp) {
+    if (!inp.value || inp.value.startsWith('Block ')) {
+      inp.value = prefix;
+    } else {
+      inp.value = prefix + inp.value;
+    }
+    inp.focus();
+  }
+}
+
+function setAddBlockVariety(variety) {
+  const inp = document.getElementById('addBlockVarietyInput');
+  if (inp) {
+    inp.value = variety;
+    inp.focus();
+  }
+}
+</script>
 {% endblock %}

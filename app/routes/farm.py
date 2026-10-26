@@ -15,6 +15,7 @@ def farm_list():
     current_user = get_current_user()
     search = request.args.get("search", "").strip()
     status_filter = request.args.get("status", "").strip()
+    variety_filter = request.args.get("variety", "").strip()
     page = request.args.get("page", 1, type=int)
 
     query = EstateBlock.query
@@ -26,9 +27,20 @@ def farm_list():
         )
     if status_filter:
         query = query.filter_by(status=status_filter)
+    if variety_filter:
+        query = query.filter(EstateBlock.variety.ilike(f"%{variety_filter}%"))
 
-    pagination = query.order_by(EstateBlock.name.asc()).paginate(page=page, per_page=8, error_out=False)
+    pagination = query.order_by(EstateBlock.name.asc()).paginate(page=page, per_page=12, error_out=False)
     blocks = pagination.items
+
+    all_blocks = EstateBlock.query.order_by(EstateBlock.name.asc()).all()
+    arabica_count = sum(1 for b in all_blocks if "arabica" in (b.variety or "").lower())
+    robusta_count = sum(1 for b in all_blocks if "robusta" in (b.variety or "").lower())
+    kaveri_count = sum(1 for b in all_blocks if "kaveri" in (b.variety or "").lower() or "cauvery" in (b.variety or "").lower())
+
+    arabica_hectares = sum(float(b.area or 0) for b in all_blocks if "arabica" in (b.variety or "").lower())
+    robusta_hectares = sum(float(b.area or 0) for b in all_blocks if "robusta" in (b.variety or "").lower())
+    kaveri_hectares = sum(float(b.area or 0) for b in all_blocks if "kaveri" in (b.variety or "").lower() or "cauvery" in (b.variety or "").lower())
 
     # Recent activities across the estate
     recent_activities = (
@@ -37,16 +49,25 @@ def farm_list():
         .all()
     )
 
-    total_hectares = sum([float(b.area or 0) for b in EstateBlock.query.all()])
+    total_hectares = sum([float(b.area or 0) for b in all_blocks])
 
     return render_template(
         "farm.html",
         blocks=blocks,
+        all_blocks=all_blocks,
         pagination=pagination,
         recent_activities=recent_activities,
         total_hectares=total_hectares,
         search=search,
         status_filter=status_filter,
+        variety_filter=variety_filter,
+        arabica_count=arabica_count,
+        robusta_count=robusta_count,
+        kaveri_count=kaveri_count,
+        arabica_hectares=arabica_hectares,
+        robusta_hectares=robusta_hectares,
+        kaveri_hectares=kaveri_hectares,
+        date_today=date.today().isoformat(),
         current_user=current_user,
     )
 

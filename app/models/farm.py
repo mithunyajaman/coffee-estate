@@ -19,10 +19,96 @@ class EstateBlock(db.Model):
     harvest_records = db.relationship("HarvestRecord", backref="block", lazy="dynamic")
     tasks = db.relationship("Task", backref="block", lazy="dynamic")
 
+    @property
+    def block_letter(self) -> str:
+        """Extracts clean Block identifier (e.g. 'BLOCK A', 'BLOCK B', 'BLOCK C')."""
+        if "block " in self.name.lower():
+            part = self.name.split("-")[0].strip()
+            return part.upper()
+        return self.name.upper()
+
+    @property
+    def coffee_type(self) -> str:
+        """Categorizes variety into 'Arabica Coffee', 'Robusta Coffee', 'Kaveri Coffee'."""
+        v = (self.variety or "").lower()
+        if "kaveri" in v or "cauvery" in v:
+            return "Kaveri Coffee"
+        elif "arabica" in v:
+            return "Arabica Coffee"
+        elif "robusta" in v:
+            return "Robusta Coffee"
+        return self.variety or "Specialty Coffee"
+
+    @property
+    def age_years(self):
+        """Returns age of the plantation block in years if planting_date is set."""
+        if self.planting_date:
+            today = date.today()
+            return today.year - self.planting_date.year - ((today.month, today.day) < (self.planting_date.month, self.planting_date.day))
+        return None
+
+    @property
+    def variety_theme(self) -> dict:
+        """Provides theme colors, icons, and description for clean visual display."""
+        t = self.coffee_type
+        if t == "Arabica Coffee":
+            return {
+                "key": "arabica",
+                "name": "Arabica Coffee",
+                "border_color": "#d97706",
+                "bg_subtle": "#fffbeb",
+                "text_color": "#78350f",
+                "badge_bg": "#78350f",
+                "accent_gradient": "linear-gradient(135deg, #78350f 0%, #b45309 100%)",
+                "pill_badge": "bg-warning-subtle text-dark border border-warning",
+                "icon": "bi-cup-hot-fill",
+                "tagline": "Shade Grown (1,150m – 1,300m) • Mild, Aromatic & Acidic",
+            }
+        elif t == "Robusta Coffee":
+            return {
+                "key": "robusta",
+                "name": "Robusta Coffee",
+                "border_color": "#ca8a04",
+                "bg_subtle": "#fefce8",
+                "text_color": "#713f12",
+                "badge_bg": "#854d0e",
+                "accent_gradient": "linear-gradient(135deg, #854d0e 0%, #ca8a04 100%)",
+                "pill_badge": "bg-warning-subtle text-dark border border-warning",
+                "icon": "bi-shield-shaded",
+                "tagline": "Warm Valley (900m – 1,100m) • Bold, High Crema & High Body",
+            }
+        elif t == "Kaveri Coffee":
+            return {
+                "key": "kaveri",
+                "name": "Kaveri Coffee",
+                "border_color": "#16a34a",
+                "bg_subtle": "#f0fdf4",
+                "text_color": "#14532d",
+                "badge_bg": "#15803d",
+                "accent_gradient": "linear-gradient(135deg, #15803d 0%, #166534 100%)",
+                "pill_badge": "bg-success-subtle text-success border border-success",
+                "icon": "bi-flower1",
+                "tagline": "Catimor Hybrid (Cauvery) • Rust Resistant • High Yield Semi-Dwarf",
+            }
+        return {
+            "key": "other",
+            "name": self.variety or "Estate Coffee",
+            "border_color": "#475569",
+            "bg_subtle": "#f8fafc",
+            "text_color": "#1e293b",
+            "badge_bg": "#334155",
+            "accent_gradient": "linear-gradient(135deg, #334155 0%, #475569 100%)",
+            "pill_badge": "bg-secondary-subtle text-secondary border",
+            "icon": "bi-tree-fill",
+            "tagline": "Specialty Cultivar",
+        }
+
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "block_letter": self.block_letter,
+            "coffee_type": self.coffee_type,
             "area": float(self.area) if self.area is not None else 0.0,
             "unit": self.unit,
             "variety": self.variety,
