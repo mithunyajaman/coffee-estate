@@ -96,18 +96,22 @@
         <i class="bi bi-people"></i>
         <span>10. Employees</span>
       </a>
+      {% if current_user.is_manager %}
       <a href="{{ url_for('attendance.face_registration_page') }}" class="sidebar-link {% if request.path == '/attendance/face-register' %}active{% endif %}">
         <i class="bi bi-person-bounding-box"></i>
         <span>11. Face Registration</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.62rem;">Roll No</span>
       </a>
       <a href="{{ url_for('attendance.face_attendance_page') }}" class="sidebar-link {% if request.path == '/attendance/face-checkin' %}active{% endif %}">
         <i class="bi bi-camera"></i>
         <span>12. Face Attendance</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.62rem;">Biometric</span>
       </a>
       <a href="{{ url_for('attendance.manual_attendance') }}" class="sidebar-link {% if request.path == '/attendance/manual' %}active{% endif %}">
         <i class="bi bi-clipboard-check"></i>
         <span>13. Manual / Offline Att.</span>
       </a>
+      {% endif %}
       <a href="{{ url_for('payroll.index') }}" class="sidebar-link {% if request.path.startswith('/payroll') %}active{% endif %}">
         <i class="bi bi-cash-stack"></i>
         <span>15. Payroll Management</span>

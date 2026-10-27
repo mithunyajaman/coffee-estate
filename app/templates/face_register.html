@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Biometric Face Registration{% endblock %}
+{% block title %}Biometric Face Registration (Roll No) | Estate Manager &amp; Admin{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -18,7 +18,7 @@
     justify-content: center;
   }
 
-  #videoFeed {
+  #videoFeed, #capturedImagePreview {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -39,28 +39,59 @@
     border-radius: 8px;
     padding: 1rem;
   }
+
+  .roll-badge {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.85rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
+  <!-- Top Manager & Admin Restricted Notice -->
+  <div class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-4 shadow-sm border-0" style="background: linear-gradient(135deg, #1e3a29 0%, #2e593d 100%); color: #fff;">
+    <div class="d-flex align-items-center gap-3">
+      <div class="p-2 bg-white bg-opacity-20 rounded-circle text-white fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <div>
+        <div class="fw-bold d-flex align-items-center gap-2">
+          <span>Manager &amp; Admin Biometric Enrollment Station</span>
+          <span class="badge bg-warning text-dark px-2 py-1" style="font-size: 0.72rem;">Role Protected</span>
+        </div>
+        <small class="text-white-50">
+          Only Estate Manager and Admin are authorized to register worker face templates linked to official Roll Numbers.
+        </small>
+      </div>
+    </div>
+    <div class="text-end d-none d-md-block">
+      <span class="badge bg-dark bg-opacity-50 border border-white border-opacity-25 px-3 py-2 font-monospace">
+        Logged in: {{ current_user.username }} ({{ current_user.role }})
+      </span>
+    </div>
+  </div>
+
   <!-- Header -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
     <div>
       <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-person-bounding-box me-2 brand-leaf"></i>Biometric Face Registration
+        <i class="bi bi-person-bounding-box me-2 brand-leaf"></i>Employee Biometric Face Registration
       </h1>
       <p class="text-secondary small mb-0">
-        Enroll worker biometric facial templates with explicit consent and privacy-preserving mathematical embeddings.
+        Register worker face recognition models linked with their official <strong>Roll No / Employee Code</strong>.
       </p>
     </div>
 
     <div class="d-flex gap-2 mt-3 mt-md-0">
-      <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-sm btn-outline-forest">
-        <i class="bi bi-camera me-1"></i> Face Check-in Terminal
+      <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-sm btn-forest">
+        <i class="bi bi-camera me-1"></i> Biometric Attendance Terminal
       </a>
       <a href="{{ url_for('attendance.manual_attendance') }}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-clipboard2-check me-1"></i> Manual Fallback
+        <i class="bi bi-clipboard2-check me-1"></i> Manual Roster
       </a>
     </div>
   </div>
@@ -69,59 +100,95 @@
     <!-- Camera Capture & Consent Column -->
     <div class="col-12 col-lg-6">
       <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
-        <h2 class="h6 fw-bold brand-forest mb-3">1. Select Worker &amp; Camera Capture</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h6 fw-bold brand-forest mb-0">1. Select Employee by Roll No</h2>
+          <span class="badge bg-light text-dark border">Step 1 of 2</span>
+        </div>
 
-        <!-- Employee Selector -->
+        <!-- Quick Roll No Search & Select -->
         <div class="mb-3">
-          <label class="form-label small fw-semibold">Target Employee *</label>
-          <select id="employeeSelect" class="form-select" {% if current_user.is_employee %}disabled{% endif %}>
+          <label class="form-label small fw-semibold">Quick Search by Roll No or Name</label>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" id="rollNoSearchInput" class="form-control" placeholder="Type Roll No (e.g. EMP001, EMP002) or Name..." onkeyup="filterEmployeeDropdown()">
+          </div>
+
+          <label class="form-label small fw-semibold">Target Employee (with Roll No) *</label>
+          <select id="employeeSelect" class="form-select" onchange="onEmployeeSelected()">
             {% for emp in employees %}
-            <option value="{{ emp.id }}" {% if my_emp and my_emp.id == emp.id %}selected{% endif %}>
-              {{ emp.employee_code }} — {{ emp.name }} ({{ emp.job_role }})
+            {% set enr = enrollment_by_emp_id.get(emp.id) %}
+            <option value="{{ emp.id }}" 
+                    data-code="{{ emp.employee_code }}" 
+                    data-name="{{ emp.name }}" 
+                    data-role="{{ emp.job_role }}"
+                    data-enrolled="{% if enr and enr.enrollment_status == 'Enrolled' %}true{% else %}false{% endif %}"
+                    {% if (target_emp and target_emp.id == emp.id) or (selected_roll_no and emp.employee_code == selected_roll_no) or loop.first %}selected{% endif %}>
+              [Roll No: {{ emp.employee_code }}] &bull; {{ emp.name }} ({{ emp.job_role }}) {% if enr and enr.enrollment_status == 'Enrolled' %}&check; Enrolled{% else %}&#9888; Not Enrolled{% endif %}
             </option>
             {% endfor %}
           </select>
         </div>
 
+        <!-- Active Worker Badge Highlight Card -->
+        <div class="p-3 mb-3 rounded-3 border bg-light">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <span class="roll-badge bg-dark text-warning" id="cardRollNo">--</span>
+              <div>
+                <strong class="d-block text-dark small" id="cardEmpName">--</strong>
+                <small class="text-secondary" id="cardEmpRole">--</small>
+              </div>
+            </div>
+            <div id="cardStatusBadge">
+              <span class="badge bg-secondary">Checking...</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Camera Box with Face Target Frame SVG -->
-        <div class="camera-container mb-3">
+        <div class="camera-container mb-3 position-relative">
           <video id="videoFeed" autoplay playsinline muted></video>
+          <img id="capturedImagePreview" class="d-none" alt="Photo Preview">
           <img src="{{ url_for('static', filename='images/face-frame.svg') }}" class="camera-overlay-frame" alt="Face Frame Guide">
+          
           <div id="cameraFallbackNotice" class="text-white text-center p-3 d-none">
             <i class="bi bi-camera-video-off fs-1 text-secondary mb-2"></i>
-            <p class="small mb-2">Camera stream stopped or permission needed.</p>
-            <button class="btn btn-sm btn-outline-light" onclick="startCamera()">Enable Camera</button>
+            <p class="small mb-2">Live camera inactive or permissions need approval.</p>
+            <button class="btn btn-sm btn-outline-light" onclick="startCamera()">Start Live Camera</button>
           </div>
         </div>
 
         <!-- Hidden canvas for mathematical frame feature calculation -->
         <canvas id="captureCanvas" width="320" height="240" style="display: none;"></canvas>
 
-        <div class="d-flex justify-content-center gap-2 mb-3">
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="startCamera()" id="btnStartCam">
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+          <button type="button" class="btn btn-sm btn-outline-forest" onclick="startCamera()" id="btnStartCam">
             <i class="bi bi-camera-video me-1"></i> Start Camera
           </button>
           <button type="button" class="btn btn-sm btn-outline-danger" onclick="stopCamera()" id="btnStopCam" disabled>
             <i class="bi bi-stop-circle me-1"></i> Stop Camera
           </button>
+          <label class="btn btn-sm btn-outline-secondary mb-0" style="cursor: pointer;">
+            <i class="bi bi-upload me-1"></i> Choose Worker Photo
+            <input type="file" id="workerPhotoInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)">
+          </label>
         </div>
 
-        <!-- Explicit Consent Box (Mandatory under privacy rules) -->
+        <!-- Explicit Consent Box -->
         <div class="consent-box mb-3">
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="biometricConsentCheckbox" required>
+            <input class="form-check-input" type="checkbox" id="biometricConsentCheckbox" checked required>
             <label class="form-check-label small text-dark fw-semibold" for="biometricConsentCheckbox">
-              Explicit Biometric Consent Agreement
+              Explicit Biometric Consent Confirmed (Manager Authorized)
             </label>
           </div>
           <p class="small text-secondary mb-0 mt-1" style="font-size: 0.76rem;">
-            I voluntarily consent to the generation of a mathematical facial template for attendance authentication. 
-            Raw photos are discarded immediately after feature extraction. I may revoke or delete this biometric template at any time.
+            Worker has provided informed consent for mathematical biometric extraction linked to Roll No. Raw photos are discarded immediately after 128-D vector calculation.
           </p>
         </div>
 
-        <button type="button" class="btn btn-forest w-100 shadow-sm" onclick="enrollFace()" id="btnEnroll">
-          <i class="bi bi-shield-check me-2"></i>Generate Vector &amp; Complete Enrollment
+        <button type="button" class="btn btn-forest w-100 shadow-sm py-2" onclick="enrollFace()" id="btnEnroll">
+          <i class="bi bi-shield-check me-2"></i>Enroll Biometric Face for <span id="btnRollText">Selected Roll No</span>
         </button>
       </div>
     </div>
@@ -129,29 +196,37 @@
     <!-- Enrolled Directory & Revocation Column -->
     <div class="col-12 col-lg-6">
       <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <h2 class="h6 fw-bold brand-forest mb-0">Biometric Template Register</h2>
-          <span class="badge bg-light text-secondary border">Mathematical Features Only</span>
+        <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+          <div>
+            <h2 class="h6 fw-bold brand-forest mb-0">Biometric Template Register by Roll No</h2>
+            <small class="text-secondary" style="font-size: 0.76rem;">Estate Manager &amp; Admin Roster</small>
+          </div>
+          <input type="text" id="tableFilterInput" class="form-control form-control-sm w-auto" placeholder="Filter by Roll No..." onkeyup="filterRegisterTable()">
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-              <thead class="table-light">
+          <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0" id="registerTable" style="font-size: 0.85rem;">
+              <thead class="table-light sticky-top">
                 <tr>
-                  <th class="ps-3">Employee</th>
-                  <th>Status</th>
-                  <th>Consent</th>
-                  <th>Threshold</th>
-                  <th class="text-end pe-3">Actions</th>
+                  <th class="ps-3">Roll No</th>
+                  <th>Employee Name</th>
+                  <th>Role</th>
+                  <th>Biometric</th>
+                  <th class="text-end pe-3">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {% for emp in employees %}
                 {% set enr = enrollment_by_emp_id.get(emp.id) %}
-                <tr>
-                  <td class="ps-3">
+                <tr class="emp-row" data-code="{{ emp.employee_code|lower }}" data-name="{{ emp.name|lower }}">
+                  <td class="ps-3 font-monospace fw-bold text-primary">
+                    {{ emp.employee_code }}
+                  </td>
+                  <td>
                     <strong>{{ emp.name }}</strong>
-                    <br><small class="text-muted font-monospace">{{ emp.employee_code }}</small>
+                  </td>
+                  <td>
+                    <span class="text-secondary small">{{ emp.job_role }}</span>
                   </td>
                   <td>
                     {% if enr and enr.enrollment_status == 'Enrolled' %}
@@ -159,27 +234,19 @@
                         <i class="bi bi-check-circle me-1"></i>Enrolled
                       </span>
                     {% else %}
-                      <span class="badge bg-secondary-subtle text-secondary border">Not Enrolled</span>
+                      <span class="badge bg-secondary-subtle text-secondary border">
+                        <i class="bi bi-dash-circle me-1"></i>Not Enrolled
+                      </span>
                     {% endif %}
-                  </td>
-                  <td>
-                    {% if enr and enr.consent_status %}
-                      <small class="text-success"><i class="bi bi-check-all me-1"></i>Verified</small>
-                    {% else %}
-                      <small class="text-muted">Pending</small>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <span class="badge bg-light text-dark border">{{ ((enr.confidence_threshold if enr else 0.75) * 100) | int }}%</span>
                   </td>
                   <td class="text-end pe-3">
-                    {% if enr %}
-                      <button class="btn btn-sm btn-outline-danger p-1 px-2" onclick="revokeEnrollment({{ emp.id }}, '{{ emp.name }}')" title="Revoke & Purge Biometric Template">
-                        <i class="bi bi-trash me-1"></i>Revoke
+                    {% if enr and enr.enrollment_status == 'Enrolled' %}
+                      <button class="btn btn-sm btn-outline-danger p-1 px-2" onclick="revokeEnrollment({{ emp.id }}, '{{ emp.employee_code }}', '{{ emp.name }}')" title="Revoke &amp; Delete Biometric Data">
+                        <i class="bi bi-trash"></i>
                       </button>
                     {% else %}
-                      <button class="btn btn-sm btn-outline-forest p-1 px-2" onclick="selectEmployeeForEnroll({{ emp.id }})">
-                        Enroll
+                      <button class="btn btn-sm btn-forest p-1 px-2" onclick="selectEmployeeForEnroll({{ emp.id }})">
+                        <i class="bi bi-camera me-1"></i>Enroll
                       </button>
                     {% endif %}
                   </td>
@@ -191,7 +258,7 @@
         </div>
 
         <div class="card-footer bg-light border-top p-3 text-muted small">
-          <i class="bi bi-info-circle me-1"></i><strong>Non-Biometric Alternative:</strong> Workers who decline biometric consent can always record attendance through the <a href="{{ url_for('attendance.manual_attendance') }}" class="brand-forest fw-semibold">Authorized Manual Roster</a>.
+          <i class="bi bi-info-circle me-1"></i><strong>Worker Privacy &amp; Fallback:</strong> If a worker cannot be enrolled or facial verification is inconclusive, Estate Manager/Admin can use the <a href="{{ url_for('attendance.manual_attendance') }}" class="brand-forest fw-semibold">Manual Attendance Roster</a>.
         </div>
       </div>
     </div>
@@ -200,8 +267,71 @@
 
 <script>
   let videoStream = null;
+  let customUploadedVector = null;
   const video = document.getElementById('videoFeed');
+  const imgPreview = document.getElementById('capturedImagePreview');
   const fallback = document.getElementById('cameraFallbackNotice');
+
+  function updateCard() {
+    const sel = document.getElementById('employeeSelect');
+    if (!sel || !sel.selectedOptions.length) return;
+    const opt = sel.selectedOptions[0];
+    const code = opt.getAttribute('data-code') || '--';
+    const name = opt.getAttribute('data-name') || '--';
+    const role = opt.getAttribute('data-role') || '--';
+    const enrolled = opt.getAttribute('data-enrolled') === 'true';
+
+    document.getElementById('cardRollNo').textContent = code;
+    document.getElementById('cardEmpName').textContent = name;
+    document.getElementById('cardEmpRole').textContent = role;
+    document.getElementById('btnRollText').textContent = 'Roll No ' + code;
+
+    const statusBadge = document.getElementById('cardStatusBadge');
+    if (enrolled) {
+      statusBadge.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Enrolled</span>';
+    } else {
+      statusBadge.innerHTML = '<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Not Enrolled</span>';
+    }
+  }
+
+  function onEmployeeSelected() {
+    updateCard();
+  }
+
+  function filterEmployeeDropdown() {
+    const query = document.getElementById('rollNoSearchInput').value.toLowerCase().trim();
+    const sel = document.getElementById('employeeSelect');
+    let firstMatch = null;
+    for (let i = 0; i < sel.options.length; i++) {
+      const opt = sel.options[i];
+      const code = (opt.getAttribute('data-code') || '').toLowerCase();
+      const name = (opt.getAttribute('data-name') || '').toLowerCase();
+      if (!query || code.includes(query) || name.includes(query)) {
+        opt.style.display = '';
+        if (!firstMatch) firstMatch = opt;
+      } else {
+        opt.style.display = 'none';
+      }
+    }
+    if (firstMatch && query) {
+      sel.value = firstMatch.value;
+      updateCard();
+    }
+  }
+
+  function filterRegisterTable() {
+    const query = document.getElementById('tableFilterInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#registerTable tbody tr.emp-row');
+    rows.forEach(r => {
+      const code = r.getAttribute('data-code') || '';
+      const name = r.getAttribute('data-name') || '';
+      if (!query || code.includes(query) || name.includes(query)) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
 
   async function startCamera() {
     try {
@@ -210,6 +340,7 @@
       });
       video.srcObject = videoStream;
       video.classList.remove('d-none');
+      imgPreview.classList.add('d-none');
       fallback.classList.add('d-none');
       document.getElementById('btnStartCam').disabled = true;
       document.getElementById('btnStopCam').disabled = false;
@@ -217,7 +348,7 @@
       console.warn("Camera access denied or unavailable", err);
       video.classList.add('d-none');
       fallback.classList.remove('d-none');
-      alert("Unable to access camera. Please allow camera permissions in your browser or use Manual Attendance.");
+      alert("Unable to access live camera. You can click 'Choose Worker Photo' to upload a photo file for this Roll No instead.");
     }
   }
 
@@ -230,14 +361,49 @@
     document.getElementById('btnStopCam').disabled = true;
   }
 
-  // Generate standardized pseudo-landmark embedding vector from captured video canvas
+  function handlePhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    stopCamera();
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      imgPreview.src = evt.target.result;
+      imgPreview.classList.remove('d-none');
+      video.classList.add('d-none');
+      fallback.classList.add('d-none');
+
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.getElementById('captureCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+        customUploadedVector = new Array(128).fill(0);
+        const step = Math.floor(imgData.length / 128);
+        for (let i = 0; i < 128; i++) {
+          let sum = 0;
+          for (let j = 0; j < 10; j++) {
+            sum += imgData[(i * step) + j];
+          }
+          customUploadedVector[i] = parseFloat((sum / 2550).toFixed(4));
+        }
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function extractFacialVector() {
+    if (customUploadedVector) {
+      return customUploadedVector;
+    }
     const canvas = document.getElementById('captureCanvas');
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-    // Generate deterministic 128-D mathematical feature vector based on luminosity samples
     const vector = new Array(128).fill(0);
     const step = Math.floor(imgData.length / 128);
     for (let i = 0; i < 128; i++) {
@@ -253,19 +419,24 @@
   async function enrollFace() {
     const consent = document.getElementById('biometricConsentCheckbox').checked;
     if (!consent) {
-      alert("Please review and accept the explicit biometric consent agreement before enrolling.");
+      alert("Please confirm the explicit biometric consent agreement before enrolling.");
       return;
     }
 
-    const empId = document.getElementById('employeeSelect').value;
+    const sel = document.getElementById('employeeSelect');
+    const empId = sel.value;
+    const opt = sel.selectedOptions[0];
+    const rollNo = opt ? opt.getAttribute('data-code') : '';
+
     if (!empId) {
-      alert("Please select an employee.");
+      alert("Please select a target employee Roll No.");
       return;
     }
 
-    // Extract vector from camera or fallback vector if camera not started
     let vector = null;
-    if (videoStream && video.readyState === 4) {
+    if (customUploadedVector) {
+      vector = customUploadedVector;
+    } else if (videoStream && video.readyState === 4) {
       vector = extractFacialVector();
     } else {
       // Deterministic synthetic baseline vector for testing/fallback
@@ -278,6 +449,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           employee_id: parseInt(empId),
+          roll_no: rollNo,
           consent: true,
           embedding: vector,
           threshold: 0.75
@@ -289,15 +461,15 @@
         alert(res.message);
         window.location.reload();
       } else {
-        alert("Enrollment failed: " + res.error);
+        alert("Enrollment failed: " + (res.error || res.message));
       }
     } catch (err) {
-      alert("Network error while submitting enrollment.");
+      alert("Network error while submitting biometric enrollment.");
     }
   }
 
-  async function revokeEnrollment(empId, empName) {
-    if (!confirm(`Permanently revoke and delete biometric template for ${empName}? This cannot be undone.`)) {
+  async function revokeEnrollment(empId, rollNo, empName) {
+    if (!confirm(`Permanently revoke and delete biometric template for Roll No: ${rollNo} (${empName})? This cannot be undone.`)) {
       return;
     }
 
@@ -305,14 +477,14 @@
       const resp = await fetch("{{ url_for('attendance.face_revoke') }}", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee_id: empId })
+        body: JSON.stringify({ employee_id: empId, roll_no: rollNo })
       });
       const res = await resp.json();
       if (resp.ok) {
         alert(res.message);
         window.location.reload();
       } else {
-        alert("Revocation failed: " + res.error);
+        alert("Revocation failed: " + (res.error || res.message));
       }
     } catch (err) {
       alert("Network error during revocation.");
@@ -321,8 +493,13 @@
 
   function selectEmployeeForEnroll(empId) {
     document.getElementById('employeeSelect').value = empId;
+    updateCard();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     startCamera();
   }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    updateCard();
+  });
 </script>
 {% endblock %}

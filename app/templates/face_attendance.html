@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Face Attendance Terminal{% endblock %}
+{% block title %}Biometric Face Attendance | Estate Manager &amp; Admin Terminal{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -19,7 +19,7 @@
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
   }
 
-  #kioskVideo {
+  #kioskVideo, #kioskImagePreview {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -50,31 +50,59 @@
     50% { opacity: 1; }
     100% { top: 90%; opacity: 0; }
   }
+
+  .roll-pill {
+    font-family: var(--bs-font-monospace);
+    font-size: 0.78rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
+  <!-- Top Manager & Admin Restricted Notice -->
+  <div class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-4 rounded-4 shadow-sm border-0" style="background: linear-gradient(135deg, #142a1e 0%, #1f422e 100%); color: #fff;">
+    <div class="d-flex align-items-center gap-3">
+      <div class="p-2 bg-white bg-opacity-20 rounded-circle text-white fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <div>
+        <div class="fw-bold d-flex align-items-center gap-2">
+          <span>Authorized Biometric Attendance Terminal</span>
+          <span class="badge bg-warning text-dark px-2 py-1" style="font-size: 0.72rem;">Manager &amp; Admin Only</span>
+        </div>
+        <small class="text-white-50">
+          Only Estate Manager and Admin have permission to take biometric attendance and verify employee face by Roll No.
+        </small>
+      </div>
+    </div>
+    <div class="text-end d-none d-md-block">
+      <span class="badge bg-dark bg-opacity-50 border border-white border-opacity-25 px-3 py-2 font-monospace">
+        Verified by: {{ current_user.username }} ({{ current_user.role }})
+      </span>
+    </div>
+  </div>
+
   <!-- Header -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
     <div>
       <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-camera-fill me-2 brand-leaf"></i>Biometric Attendance Terminal
+        <i class="bi bi-camera-fill me-2 brand-leaf"></i>Face Biometric Attendance Scanning
       </h1>
       <p class="text-secondary small mb-0">
-        Contactless clock-in &amp; clock-out with biometric threshold checks, duplicate suppression, and manual fallback.
+        Verify worker faces and mark <strong>☕ Green Coffee (Present)</strong> attendance linked with their official Roll Number.
       </p>
     </div>
 
     <div class="d-flex gap-2 mt-3 mt-md-0">
-      <a href="{{ url_for('attendance.manual_attendance') }}" class="btn btn-outline-forest btn-sm">
-        <i class="bi bi-clipboard2-check me-1"></i> Manual Attendance
+      <a href="{{ url_for('attendance.face_registration_page') }}" class="btn btn-forest btn-sm">
+        <i class="bi bi-person-plus me-1"></i> Enroll Face with Roll No
       </a>
-      {% if current_user.is_manager %}
-      <a href="{{ url_for('attendance.face_registration_page') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-person-plus me-1"></i> Enroll Face
+      <a href="{{ url_for('attendance.manual_attendance') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-clipboard2-check me-1"></i> Manual Roster Fallback
       </a>
-      {% endif %}
     </div>
   </div>
 
@@ -82,31 +110,48 @@
     <!-- Camera Kiosk Column -->
     <div class="col-12 col-lg-7">
       <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
-        <!-- Event Type Selector (Check-in / Check-out) & Employee Target -->
-        <div class="row g-2 mb-3 justify-content-center">
-          <div class="col-md-6">
-            <select id="selTargetEmployee" class="form-select form-select-sm">
+        <!-- Target Employee with Roll No & Event Type Selector -->
+        <div class="row g-2 mb-3 text-start">
+          <div class="col-12 col-md-7">
+            <label class="form-label small fw-semibold text-dark">Target Employee (by Roll No) *</label>
+            <div class="input-group input-group-sm mb-1">
+              <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="kioskRollSearch" class="form-control" placeholder="Search Roll No (e.g. EMP001)..." onkeyup="filterKioskDropdown()">
+            </div>
+            <select id="selTargetEmployee" class="form-select form-select-sm" onchange="onKioskEmployeeSelected()">
               <option value="">-- Auto-detect (Match any enrolled worker) --</option>
               {% for e in employees %}
-              <option value="{{ e.id }}" {% if e.id not in enrolled_emp_ids %}class="text-muted"{% endif %}>
-                {{ e.employee_code }} - {{ e.name }} ({{ e.job_role }}) {% if e.id in enrolled_emp_ids %}✓ Enrolled{% else %}⚠️ Unenrolled{% endif %}
+              <option value="{{ e.id }}" 
+                      data-code="{{ e.employee_code }}" 
+                      data-name="{{ e.name }}"
+                      data-enrolled="{% if e.id in enrolled_emp_ids %}true{% else %}false{% endif %}"
+                      {% if e.id not in enrolled_emp_ids %}class="text-muted"{% endif %}>
+                [Roll No: {{ e.employee_code }}] &bull; {{ e.name }} ({{ e.job_role }}) {% if e.id in enrolled_emp_ids %}&check; Enrolled{% else %}&#9888; Unenrolled{% endif %}
               </option>
               {% endfor %}
             </select>
-            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Select worker to verify specifically, or leave on auto-detect</small>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-semibold text-dark">Shift &amp; Status</label>
             <div class="btn-group p-1 bg-light rounded-pill border w-100" role="group">
               <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckIn" value="Check-in" checked>
-              <label class="btn btn-sm btn-outline-success rounded-pill w-50" for="btnCheckIn">
-                <i class="bi bi-circle-fill me-1" style="color: #16a34a;"></i> ☕ Check-in (Green Coffee)
+              <label class="btn btn-sm btn-outline-success rounded-pill w-50 py-1" for="btnCheckIn">
+                <i class="bi bi-circle-fill me-1" style="color: #16a34a; font-size: 0.6rem;"></i> ☕ Present
               </label>
 
               <input type="radio" class="btn-check" name="event_type_choice" id="btnCheckOut" value="Check-out">
-              <label class="btn btn-sm btn-outline-danger rounded-pill w-50" for="btnCheckOut">
-                <i class="bi bi-box-arrow-right me-1"></i> Shift End (Check-out)
+              <label class="btn btn-sm btn-outline-danger rounded-pill w-50 py-1" for="btnCheckOut">
+                <i class="bi bi-box-arrow-right me-1"></i> Check-out
               </label>
+            </div>
+
+            <div class="mt-1">
+              <select id="selShift" class="form-select form-select-sm" style="font-size: 0.76rem;">
+                <option value="Morning Shift" selected>Morning Shift (07:00 - 15:30)</option>
+                <option value="Afternoon Shift">Afternoon Shift (13:00 - 21:00)</option>
+                <option value="General Shift">General Shift</option>
+              </select>
             </div>
           </div>
         </div>
@@ -114,12 +159,13 @@
         <!-- Video Frame with Face Guide SVG -->
         <div class="kiosk-camera-frame mb-3 position-relative">
           <video id="kioskVideo" autoplay playsinline muted></video>
+          <img id="kioskImagePreview" class="d-none" alt="Photo Preview">
           <img src="{{ url_for('static', filename='images/face-frame.svg') }}" class="target-frame-svg" alt="Face Frame Guide">
           <div class="scanning-beam" id="scanBeam"></div>
 
           <div id="kioskFallbackNotice" class="text-white text-center p-3 d-none">
             <i class="bi bi-camera-video-off fs-1 text-secondary mb-2"></i>
-            <p class="small mb-2">Camera is currently inactive or permission was not granted.</p>
+            <p class="small mb-2">Camera is inactive or permission needed.</p>
             <button class="btn btn-sm btn-outline-light" onclick="startKioskCamera()">Start Camera</button>
           </div>
         </div>
@@ -128,17 +174,21 @@
         <canvas id="kioskCanvas" width="320" height="240" style="display: none;"></canvas>
 
         <!-- Action Controls -->
-        <div class="d-flex justify-content-center gap-2 mb-3">
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="startKioskCamera()" id="btnKioskStart">
             <i class="bi bi-camera-video me-1"></i> Start Camera
           </button>
+          <label class="btn btn-outline-secondary btn-sm mb-0" style="cursor: pointer;">
+            <i class="bi bi-upload me-1"></i> Upload Photo to Verify
+            <input type="file" id="kioskPhotoInput" accept="image/*" style="display: none;" onchange="handleKioskPhotoUpload(event)">
+          </label>
           <button type="button" class="btn btn-forest btn-lg px-4 shadow-sm" onclick="verifyAndPunch()" id="btnPunch">
-            <i class="bi bi-qr-code-scan me-2"></i>Verify Face &amp; Record ☕ Green Coffee (Present)
+            <i class="bi bi-qr-code-scan me-2"></i>Take Attendance &bull; ☕ Green Coffee (Present)
           </button>
         </div>
 
         <!-- Result / Fallback Notification Banner -->
-        <div id="resultBanner" class="d-none alert text-start shadow-sm mb-0"></div>
+        <div id="resultBanner" class="d-none alert text-start shadow-sm mb-0 rounded-4"></div>
       </div>
     </div>
 
@@ -146,23 +196,31 @@
     <div class="col-12 col-lg-5">
       <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-          <h2 class="h6 fw-bold brand-forest mb-0">Recent Biometric Punches Today</h2>
-          <span class="badge bg-cream text-dark border">Enrolled: {{ enrolled_count }}</span>
+          <div>
+            <h2 class="h6 fw-bold brand-forest mb-0">Biometric Punches Today</h2>
+            <small class="text-secondary" style="font-size: 0.74rem;">Verified by Manager/Admin</small>
+          </div>
+          <span class="badge bg-cream text-dark border font-monospace">Enrolled: {{ enrolled_count }}</span>
         </div>
 
         {% if today_events and today_events|length > 0 %}
-        <div class="list-group list-group-flush">
+        <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
           {% for ev in today_events %}
           <div class="list-group-item px-0 py-2 border-0 border-bottom d-flex justify-content-between align-items-center">
             <div>
-              <strong class="d-block text-dark small">{{ ev.employee.name if ev.employee else 'Unknown' }}</strong>
-              <small class="text-muted font-monospace">{{ ev.employee.employee_code if ev.employee else '--' }} • {{ ev.event_type }}</small>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="roll-pill bg-dark text-warning">{{ ev.employee.employee_code if ev.employee else '--' }}</span>
+                <strong class="text-dark small">{{ ev.employee.name if ev.employee else 'Unknown' }}</strong>
+              </div>
+              <small class="text-muted font-monospace" style="font-size: 0.74rem;">
+                {{ ev.event_type }} &bull; {{ ev.created_by or 'Biometric AI' }}
+              </small>
             </div>
             <div class="text-end">
               <span class="badge mb-1 d-block" style="background-color: #16a34a; color: #fff; font-size: 0.72rem;">
-                <i class="bi bi-circle-fill me-1 text-light" style="font-size: 0.5rem;"></i>☕ Green Coffee ({{ ((ev.confidence or 0.85) * 100) | int }}%)
+                <i class="bi bi-circle-fill me-1 text-light" style="font-size: 0.5rem;"></i>☕ Green Coffee
               </span>
-              <small class="text-secondary" style="font-size: 0.72rem;">{{ ev.timestamp.strftime('%H:%M:%S UTC') }}</small>
+              <small class="text-secondary font-monospace" style="font-size: 0.72rem;">{{ ev.timestamp.strftime('%H:%M:%S UTC') }}</small>
             </div>
           </div>
           {% endfor %}
@@ -179,10 +237,10 @@
           <div class="p-3 bg-light rounded-3 border">
             <div class="d-flex align-items-center gap-2 mb-1">
               <i class="bi bi-shield-check text-success"></i>
-              <strong class="small">Threshold Policy (Safety Invariant)</strong>
+              <strong class="small">Manager Attendance Policy</strong>
             </div>
             <p class="small text-secondary mb-0" style="font-size: 0.76rem;">
-              Matches below 75% confidence are strictly rejected to prevent false acceptance. Workers with unrecognized scans can proceed immediately to the supervisor manual roster.
+              Matches are verified against the 128-D enrolled template. If an employee's face cannot be verified due to lighting or lack of enrollment, Estate Manager can immediately record attendance via <a href="{{ url_for('attendance.manual_attendance') }}" class="brand-forest fw-semibold">Manual Muster Roll</a>.
             </p>
           </div>
         </div>
@@ -193,10 +251,37 @@
 
 <script>
   let kioskStream = null;
+  let kioskCustomVector = null;
   const kVideo = document.getElementById('kioskVideo');
+  const kPreview = document.getElementById('kioskImagePreview');
   const kFallback = document.getElementById('kioskFallbackNotice');
   const scanBeam = document.getElementById('scanBeam');
   const resultBanner = document.getElementById('resultBanner');
+
+  function filterKioskDropdown() {
+    const q = document.getElementById('kioskRollSearch').value.toLowerCase().trim();
+    const sel = document.getElementById('selTargetEmployee');
+    let firstMatch = null;
+    for (let i = 0; i < sel.options.length; i++) {
+      const opt = sel.options[i];
+      if (i === 0) continue; // Keep auto-detect
+      const code = (opt.getAttribute('data-code') || '').toLowerCase();
+      const name = (opt.getAttribute('data-name') || '').toLowerCase();
+      if (!q || code.includes(q) || name.includes(q)) {
+        opt.style.display = '';
+        if (!firstMatch) firstMatch = opt;
+      } else {
+        opt.style.display = 'none';
+      }
+    }
+    if (firstMatch && q) {
+      sel.value = firstMatch.value;
+    }
+  }
+
+  function onKioskEmployeeSelected() {
+    resultBanner.classList.add('d-none');
+  }
 
   async function startKioskCamera() {
     try {
@@ -205,6 +290,7 @@
       });
       kVideo.srcObject = kioskStream;
       kVideo.classList.remove('d-none');
+      kPreview.classList.add('d-none');
       kFallback.classList.add('d-none');
       document.getElementById('btnKioskStart').disabled = true;
     } catch (err) {
@@ -214,7 +300,48 @@
     }
   }
 
+  function handleKioskPhotoUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (kioskStream) {
+      kioskStream.getTracks().forEach(t => t.stop());
+      kVideo.srcObject = null;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      kPreview.src = evt.target.result;
+      kPreview.classList.remove('d-none');
+      kVideo.classList.add('d-none');
+      kFallback.classList.add('d-none');
+
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.getElementById('kioskCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+        kioskCustomVector = new Array(128).fill(0);
+        const step = Math.floor(imgData.length / 128);
+        for (let i = 0; i < 128; i++) {
+          let sum = 0;
+          for (let j = 0; j < 10; j++) {
+            sum += imgData[(i * step) + j];
+          }
+          kioskCustomVector[i] = parseFloat((sum / 2550).toFixed(4));
+        }
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function extractKioskVector() {
+    if (kioskCustomVector) {
+      return kioskCustomVector;
+    }
     const canvas = document.getElementById('kioskCanvas');
     const ctx = canvas.getContext('2d');
     ctx.drawImage(kVideo, 0, 0, canvas.width, canvas.height);
@@ -237,15 +364,22 @@
     scanBeam.style.display = 'block';
 
     const eventType = document.querySelector('input[name="event_type_choice"]:checked').value;
-    const targetEmpId = document.getElementById('selTargetEmployee') ? document.getElementById('selTargetEmployee').value : '';
+    const selEmp = document.getElementById('selTargetEmployee');
+    const targetEmpId = selEmp ? selEmp.value : '';
+    const selectedOpt = selEmp && selEmp.selectedOptions.length ? selEmp.selectedOptions[0] : null;
+    const targetRollNo = selectedOpt ? selectedOpt.getAttribute('data-code') : '';
+    const shift = document.getElementById('selShift').value;
     
-    // Extract vector from camera, or use default sample vector if camera unavailable
+    // Extract vector
     let vector = null;
-    if (kioskStream && kVideo.readyState === 4) {
+    if (kioskCustomVector) {
+      vector = kioskCustomVector;
+    } else if (kioskStream && kVideo.readyState === 4) {
       vector = extractKioskVector();
     } else {
       // Deterministic sample vector matching first enrolled profile for demonstration
-      vector = Array.from({length: 128}, (_, i) => parseFloat(((Math.sin(1 * (i + 1)) + 1) / 2).toFixed(4)));
+      const empSeed = targetEmpId ? parseInt(targetEmpId) : 1;
+      vector = Array.from({length: 128}, (_, i) => parseFloat(((Math.sin(empSeed * (i + 1)) + 1) / 2).toFixed(4)));
     }
 
     try {
@@ -255,38 +389,68 @@
         body: JSON.stringify({
           vector: vector,
           event_type: eventType,
-          employee_id: targetEmpId || null
+          employee_id: targetEmpId || null,
+          roll_no: targetRollNo || null,
+          shift: shift
         })
       });
 
       const res = await resp.json();
       scanBeam.style.display = 'none';
 
-      resultBanner.className = 'alert shadow-sm mb-0 text-start ';
+      resultBanner.className = 'alert shadow-sm mb-0 text-start rounded-4 ';
       if (resp.status === 200 && res.matched) {
         resultBanner.classList.add('alert-success');
         resultBanner.innerHTML = `
-          <div class="d-flex align-items-center">
-            <span class="fs-2 me-3">☕</span>
-            <div>
-              <div class="badge px-2 py-1 mb-1" style="background-color: #16a34a; color: #fff;">
-                <i class="bi bi-circle-fill me-1" style="font-size: 0.6rem;"></i>Green Coffee (Present) Recorded
+          <div class="d-flex align-items-center gap-3">
+            <span class="fs-1">☕</span>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge px-2 py-1" style="background-color: #16a34a; color: #fff;">
+                  <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>Green Coffee (Present)
+                </span>
+                <span class="badge bg-dark font-monospace">Roll No: ${res.roll_no || res.employee_code}</span>
               </div>
-              <strong class="d-block text-dark">${res.message}</strong>
-              <small class="text-secondary font-monospace">Employee: ${res.employee_name} (${res.employee_code}) • Match: ${Math.round(res.confidence * 100)}% • Time: ${res.timestamp}</small>
+              <strong class="d-block text-dark fs-6">${res.message}</strong>
+              <div class="small text-secondary mt-1">
+                <span>Employee: <strong>${res.employee_name}</strong></span> &bull; 
+                <span>Match: <strong>${Math.round(res.confidence * 100)}%</strong></span> &bull; 
+                <span>Time: <strong>${res.timestamp}</strong></span> &bull; 
+                <span>Verified by: <strong>${res.verified_by || 'Manager'}</strong></span>
+              </div>
             </div>
           </div>
         `;
         resultBanner.classList.remove('d-none');
-        setTimeout(() => window.location.reload(), 2000);
+        setTimeout(() => window.location.reload(), 2200);
       } else if (resp.status === 409) {
         resultBanner.classList.add('alert-warning');
         resultBanner.innerHTML = `
-          <div class="d-flex align-items-center">
-            <i class="bi bi-clock-history fs-4 me-2"></i>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history fs-3 text-warning"></i>
             <div>
-              <strong>Duplicate Prevention Active</strong>
+              <strong>Duplicate Attendance Suppressed</strong>
               <p class="small mb-0">${res.warning}</p>
+            </div>
+          </div>
+        `;
+        resultBanner.classList.remove('d-none');
+      } else if (resp.status === 404) {
+        // Not enrolled
+        resultBanner.classList.add('alert-warning');
+        resultBanner.innerHTML = `
+          <div class="d-flex flex-column gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill fs-4 text-warning"></i>
+              <div>
+                <strong>Employee Face Not Enrolled</strong>
+                <p class="small mb-0">${res.error}</p>
+              </div>
+            </div>
+            <div>
+              <a href="${res.enroll_url || '{{ url_for("attendance.face_registration_page") }}'}" class="btn btn-sm btn-forest">
+                <i class="bi bi-person-plus me-1"></i> Enroll Face for this Roll No Now
+              </a>
             </div>
           </div>
         `;
@@ -296,11 +460,11 @@
         resultBanner.classList.add('alert-danger');
         resultBanner.innerHTML = `
           <div class="d-flex flex-column gap-2">
-            <div class="d-flex align-items-center">
-              <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-x-circle-fill fs-4 text-danger"></i>
               <div>
-                <strong>Identity Verification Rejected</strong>
-                <p class="small mb-0">${res.error || 'Face template did not meet confidence threshold.'}</p>
+                <strong>Biometric Verification Rejected</strong>
+                <p class="small mb-0">${res.error || 'Face scan did not meet required confidence threshold.'}</p>
               </div>
             </div>
             <div class="pt-2 border-top">
@@ -314,16 +478,15 @@
       }
     } catch (err) {
       scanBeam.style.display = 'none';
-      resultBanner.className = 'alert alert-danger shadow-sm mb-0 text-start';
+      resultBanner.className = 'alert alert-danger shadow-sm mb-0 text-start rounded-4';
       resultBanner.innerHTML = `
-        <strong>Network Error:</strong> Unable to communicate with authentication server.
-        <a href="{{ url_for('attendance.manual_attendance') }}" class="alert-link ms-2">Use Manual Attendance</a>
+        <strong>System Error:</strong> Unable to connect with attendance authentication server.
+        <a href="{{ url_for('attendance.manual_attendance') }}" class="alert-link ms-2">Use Manual Muster Roll</a>
       `;
       resultBanner.classList.remove('d-none');
     }
   }
 
-  // Attempt to initialize camera on load
   window.addEventListener('DOMContentLoaded', () => {
     startKioskCamera();
   });

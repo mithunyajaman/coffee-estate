@@ -246,6 +246,84 @@ def test_employee_cannot_drop_attendance(client, auth_client):
     assert resp_save.status_code == 403
 
 
+def test_employee_blocked_from_all_biometric_actions(client, auth_client):
+    """Only Estate Manager and Admin can access biometric terminals and enroll or take attendance."""
+    auth_client.login_employee()
+
+    # 1. Blocked from biometric attendance kiosk page
+    resp_checkin_page = client.get("/attendance/face-checkin")
+    assert resp_checkin_page.status_code == 403
+
+    # 2. Blocked from biometric verification API
+    resp_verify_api = client.post("/api/attendance/face-verify", json={
+        "vector": [0.5] * 128,
+        "event_type": "Check-in"
+    })
+    assert resp_verify_api.status_code == 403
+
+    # 3. Blocked from biometric registration page
+    resp_register_page = client.get("/attendance/face-register")
+    assert resp_register_page.status_code == 403
+
+    # 4. Blocked from biometric enrollment API
+    resp_enroll_api = client.post("/api/attendance/face-enroll", json={
+        "roll_no": "EMP001",
+        "consent": True,
+        "embedding": [0.5] * 128
+    })
+    assert resp_enroll_api.status_code == 403
+
+    # 5. Blocked from biometric revocation API
+    resp_revoke_api = client.post("/api/attendance/face-revoke", json={
+        "roll_no": "EMP001"
+    })
+    assert resp_revoke_api.status_code == 403
+
+    # 6. Blocked from offline attendance sync API
+    resp_sync_api = client.post("/api/attendance/sync", json={"events": []})
+    assert resp_sync_api.status_code == 403
+
+
+def test_manager_enrollment_and_verification_with_roll_no(client, auth_client):
+    """Estate Manager can enroll and verify employee attendance directly using Roll No."""
+    auth_client.login_manager()
+    emp = Employee.query.filter_by(employee_code="EMP002").first() or Employee.query.first()
+    assert emp is not None
+
+    test_vector = [0.65] * 128
+
+    # 1. Enroll using Roll No
+    resp_enroll = client.post("/api/attendance/face-enroll", json={
+        "roll_no": emp.employee_code,
+        "consent": True,
+        "embedding": test_vector,
+        "threshold": 0.75
+    })
+    assert resp_enroll.status_code == 200
+    enroll_data = resp_enroll.get_json()
+    assert enroll_data["success"] is True
+    assert enroll_data["roll_no"] == emp.employee_code
+
+    # 2. Verify attendance using Roll No
+    resp_verify = client.post("/api/attendance/face-verify", json={
+        "vector": test_vector,
+        "roll_no": emp.employee_code,
+        "event_type": "Check-in",
+        "shift": "Morning Shift"
+    })
+    assert resp_verify.status_code == 200
+    verify_data = resp_verify.get_json()
+    assert verify_data["matched"] is True
+    assert verify_data["roll_no"] == emp.employee_code
+    assert verify_data["coffee_status"] == "Green Coffee"
+    assert verify_data["status"] == "Present"
+
+    # 3. Confirm daily attendance marked Present
+    daily = DailyAttendance.query.filter_by(employee_id=emp.id, date=date.today()).first()
+    assert daily is not None
+    assert daily.status == "Present"
+
+
 def test_green_coffee_targeted_face_verification(client, auth_client):
     """Admin/Manager can verify a specific employee's face and mark Green Coffee (Present)."""
     auth_client.login_manager()

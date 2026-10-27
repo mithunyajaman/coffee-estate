@@ -138,7 +138,7 @@ def bulk_save_attendance():
 
 
 @attendance_bp.route("/api/attendance/sync", methods=["POST"])
-@login_required
+@roles_required("Admin", "Estate Manager")
 def sync_offline_attendance():
     """Idempotent sync endpoint for offline IndexedDB queue."""
     current_user = get_current_user()
@@ -234,20 +234,22 @@ def sync_offline_attendance():
 
 
 # ==============================================================================
-# PAGE 11: Face Registration & Biometric Consent Workflow
+# PAGE 11: Face Registration & Biometric Consent Workflow (Manager & Admin Only)
 # ==============================================================================
 
 @attendance_bp.route("/attendance/face-register", methods=["GET"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def face_registration_page():
-    """Page 11: Face Registration with explicit consent, vector enrollment, and revoke workflow."""
+    """Page 11: Face Registration with Roll No selection (Admin & Estate Manager only)."""
     current_user = get_current_user()
     employees = Employee.query.filter_by(status="Active").order_by(Employee.employee_code.asc()).all()
 
-    # Pre-select employee if current user is linked to one
-    my_emp = None
-    if current_user.employee_code:
-        my_emp = Employee.query.filter_by(employee_code=current_user.employee_code).first()
+    # Pre-select employee by Roll No (employee_code) if requested in URL
+    selected_roll_no = request.args.get("roll_no") or request.args.get("code")
+    target_emp = None
+    if selected_roll_no:
+        target_emp = Employee.query.filter_by(employee_code=selected_roll_no.strip()).first()
 
     enrollments = FaceEnrollment.query.all()
     enrollment_by_emp_id = {e.employee_id: e for e in enrollments}
@@ -255,7 +257,8 @@ def face_registration_page():
     return render_template(
         "face_register.html",
         employees=employees,
-        my_emp=my_emp,
+        target_emp=target_emp,
+        selected_roll_no=selected_roll_no,
         enrollment_by_emp_id=enrollment_by_emp_id,
         current_user=current_user,
     )
@@ -263,30 +266,34 @@ def face_registration_page():
 
 @attendance_bp.route("/api/attendance/face-enroll", methods=["POST"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def face_enroll():
-    """Store explicit biometric consent and mathematical feature vector (no raw images)."""
+    """Store explicit biometric consent and mathematical feature vector with Roll No (Admin & Manager only)."""
     current_user = get_current_user()
     data = request.get_json(silent=True) or {}
     employee_id = data.get("employee_id")
+    roll_no = data.get("roll_no") or data.get("employee_code")
     consent = bool(data.get("consent"))
     embedding = data.get("embedding") # Array of floats representing landmarks/features
     threshold = float(data.get("threshold", 0.75))
 
     if not consent:
-        return jsonify({"error": "Explicit biometric consent is required under privacy rules."}), 400
+        return jsonify({"error": "Explicit biometric consent is required under estate privacy rules."}), 400
 
-    if not employee_id or not embedding or not isinstance(embedding, list):
-        return jsonify({"error": "Employee ID and facial mathematical template are required."}), 400
+    if not embedding or not isinstance(embedding, list):
+        return jsonify({"error": "Facial mathematical feature template is required."}), 400
 
-    emp = db.session.get(Employee, employee_id)
+    emp = None
+    if employee_id:
+        try:
+            emp = db.session.get(Employee, int(employee_id))
+        except (ValueError, TypeError):
+            pass
+    if not emp and roll_no:
+        emp = Employee.query.filter_by(employee_code=str(roll_no).strip()).first()
+
     if not emp:
-        return jsonify({"error": "Employee not found."}), 404
-
-    # If regular employee, only allow self-enrollment
-    if current_user.is_employee:
-        my_emp = Employee.query.filter_by(employee_code=current_user.employee_code).first()
-        if not my_emp or my_emp.id != emp.id:
-            return jsonify({"error": "You may only register biometric data for your own account."}), 403
+        return jsonify({"error": f"Employee not found. Please provide a valid Roll No or ID."}), 404
 
     existing = FaceEnrollment.query.filter_by(employee_id=emp.id).first()
     if existing:
@@ -313,35 +320,42 @@ def face_enroll():
         entity_type="FaceEnrollment",
         entity_id=str(emp.id),
         outcome="SUCCESS",
-        details=f"Biometric template enrolled for {emp.employee_code} ({emp.name}) with explicit consent.",
+        details=f"Biometric template enrolled for Roll No: {emp.employee_code} ({emp.name}) by {current_user.role} ({current_user.username}).",
         actor_id=current_user.id,
         actor_username=current_user.username,
     )
 
     return jsonify({
         "success": True,
-        "message": f"Biometric verification template registered for {emp.name} ({emp.employee_code}). Raw images were safely discarded.",
+        "message": f"Biometric template registered and enrolled successfully for Roll No: {emp.employee_code} ({emp.name}).",
+        "roll_no": emp.employee_code,
         "employee_code": emp.employee_code,
+        "employee_name": emp.name,
+        "employee_id": emp.id,
     })
 
 
 @attendance_bp.route("/api/attendance/face-revoke", methods=["POST"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def face_revoke():
-    """Revoke and delete biometric enrollment data."""
+    """Revoke and permanently delete biometric enrollment data (Admin & Manager only)."""
     current_user = get_current_user()
     data = request.get_json(silent=True) or {}
     employee_id = data.get("employee_id")
+    roll_no = data.get("roll_no") or data.get("employee_code")
 
-    emp = db.session.get(Employee, employee_id)
+    emp = None
+    if employee_id:
+        try:
+            emp = db.session.get(Employee, int(employee_id))
+        except (ValueError, TypeError):
+            pass
+    if not emp and roll_no:
+        emp = Employee.query.filter_by(employee_code=str(roll_no).strip()).first()
+
     if not emp:
         return jsonify({"error": "Employee not found."}), 404
-
-    # If regular employee, only allow self-revocation
-    if current_user.is_employee:
-        my_emp = Employee.query.filter_by(employee_code=current_user.employee_code).first()
-        if not my_emp or my_emp.id != emp.id:
-            return jsonify({"error": "Unauthorized"}), 403
 
     enrollment = FaceEnrollment.query.filter_by(employee_id=emp.id).first()
     if enrollment:
@@ -353,25 +367,27 @@ def face_revoke():
             entity_type="FaceEnrollment",
             entity_id=str(emp.id),
             outcome="SUCCESS",
-            details=f"Biometric template permanently purged for {emp.employee_code} ({emp.name}).",
+            details=f"Biometric template permanently purged for Roll No: {emp.employee_code} ({emp.name}) by {current_user.role} ({current_user.username}).",
             actor_id=current_user.id,
             actor_username=current_user.username,
         )
 
     return jsonify({
         "success": True,
-        "message": f"Biometric data permanently revoked and deleted for {emp.name}.",
+        "message": f"Biometric data permanently revoked and deleted for Roll No: {emp.employee_code} ({emp.name}).",
+        "roll_no": emp.employee_code,
     })
 
 
 # ==============================================================================
-# PAGE 12: Face Attendance (Verification & Check-in / Check-out)
+# PAGE 12: Face Attendance Terminal (Manager & Admin Only)
 # ==============================================================================
 
 @attendance_bp.route("/attendance/face-checkin", methods=["GET"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def face_attendance_page():
-    """Page 12: Face Attendance Verification with camera guide and employee selection."""
+    """Page 12: Biometric Attendance Terminal for Manager & Admin to take worker attendance."""
     current_user = get_current_user()
     employees = Employee.query.filter_by(status="Active").order_by(Employee.employee_code.asc()).all()
     today_records = DailyAttendance.query.filter_by(date=date.today()).all()
@@ -410,13 +426,15 @@ def cosine_similarity(v1, v2):
 
 @attendance_bp.route("/api/attendance/face-verify", methods=["POST"])
 @login_required
+@roles_required("Admin", "Estate Manager")
 def face_verify():
-    """Match captured frame template against enrolled biometric profiles."""
+    """Match captured frame template against enrolled biometric profiles (Admin & Manager only)."""
     current_user = get_current_user()
     data = request.get_json(silent=True) or {}
     sample_vector = data.get("vector") # 128D mathematical vector
     event_type = data.get("event_type", "Check-in") # Check-in or Check-out
     target_emp_id = data.get("employee_id")
+    target_roll_no = data.get("roll_no") or data.get("employee_code")
     shift = data.get("shift", "Morning Shift")
 
     if not sample_vector or not isinstance(sample_vector, list):
@@ -425,15 +443,24 @@ def face_verify():
     best_match = None
     best_similarity = 0.0
 
+    # Resolve target employee if targeted by ID or Roll No
+    target_emp = None
+    if target_emp_id:
+        try:
+            target_emp = db.session.get(Employee, int(target_emp_id))
+        except (ValueError, TypeError):
+            pass
+    if not target_emp and target_roll_no:
+        target_emp = Employee.query.filter_by(employee_code=str(target_roll_no).strip()).first()
+
     # If a specific employee is targeted for verification
-    if target_emp_id and str(target_emp_id).isdigit():
-        enr = FaceEnrollment.query.filter_by(employee_id=int(target_emp_id), enrollment_status="Enrolled").first()
+    if target_emp:
+        enr = FaceEnrollment.query.filter_by(employee_id=target_emp.id, enrollment_status="Enrolled").first()
         if not enr:
-            emp = db.session.get(Employee, int(target_emp_id))
-            emp_name = emp.name if emp else f"ID #{target_emp_id}"
             return jsonify({
                 "matched": False,
-                "error": f"{emp_name} has not registered a face template yet. Please enroll first in Face Registration."
+                "error": f"{target_emp.name} (Roll No: {target_emp.employee_code}) has not registered a face template yet. Please enroll Roll No {target_emp.employee_code} in Face Registration first.",
+                "enroll_url": url_for("attendance.face_registration_page", roll_no=target_emp.employee_code),
             }), 404
         try:
             stored_vector = json.loads(enr.protected_template)
@@ -447,7 +474,7 @@ def face_verify():
         if not enrollments:
             return jsonify({
                 "matched": False,
-                "error": "No enrolled biometric profiles found in database. Please enroll first."
+                "error": "No enrolled biometric profiles found in database. Please enroll workers with Roll No first."
             }), 404
 
         for enr in enrollments:
@@ -489,9 +516,11 @@ def face_verify():
             "employee_id": emp.id,
             "employee_name": emp.name,
             "employee_code": emp.employee_code,
+            "roll_no": emp.employee_code,
+            "job_role": emp.job_role,
             "status": "Present",
             "coffee_status": "Green Coffee",
-            "warning": f"Duplicate event: {emp.name} already recorded a {event_type} at {recent_dup.timestamp.strftime('%H:%M:%S UTC')}."
+            "warning": f"Duplicate event: Roll No {emp.employee_code} ({emp.name}) already recorded a {event_type} at {recent_dup.timestamp.strftime('%H:%M:%S UTC')}."
         }), 409
 
     # Record valid biometric event
@@ -503,7 +532,7 @@ def face_verify():
         confidence=round(best_similarity, 3),
         device_id="Biometric Terminal",
         sync_status="Synced",
-        created_by=current_user.username,
+        created_by=f"{current_user.role} ({current_user.username})",
     )
     db.session.add(att_event)
 
@@ -521,13 +550,13 @@ def face_verify():
             date=today,
             shift=shift,
             status="Present",
-            approved_by=f"Face AI ({current_user.username})",
+            approved_by=f"Biometric Scan ({current_user.role} {current_user.username})",
             has_conflict=False,
         )
         db.session.add(daily)
     else:
         daily.status = "Present"
-        daily.approved_by = f"Face AI ({current_user.username})"
+        daily.approved_by = f"Biometric Scan ({current_user.role} {current_user.username})"
 
     db.session.commit()
 
@@ -536,7 +565,7 @@ def face_verify():
         entity_type="AttendanceEvent",
         entity_id=str(emp.id),
         outcome="SUCCESS",
-        details=f"Verified {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence. Marked Green Coffee (Present).",
+        details=f"Verified Roll No: {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence by {current_user.role}. Marked Green Coffee (Present).",
         actor_id=current_user.id,
         actor_username=current_user.username,
     )
@@ -547,9 +576,12 @@ def face_verify():
         "employee_id": emp.id,
         "employee_name": emp.name,
         "employee_code": emp.employee_code,
+        "roll_no": emp.employee_code,
+        "job_role": emp.job_role,
         "status": "Present",
         "coffee_status": "Green Coffee",
         "event_type": event_type,
         "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S UTC"),
-        "message": f"Welcome, {emp.name}! Verified and marked as Green Coffee (Present) ({round(best_similarity * 100, 1)}% match).",
+        "verified_by": f"{current_user.role} ({current_user.username})",
+        "message": f"Verified Roll No: {emp.employee_code} — {emp.name}! Attendance recorded as ☕ Green Coffee (Present).",
     })
