@@ -1,13 +1,19 @@
 import csv
 import io
+import json
 from datetime import datetime, timezone, date, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, Response, jsonify, session
 from sqlalchemy import func
 from app.database import db
 from app.services.auth_service import login_required, roles_required, get_current_user
 from app.services.audit_service import log_audit
 from app.models.farm import EstateBlock
 from app.models.weather_sprinkler import SprinklerLog, RainfallRecord
+from app.services.geo_weather_service import (
+    INDIAN_STATES_AND_DISTRICTS,
+    COFFEE_HOTSPOTS,
+    get_district_weather
+)
 
 weather_bp = Blueprint("weather", __name__)
 
@@ -19,9 +25,37 @@ weather_bp = Blueprint("weather", __name__)
 @weather_bp.route("/weather/", methods=["GET"])
 @login_required
 def weather_index():
-    """Page 5: Weather & Rainfall Intelligence."""
+    """Page 5: Weather & Rainfall Intelligence with full State & District support."""
     current_user = get_current_user()
     today = date.today()
+
+    # Determine selected state and district from query params or session
+    req_state = request.args.get("state")
+    req_district = request.args.get("district")
+
+    if req_state and req_state in INDIAN_STATES_AND_DISTRICTS:
+        selected_state = req_state
+        districts_in_state = INDIAN_STATES_AND_DISTRICTS[selected_state]
+        if req_district and req_district in districts_in_state:
+            selected_district = req_district
+        else:
+            selected_district = districts_in_state[0]
+    else:
+        selected_state = session.get("selected_state", "Karnataka")
+        if selected_state not in INDIAN_STATES_AND_DISTRICTS:
+            selected_state = "Karnataka"
+        districts_in_state = INDIAN_STATES_AND_DISTRICTS[selected_state]
+        selected_district = session.get("selected_district", "Chikmagalur")
+        if selected_district not in districts_in_state:
+            selected_district = districts_in_state[0]
+
+    # Save to session so it persists globally
+    session["selected_state"] = selected_state
+    session["selected_district"] = selected_district
+    session["estate_location"] = f"{selected_district}, {selected_state}"
+
+    # Generate meteorological intelligence for this specific State & District
+    weather_info = get_district_weather(selected_state, selected_district)
 
     # Rainfall records & aggregations
     rainfall_records = RainfallRecord.query.order_by(RainfallRecord.date.desc()).all()
@@ -34,27 +68,73 @@ def weather_index():
         func.coalesce(func.sum(RainfallRecord.rainfall_mm), 0)
     ).filter(RainfallRecord.rain_type.ilike("%backing%")).scalar() or 0.0
 
-    # 7-Day Agronomic Forecast
-    forecast = [
-        {"day": "Today", "date": today.strftime("%d %b"), "temp_high": 27, "temp_low": 18, "humidity": 78, "rain_chance": 20, "condition": "Partly Sunny", "icon": "bi-sun", "spray_advice": "Ideal for Copper Oxychloride Spraying"},
-        {"day": "Tomorrow", "date": (today + timedelta(days=1)).strftime("%d %b"), "temp_high": 26, "temp_low": 18, "humidity": 82, "rain_chance": 35, "condition": "Misty Morning, Afternoon Sun", "icon": "bi-cloud-sun", "spray_advice": "Good for Canopy Pruning"},
-        {"day": (today + timedelta(days=2)).strftime("%A"), "date": (today + timedelta(days=2)).strftime("%d %b"), "temp_high": 25, "temp_low": 17, "humidity": 85, "rain_chance": 50, "condition": "Scattered Showers", "icon": "bi-cloud-drizzle", "spray_advice": "Avoid chemical spray before rain"},
-        {"day": (today + timedelta(days=3)).strftime("%A"), "date": (today + timedelta(days=3)).strftime("%d %b"), "temp_high": 24, "temp_low": 17, "humidity": 88, "rain_chance": 65, "condition": "Moderate Monsoon Showers", "icon": "bi-cloud-rain", "spray_advice": "Monitor drain channels & stream"},
-        {"day": (today + timedelta(days=4)).strftime("%A"), "date": (today + timedelta(days=4)).strftime("%d %b"), "temp_high": 25, "temp_low": 18, "humidity": 84, "rain_chance": 40, "condition": "Overcast", "icon": "bi-clouds", "spray_advice": "Inspect leaves for Rust spore formation"},
-        {"day": (today + timedelta(days=5)).strftime("%A"), "date": (today + timedelta(days=5)).strftime("%d %b"), "temp_high": 26, "temp_low": 18, "humidity": 79, "rain_chance": 25, "condition": "Pleasant Sun", "icon": "bi-sun", "spray_advice": "Suitable for Fertilizer broadcast"},
-        {"day": (today + timedelta(days=6)).strftime("%A"), "date": (today + timedelta(days=6)).strftime("%d %b"), "temp_high": 27, "temp_low": 19, "humidity": 75, "rain_chance": 15, "condition": "Clear Blue Skies", "icon": "bi-brightness-high", "spray_advice": "Optimal for Cherry picking & Sun drying"},
-    ]
+    states_list = sorted(list(INDIAN_STATES_AND_DISTRICTS.keys()))
 
     return render_template(
         "weather.html",
         rainfall_records=rainfall_records,
-        forecast=forecast,
+        forecast=weather_info["forecast"],
+        weather_info=weather_info,
+        states=states_list,
+        districts_map_json=json.dumps(INDIAN_STATES_AND_DISTRICTS),
+        selected_state=selected_state,
+        selected_district=selected_district,
+        coffee_hotspots=COFFEE_HOTSPOTS,
         total_season_rainfall_mm=float(total_season_rainfall_mm),
         blossom_rainfall_mm=float(blossom_rainfall_mm),
         backing_rainfall_mm=float(backing_rainfall_mm),
         date_today=today.isoformat(),
         current_user=current_user
     )
+
+
+@weather_bp.route("/weather/set-location", methods=["POST"], endpoint="set_location")
+@weather_bp.route("/weather/set-location", methods=["POST"], endpoint="set_weather_location")
+@login_required
+def set_weather_location():
+    """Updates the active estate State & District for localized weather calculation."""
+    if request.is_json and request.get_json(silent=True):
+        payload = request.get_json(silent=True) or {}
+        state = payload.get("state")
+        district = payload.get("district")
+    else:
+        state = request.form.get("state")
+        district = request.form.get("district")
+
+    if not state or state not in INDIAN_STATES_AND_DISTRICTS:
+        state = "Karnataka"
+    
+    districts = INDIAN_STATES_AND_DISTRICTS.get(state, [])
+    if not district or district not in districts:
+        district = districts[0] if districts else "Chikmagalur"
+
+    session["selected_state"] = state
+    session["selected_district"] = district
+    session["estate_location"] = f"{district}, {state}"
+
+    if request.is_json:
+        return jsonify({
+            "success": True,
+            "state": state,
+            "district": district,
+            "estate_location": f"{district}, {state}",
+            "message": f"Weather location successfully updated to {district}, {state}."
+        })
+
+    flash(f"Location updated to {district}, {state}. Weather metrics refreshed!", "success")
+    return redirect(url_for("weather.weather_index", state=state, district=district))
+
+
+@weather_bp.route("/api/weather/districts", methods=["GET"])
+@login_required
+def get_districts_api():
+    """Returns list of districts for a given state."""
+    state = request.args.get("state", "Karnataka")
+    districts = INDIAN_STATES_AND_DISTRICTS.get(state, [])
+    return jsonify({
+        "state": state,
+        "districts": districts
+    })
 
 
 @weather_bp.route("/weather/rainfall/add", methods=["POST"])

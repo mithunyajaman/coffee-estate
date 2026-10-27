@@ -50,10 +50,16 @@ def create_app(config_class=Config):
     # Global context processors for templates
     @app.context_processor
     def inject_global_vars():
+        from flask import session
+        estate_location = session.get("estate_location", "Chikmagalur, Karnataka")
+        selected_state = session.get("selected_state", "Karnataka")
+        selected_district = session.get("selected_district", "Chikmagalur")
         return {
             "current_user": get_current_user(),
             "app_title": "AI-Powered Smart Coffee Estate",
-            "estate_location": "Chikmagalur, Karnataka",
+            "estate_location": estate_location,
+            "selected_state": selected_state,
+            "selected_district": selected_district,
         }
 
     # Custom Error Handlers

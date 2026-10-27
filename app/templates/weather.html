@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Weather &amp; Rainfall Records - Coffee Estate{% endblock %}
+{% block title %}Weather &amp; Rainfall Intelligence - {{ weather_info.location_label }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
   <!-- Header & Actions -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
     <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-cloud-sun-fill me-2 text-warning"></i>Weather &amp; Rainfall Intelligence
-      </h1>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h1 class="h3 fw-bold brand-forest mb-0">
+          <i class="bi bi-cloud-sun-fill me-2 text-warning"></i>Weather &amp; Rainfall Intelligence
+        </h1>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.76rem;">
+          <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ weather_info.location_label }}
+        </span>
+      </div>
       <p class="text-secondary small mb-0">
-        Chikmagalur highland weather metrics, blossom shower triggers, 7-day spray suitability forecast, and rain gauge history.
+        All-India State &amp; District agro-climatic weather telemetry, coffee spray advisories, and historical rainfall logs.
       </p>
     </div>
     <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
@@ -24,8 +29,131 @@
       </button>
       {% endif %}
       <a href="{{ url_for('weather.sprinkler_index') }}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-droplet-half me-1"></i> Go to Sprinkler Irrigation Records &rarr;
+        <i class="bi bi-droplet-half me-1"></i> Sprinkler Irrigation Records &rarr;
       </a>
+    </div>
+  </div>
+
+  <!-- LOCATION SELECTOR: ALL STATES & DISTRICTS -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(to right, #fbfaf6, #ffffff); border-left: 5px solid #2e593d !important;">
+    <div class="card-body p-3 p-md-4">
+      <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-forest text-white px-2 py-1"><i class="bi bi-pin-map-fill me-1"></i>LOCATION SELECTOR</span>
+            <strong class="text-dark">Select State &amp; District to Find Weather</strong>
+          </div>
+          <small class="text-secondary d-block mt-1">
+            Choose any Indian State &amp; District to immediately fetch microclimate weather telemetry, rain probability, and spraying advisories.
+          </small>
+        </div>
+
+        <!-- Form for State & District -->
+        <form method="POST" action="{{ url_for('weather.set_location') }}" class="d-flex flex-wrap align-items-center gap-2">
+          <div style="min-width: 170px;">
+            <label class="form-label text-muted small fw-semibold mb-1" for="stateSelect">State / UT</label>
+            <select name="state" id="stateSelect" class="form-select form-select-sm" onchange="onStateChanged()">
+              {% for st in states %}
+              <option value="{{ st }}" {% if st == selected_state %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div style="min-width: 190px;">
+            <label class="form-label text-muted small fw-semibold mb-1" for="districtSelect">District</label>
+            <select name="district" id="districtSelect" class="form-select form-select-sm">
+              <!-- Dynamically populated via JavaScript -->
+            </select>
+          </div>
+
+          <div class="align-self-end">
+            <button type="submit" class="btn btn-forest btn-sm px-3 shadow-sm" style="height: 31px;">
+              <i class="bi bi-search me-1"></i> Find Weather
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Quick 1-Click Coffee Belt Shortcuts -->
+      <div class="pt-2 border-top">
+        <span class="text-muted small fw-semibold me-2" style="font-size: 0.74rem;">
+          <i class="bi bi-cup-hot-fill text-warning me-1"></i>Top Coffee Belts:
+        </span>
+        <div class="d-inline-flex flex-wrap gap-1 mt-1">
+          {% for hs in coffee_hotspots %}
+          <a href="{{ url_for('weather.weather_index', state=hs.state, district=hs.district) }}" 
+             class="badge rounded-pill text-decoration-none {% if selected_district == hs.district %}bg-forest text-white{% else %}bg-light text-dark border{% endif %} px-2 py-1"
+             style="font-size: 0.72rem;"
+             title="{{ hs.variety }}">
+            {{ hs.district }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Today's Weather Hero Banner -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 text-white" style="background: linear-gradient(135deg, #183324 0%, #29553c 100%);">
+    <div class="card-body p-4">
+      <div class="row align-items-center g-4">
+        <!-- Main Weather Display -->
+        <div class="col-12 col-md-4 text-center text-md-start border-end-md">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-warning text-dark font-monospace px-2 py-0" style="font-size: 0.72rem;">LIVE TELEMETRY</span>
+            <small class="text-white-50">{{ weather_info.elevation_desc }}</small>
+          </div>
+          <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mt-2">
+            <i class="bi {{ weather_info.icon }} display-3 text-warning"></i>
+            <div>
+              <div class="display-4 fw-bold">{{ weather_info.temp_current }}°C</div>
+              <div class="text-white fw-semibold small">{{ weather_info.condition }}</div>
+              <div class="text-white-50 small">High: {{ weather_info.temp_high }}°C &bull; Low: {{ weather_info.temp_low }}°C</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Microclimate Weather Telemetry -->
+        <div class="col-12 col-md-5">
+          <div class="row g-2 text-center text-white-50 small">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">{{ weather_info.humidity }}%</span>
+              Humidity
+            </div>
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">{{ weather_info.wind_speed_kmh }} km/h</span>
+              Wind {{ weather_info.wind_direction }}
+            </div>
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">{{ weather_info.rain_prob }}%</span>
+              Rain Probability
+            </div>
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-bold fs-6">{{ weather_info.pressure_hpa }} hPa</span>
+              Barometer
+            </div>
+            <div class="col-8 p-2 rounded bg-white bg-opacity-10">
+              <span class="d-block text-white fw-semibold" style="font-size: 0.78rem;">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ weather_info.location_label }}
+              </span>
+              Target Agro District
+            </div>
+          </div>
+        </div>
+
+        <!-- Spray Suitability Status -->
+        <div class="col-12 col-md-3 text-center text-md-end">
+          <div class="p-3 rounded-4 bg-white bg-opacity-10 text-start">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="{{ weather_info.spray_badge_class }} px-2 py-1">{{ weather_info.spray_status }}</span>
+              <i class="bi bi-shield-check fs-5 text-warning"></i>
+            </div>
+            <div class="small text-white" style="font-size: 0.8rem;">
+              {{ weather_info.spray_advice }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -34,13 +162,13 @@
     <!-- Season Rainfall -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #06b6d4 !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">SEASON RAINFALL TOTAL</span>
+        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">ESTATE RAINFALL ACCUMULATION</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
           <span class="h3 fw-bold text-dark mb-0">{{ "%.1f"|format(total_season_rainfall_mm) }}</span>
           <span class="text-info fw-semibold small">mm</span>
         </div>
         <div class="small text-muted mt-1">
-          <i class="bi bi-cloud-rain me-1"></i>Cumulated season precipitation
+          <i class="bi bi-cloud-rain me-1"></i>Logged season precipitation
         </div>
       </div>
     </div>
@@ -54,7 +182,7 @@
           <span class="text-success fw-semibold small">mm</span>
         </div>
         <div class="small text-muted mt-1">
-          <i class="bi bi-flower1 me-1 text-success"></i>Triggered uniform floral bud opening
+          <i class="bi bi-flower1 me-1 text-success"></i>Floral bud trigger (Target 25-40mm)
         </div>
       </div>
     </div>
@@ -68,61 +196,20 @@
           <span class="text-primary fw-semibold small">mm</span>
         </div>
         <div class="small text-muted mt-1">
-          <i class="bi bi-check2-circle me-1 text-primary"></i>Supports fruit set &amp; pin-head retention
+          <i class="bi bi-check2-circle me-1 text-primary"></i>Fruit set &amp; pin-head retention
         </div>
       </div>
     </div>
 
-    <!-- Weather & Spray Condition -->
+    <!-- Spray Window -->
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #f59e0b !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">TODAY'S SPRAY CONDITION</span>
+        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">ACTIVE SPRAY ADVISORY</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
-          <span class="h4 fw-bold text-dark mb-0">26°C</span>
-          <span class="badge bg-success-subtle text-success border border-success-subtle">Optimal</span>
+          <span class="h5 fw-bold text-dark mb-0">{{ weather_info.spray_status }}</span>
         </div>
         <div class="small text-muted mt-1">
-          <i class="bi bi-shield-check me-1 text-success"></i>Ideal for Copper Oxychloride (COC) spraying
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Today's Weather Hero Banner -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 text-white" style="background: linear-gradient(135deg, #1e3a2f 0%, #2b5643 100%);">
-    <div class="card-body p-4">
-      <div class="row align-items-center g-4">
-        <div class="col-12 col-md-4 text-center text-md-start border-end-md">
-          <span class="small text-white-50 text-uppercase fw-semibold">CURRENT ESTATE WEATHER</span>
-          <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mt-1">
-            <i class="bi bi-brightness-high display-4 text-warning"></i>
-            <div>
-              <div class="display-4 fw-bold">26°C</div>
-              <div class="text-white-50 small">Partly Sunny &bull; Mild Mountain Breeze</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-5">
-          <div class="row g-2 text-center text-white-50 small">
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
-              <span class="d-block text-white fw-bold fs-6">78%</span>
-              Humidity
-            </div>
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
-              <span class="d-block text-white fw-bold fs-6">12 km/h</span>
-              Wind SW
-            </div>
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
-              <span class="d-block text-white fw-bold fs-6">20%</span>
-              Rain Chance
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-3 text-center text-md-end">
-          <div class="p-3 rounded-4 bg-white bg-opacity-10 text-start">
-            <span class="badge bg-success mb-1">Clear Spray Window</span>
-            <div class="small text-white">No heavy rain anticipated in the next 24 hours. Excellent for fertilizer application.</div>
-          </div>
+          <i class="bi bi-shield-check me-1 text-success"></i>Calibrated for {{ weather_info.district }}
         </div>
       </div>
     </div>
@@ -130,11 +217,14 @@
 
   <!-- 7-Day Forecast Grid -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-      <h2 class="h6 fw-bold brand-forest mb-0">
-        <i class="bi bi-calendar-week me-1 text-primary"></i>7-Day Agronomic Weather Forecast &amp; Spray Suitability
-      </h2>
-      <span class="badge bg-cream text-dark border">Chikmagalur Highland (1,150m ASL)</span>
+    <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+      <div>
+        <h2 class="h6 fw-bold brand-forest mb-0">
+          <i class="bi bi-calendar-week me-1 text-primary"></i>7-Day Agronomic Weather Forecast &amp; Spray Recommendations
+        </h2>
+        <small class="text-secondary">Microclimate projections for <strong>{{ weather_info.location_label }}</strong></small>
+      </div>
+      <span class="badge bg-cream text-dark border font-monospace">{{ weather_info.district }} Highland Forecast</span>
     </div>
     <div class="card-body p-3">
       <div class="row g-2">
@@ -293,4 +383,37 @@
     </div>
   </div>
 </div>
+
+<script>
+  // All-India States and Districts dictionary
+  const districtsMap = {{ districts_map_json|safe }};
+  const currentSelectedState = "{{ selected_state }}";
+  const currentSelectedDistrict = "{{ selected_district }}";
+
+  function populateDistricts(state, selectDistrict) {
+    const distSelect = document.getElementById('districtSelect');
+    if (!distSelect) return;
+    distSelect.innerHTML = '';
+
+    const districts = districtsMap[state] || [];
+    districts.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      if (d === selectDistrict) {
+        opt.selected = true;
+      }
+      distSelect.appendChild(opt);
+    });
+  }
+
+  function onStateChanged() {
+    const state = document.getElementById('stateSelect').value;
+    populateDistricts(state, null);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    populateDistricts(currentSelectedState, currentSelectedDistrict);
+  });
+</script>
 {% endblock %}

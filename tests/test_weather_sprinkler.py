@@ -119,3 +119,47 @@ def test_export_sprinkler_and_rainfall_csv(client, auth_client):
     assert res_r.status_code == 200
     assert "text/csv" in res_r.content_type
     assert "Rainfall (mm)" in res_r.data.decode("utf-8")
+
+
+def test_weather_state_and_district_selector(client, auth_client):
+    """Test switching states and districts updates localized weather telemetry and location."""
+    auth_client.login_manager()
+
+    # 1. Query params test: Wayanad, Kerala
+    res = client.get("/weather?state=Kerala&district=Wayanad")
+    assert res.status_code == 200
+    html = res.data.decode("utf-8")
+    assert "Wayanad, Kerala" in html
+    assert "Wayanad" in html
+
+    # 2. Form submission to set location: Nilgiris, Tamil Nadu
+    res_post = client.post(
+        "/weather/set-location",
+        data={"state": "Tamil Nadu", "district": "Nilgiris (Ooty)"},
+        follow_redirects=True
+    )
+    assert res_post.status_code == 200
+    html_post = res_post.data.decode("utf-8")
+    assert "Nilgiris (Ooty), Tamil Nadu" in html_post
+
+    # 3. JSON API call to set location: Araku Valley, Andhra Pradesh
+    res_json = client.post(
+        "/weather/set-location",
+        json={"state": "Andhra Pradesh", "district": "Alluri Sitharama Raju (Araku Valley)"}
+    )
+    assert res_json.status_code == 200
+    data = res_json.get_json()
+    assert data["success"] is True
+    assert "Alluri Sitharama Raju" in data["district"]
+
+
+def test_weather_districts_api(client, auth_client):
+    """Test API returning all districts for a state."""
+    auth_client.login_manager()
+    res = client.get("/api/weather/districts?state=Karnataka")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["state"] == "Karnataka"
+    assert "Chikmagalur" in data["districts"]
+    assert "Kodagu (Coorg)" in data["districts"]
+    assert "Hassan" in data["districts"]
