@@ -572,6 +572,8 @@ def add_employee_with_face():
                 "employee_code": new_emp.employee_code,
                 "name": new_emp.name,
                 "job_role": new_emp.job_role,
+                "status": "Present" if mark_today else "Active",
+                "coffee_status": "Green Coffee" if mark_today else "Enrolled",
             }
         })
 
@@ -626,6 +628,11 @@ def face_verify():
         if not enr:
             return jsonify({
                 "matched": False,
+                "coffee_status": "Red Coffee",
+                "status": "Not Enrolled",
+                "employee_name": target_emp.name,
+                "roll_no": target_emp.employee_code,
+                "employee_code": target_emp.employee_code,
                 "error": f"{target_emp.name} (Roll No: {target_emp.employee_code}) has not registered a face template yet. Please enroll Roll No {target_emp.employee_code} in Face Registration first.",
                 "enroll_url": url_for("attendance.face_registration_page", roll_no=target_emp.employee_code),
             }), 404
@@ -634,13 +641,15 @@ def face_verify():
             best_similarity = cosine_similarity(sample_vector, stored_vector)
             best_match = enr
         except Exception:
-            return jsonify({"matched": False, "error": "Invalid biometric template format."}), 500
+            return jsonify({"matched": False, "coffee_status": "Red Coffee", "error": "Invalid biometric template format."}), 500
     else:
         # 1:N match across all enrolled profiles
         enrollments = FaceEnrollment.query.filter_by(enrollment_status="Enrolled").all()
         if not enrollments:
             return jsonify({
                 "matched": False,
+                "coffee_status": "Red Coffee",
+                "status": "No Profiles",
                 "error": "No enrolled biometric profiles found in database. Please enroll workers with Roll No first."
             }), 404
 
@@ -656,19 +665,29 @@ def face_verify():
 
     threshold = best_match.confidence_threshold if best_match else 0.75
 
-    # STRICT THRESHOLD ENFORCEMENT & MANUAL FALLBACK
+    # STRICT THRESHOLD ENFORCEMENT & MANUAL FALLBACK: RED COFFEE
     if not best_match or best_similarity < threshold:
+        matched_emp_name = target_emp.name if target_emp else (best_match.employee.name if best_match else "Unknown")
+        matched_roll_no = target_emp.employee_code if target_emp else (best_match.employee.employee_code if best_match else "Unknown")
+        is_checkout = (event_type in ["Check-out", "Log out", "Logout"])
+        action_name = "Log out / Check-out" if is_checkout else "Attendance Check-in"
         return jsonify({
             "matched": False,
+            "coffee_status": "Red Coffee",
+            "status": "Unverified",
             "confidence": round(best_similarity, 3),
             "threshold": threshold,
-            "error": f"Low-confidence match ({round(best_similarity * 100, 1)}% - below required threshold of {int(threshold * 100)}%). Verification rejected to prevent false acceptance.",
+            "employee_name": matched_emp_name,
+            "roll_no": matched_roll_no,
+            "employee_code": matched_roll_no,
+            "event_type": event_type,
+            "error": f"Biometric mismatch: Scanned face did not match enrolled template for Roll No {matched_roll_no} ({matched_emp_name}). Match confidence ({round(best_similarity * 100, 1)}%) is below required threshold of {int(threshold * 100)}%. {action_name} rejected as ☕ Red Coffee (Unverified).",
             "fallback_url": url_for("attendance.manual_attendance"),
         }), 422
 
     emp = best_match.employee
 
-    # Duplicate Prevention Check: Disallow duplicate check-ins within 5 minutes
+    # Duplicate Prevention Check: Disallow duplicate check-ins/check-outs within 5 minutes
     five_mins_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
     recent_dup = AttendanceEvent.query.filter(
         AttendanceEvent.employee_id == emp.id,
@@ -703,7 +722,7 @@ def face_verify():
     )
     db.session.add(att_event)
 
-    # Upsert daily attendance record as Green Coffee (Present)
+    # Upsert daily attendance record
     today = date.today()
     daily = DailyAttendance.query.filter_by(
         employee_id=emp.id,
@@ -727,12 +746,16 @@ def face_verify():
 
     db.session.commit()
 
+    is_checkout = (event_type in ["Check-out", "Log out", "Logout"])
+    punch_label = "Log Out / Check-out" if is_checkout else "Attendance Check-in"
+    coffee_desc = "☕ Green Coffee (Logged Out / Shift Complete)" if is_checkout else "☕ Green Coffee (Present)"
+
     log_audit(
         action="FACE_ATTENDANCE_VERIFIED",
         entity_type="AttendanceEvent",
         entity_id=str(emp.id),
         outcome="SUCCESS",
-        details=f"Verified Roll No: {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence by {current_user.role}. Marked Green Coffee (Present).",
+        details=f"Verified Roll No: {emp.employee_code} ({emp.name}) with {round(best_similarity * 100, 1)}% confidence by {current_user.role}. {punch_label} recorded as {coffee_desc}.",
         actor_id=current_user.id,
         actor_username=current_user.username,
     )
@@ -745,10 +768,10 @@ def face_verify():
         "employee_code": emp.employee_code,
         "roll_no": emp.employee_code,
         "job_role": emp.job_role,
-        "status": "Present",
+        "status": "Logged Out" if is_checkout else "Present",
         "coffee_status": "Green Coffee",
         "event_type": event_type,
         "timestamp": datetime.now(timezone.utc).strftime("%H:%M:%S UTC"),
         "verified_by": f"{current_user.role} ({current_user.username})",
-        "message": f"Verified Roll No: {emp.employee_code} — {emp.name}! Attendance recorded as ☕ Green Coffee (Present).",
+        "message": f"Verified Roll No: {emp.employee_code} — {emp.name}! {punch_label} recorded as {coffee_desc}.",
     })

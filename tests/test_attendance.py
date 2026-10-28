@@ -229,8 +229,40 @@ def test_face_verify_low_confidence_rejected_with_fallback(client, auth_client):
     assert resp.status_code == 422
     data = resp.get_json()
     assert data["matched"] is False
+    assert data["coffee_status"] == "Red Coffee"
+    assert data["status"] == "Unverified"
     assert "below required threshold" in data["error"]
     assert "fallback_url" in data
+
+
+def test_face_verify_red_coffee_on_targeted_mismatch(client, auth_client):
+    """When a specific Roll No is targeted but a different/mismatched face is scanned, it returns Red Coffee."""
+    auth_client.login_manager()
+    emp = Employee.query.first()
+
+    # Enroll employee with vector of all 0.5s
+    client.post("/api/attendance/face-enroll", json={
+        "employee_id": emp.id,
+        "roll_no": emp.employee_code,
+        "consent": True,
+        "embedding": [0.5] * 128,
+        "threshold": 0.75
+    })
+
+    # Verify with completely mismatched vector
+    mismatch_vector = [0.0] * 128
+    resp = client.post("/api/attendance/face-verify", json={
+        "vector": mismatch_vector,
+        "employee_id": emp.id,
+        "event_type": "Check-in"
+    })
+    assert resp.status_code == 422
+    data = resp.get_json()
+    assert data["matched"] is False
+    assert data["coffee_status"] == "Red Coffee"
+    assert data["status"] == "Unverified"
+    assert data["employee_name"] == emp.name
+    assert "Biometric mismatch" in data["error"]
 
 
 def test_employee_cannot_drop_attendance(client, auth_client):
