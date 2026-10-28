@@ -4,18 +4,11 @@ A production-grade, full-stack Agricultural ERP and Decision Support Platform ta
 
 ---
 
-## 🌐 Live Website Links (Clickable in VS Code)
+## 💻 Open in VS Code Directly in Your Browser (No Setup Needed)
 
-> In VS Code, hold **`Ctrl`** and **click** any of the links below to open them in your browser!
-
-- 🏠 **Main Website:** 👉 [http://127.0.0.1:5000](http://127.0.0.1:5000)
-- 📊 **Smart Dashboard:** 👉 [http://127.0.0.1:5000/dashboard](http://127.0.0.1:5000/dashboard)
-- 🗺️ **Farm Management:** 👉 [http://127.0.0.1:5000/farm](http://127.0.0.1:5000/farm)
-- 🌦️ **Weather & Rainfall:** 👉 [http://127.0.0.1:5000/weather](http://127.0.0.1:5000/weather)
-- 💧 **Sprinkler & Irrigation:** 👉 [http://127.0.0.1:5000/sprinkler](http://127.0.0.1:5000/sprinkler)
-- 📷 **Biometric Face Attendance:** 👉 [http://127.0.0.1:5000/attendance/face-checkin](http://127.0.0.1:5000/attendance/face-checkin)
-- 🤖 **AI Estate Chatbot:** 👉 [http://127.0.0.1:5000/ai/chatbot](http://127.0.0.1:5000/ai/chatbot)
-- 📋 **Full List of All 20 Page Links:** 👉 [WEBSITE_LINKS.md](file:///c:/Users/Varsha/OneDrive/Desktop/coffee%20estate/WEBSITE_LINKS.md)
+- 👉 **[Open in VS Code Online (vscode.dev)](https://vscode.dev/github/mithunyajaman/coffee-estate)**
+- 👉 **[Open in GitHub VS Code Editor (github.dev)](https://github.dev/mithunyajaman/coffee-estate)**
+- 👉 **[GitHub Repository](https://github.com/mithunyajaman/coffee-estate)**
 
 ---
 

@@ -76,7 +76,6 @@
       <a href="{{ url_for('weather.weather_index') }}" class="sidebar-link {% if request.path.startswith('/weather') %}active{% endif %}">
         <i class="bi bi-cloud-sun"></i>
         <span>5. Weather &amp; Rainfall</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Live</span>
       </a>
       <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">
         <i class="bi bi-basket"></i>
