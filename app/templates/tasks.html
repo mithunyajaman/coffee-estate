@@ -27,24 +27,45 @@
   <!-- Status Counters -->
   <div class="row g-3 mb-4">
     <div class="col-12 col-sm-4">
-      <div class="kpi-card border-accent">
-        <div class="kpi-title">Pending Tasks</div>
-        <div class="kpi-value text-warning mt-1">{{ pending_count }}</div>
-        <div class="kpi-meta text-muted">Awaiting start by workers</div>
+      <div class="kpi-card border-accent hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title text-warning-emphasis">Pending Tasks</div>
+            <div class="kpi-value text-warning mt-1">{{ pending_count }}</div>
+            <div class="kpi-meta text-muted">Awaiting start by workers</div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-warning-subtle text-warning-emphasis shadow-sm">
+            <i class="bi bi-hourglass-split fs-5"></i>
+          </span>
+        </div>
       </div>
     </div>
     <div class="col-12 col-sm-4">
-      <div class="kpi-card">
-        <div class="kpi-title">In Progress</div>
-        <div class="kpi-value brand-forest mt-1">{{ in_progress_count }}</div>
-        <div class="kpi-meta text-muted">Currently active field operations</div>
+      <div class="kpi-card hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title">In Progress</div>
+            <div class="kpi-value brand-forest mt-1">{{ in_progress_count }}</div>
+            <div class="kpi-meta text-muted">Currently active field operations</div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-primary-subtle text-primary shadow-sm">
+            <i class="bi bi-play-circle-fill fs-5"></i>
+          </span>
+        </div>
       </div>
     </div>
     <div class="col-12 col-sm-4">
-      <div class="kpi-card">
-        <div class="kpi-title">Completed Tasks</div>
-        <div class="kpi-value text-success mt-1">{{ completed_count }}</div>
-        <div class="kpi-meta text-muted">Successfully fulfilled</div>
+      <div class="kpi-card hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title">Completed Tasks</div>
+            <div class="kpi-value text-success mt-1">{{ completed_count }}</div>
+            <div class="kpi-meta text-muted">Successfully fulfilled</div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+            <i class="bi bi-check2-circle fs-5"></i>
+          </span>
+        </div>
       </div>
     </div>
   </div>

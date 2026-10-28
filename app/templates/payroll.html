@@ -29,38 +29,66 @@
   <!-- Manager Overview KPI Cards -->
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--primary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #234735 !important;">
         <div class="card-body p-3">
-          <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Gross Wages</span>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-dark">&#8377; {{ "{:,.2f}".format(summary.total_gross) }}</h3>
-          <small class="text-muted">Total before deductions</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Gross Wages</span>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-dark">&#8377; {{ "{:,.2f}".format(summary.total_gross) }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-cash-stack fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Total before deductions</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #b23b3b !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #b23b3b !important;">
         <div class="card-body p-3">
-          <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Advances &amp; Deductions</span>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-danger">&#8377; {{ "{:,.2f}".format(summary.total_deductions) }}</h3>
-          <small class="text-muted">Recovered from advances &amp; dues</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Advances &amp; Deductions</span>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-danger">&#8377; {{ "{:,.2f}".format(summary.total_deductions) }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-danger-subtle text-danger shadow-sm">
+              <i class="bi bi-wallet2 fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Recovered advances &amp; dues</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--secondary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #16a34a !important;">
         <div class="card-body p-3">
-          <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Net Disbursable</span>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-success">&#8377; {{ "{:,.2f}".format(summary.total_net) }}</h3>
-          <small class="text-muted">Gross &minus; Advances &minus; Deductions</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Net Disbursable</span>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-success">&#8377; {{ "{:,.2f}".format(summary.total_net) }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-check2-circle fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Gross &minus; Advances &minus; Deductions</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #d49a37 !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #d49a37 !important;">
         <div class="card-body p-3">
-          <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Pending Approvals</span>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-warning">{{ summary.pending_approval_count }}</h3>
-          <small class="text-muted">Draft payroll records awaiting sign-off</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <span class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Pending Approvals</span>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-warning">{{ summary.pending_approval_count }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-warning-subtle text-warning shadow-sm">
+              <i class="bi bi-clock-history fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Draft payroll records awaiting sign-off</small>
         </div>
       </div>
     </div>

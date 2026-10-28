@@ -28,42 +28,70 @@
   <!-- KPI Cards -->
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--primary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #234735 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Applications</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-dark">{{ summary.total_applications }}</h3>
-          <small class="text-muted">Recorded spraying operations</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Applications</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-dark">{{ summary.total_applications }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-shield-shaded fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Recorded spraying operations</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #b23b3b !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #b23b3b !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Active Quarantine (PHI)</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 {% if summary.active_quarantine_blocks > 0 %}text-danger{% else %}text-success{% endif %}">
-            {{ summary.active_quarantine_blocks }} <span class="fs-6 fw-normal text-muted">blocks</span>
-          </h3>
-          <small class="text-muted">Pre-harvest safety wait in effect</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Active Quarantine (PHI)</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 {% if summary.active_quarantine_blocks > 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ summary.active_quarantine_blocks }} <span class="fs-6 fw-normal text-muted">blocks</span>
+              </h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-danger-subtle text-danger shadow-sm">
+              <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Pre-harvest safety wait in effect</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--secondary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #16a34a !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Weight Applied</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ summary.total_weight_kg_applied }} <span class="fs-6 fw-normal text-muted">kg</span></h3>
-          <small class="text-muted">{{ summary.total_bags_applied }} bags &amp; {{ summary.total_qty_applied }} total units</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Weight Applied</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ summary.total_weight_kg_applied }} <span class="fs-6 fw-normal text-muted">kg</span></h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-box2-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">{{ summary.total_bags_applied }} bags &amp; {{ summary.total_qty_applied }} total units</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #d49a37 !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #d49a37 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Employees Used</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-dark">
-            {{ summary.total_employees_deployed }} <span class="fs-6 fw-normal text-muted">workers deployed</span>
-          </h3>
-          <small class="text-muted">Top target: {{ summary.top_pest }}</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Employees Used</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-dark">
+                {{ summary.total_employees_deployed }} <span class="fs-6 fw-normal text-muted">workers</span>
+              </h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-warning-subtle text-warning shadow-sm">
+              <i class="bi bi-people-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Top target: {{ summary.top_pest }}</small>
         </div>
       </div>
     </div>

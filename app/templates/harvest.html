@@ -27,27 +27,90 @@
   <!-- KPI Cards Row -->
   <div class="row g-3 mb-4">
     <div class="col-12 col-sm-4">
-      <div class="kpi-card border-accent">
-        <div class="kpi-title">Total Cherry Harvested</div>
-        <div class="kpi-value text-danger mt-1">{{ "%.1f"|format(total_harvest_kg) }} <small class="fs-6 text-muted">kg</small></div>
-        <div class="kpi-meta text-muted">Cumulative estate yield</div>
-      </div>
-    </div>
-    <div class="col-12 col-sm-4">
-      <div class="kpi-card">
-        <div class="kpi-title">Target Planned Yield</div>
-        <div class="kpi-value brand-forest mt-1">{{ "%.1f"|format(total_planned_kg) }} <small class="fs-6 text-muted">kg</small></div>
-        <div class="kpi-meta text-muted">Scheduled harvest plans</div>
-      </div>
-    </div>
-    <div class="col-12 col-sm-4">
-      <div class="kpi-card">
-        <div class="kpi-title">Overall Variance</div>
-        {% set variance = total_harvest_kg - total_planned_kg %}
-        <div class="kpi-value {% if variance >= 0 %}text-success{% else %}text-warning{% endif %} mt-1">
-          {% if variance >= 0 %}+{% endif %}{{ "%.1f"|format(variance) }} <small class="fs-6 text-muted">kg</small>
+      <div class="kpi-card border-danger hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title text-danger">Total Cherry Harvested</div>
+            <div class="kpi-value text-danger mt-1">{{ "%.1f"|format(total_harvest_kg) }} <small class="fs-6 text-muted">kg</small></div>
+            <div class="kpi-meta text-muted">Cumulative estate yield (Fresh Red Cherries)</div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-danger-subtle text-danger shadow-sm">
+            <i class="bi bi-basket-fill fs-5"></i>
+          </span>
         </div>
-        <div class="kpi-meta text-muted">Actual vs Target comparison</div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title">Target Planned Yield</div>
+            <div class="kpi-value brand-forest mt-1">{{ "%.1f"|format(total_planned_kg) }} <small class="fs-6 text-muted">kg</small></div>
+            <div class="kpi-meta text-muted">Scheduled harvest seasonal targets</div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+            <i class="bi bi-bullseye fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-4">
+      <div class="kpi-card hover-lift">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="kpi-title">Overall Variance</div>
+            {% set variance = total_harvest_kg - total_planned_kg %}
+            <div class="kpi-value {% if variance >= 0 %}text-success{% else %}text-warning{% endif %} mt-1">
+              {% if variance >= 0 %}+{% endif %}{{ "%.1f"|format(variance) }} <small class="fs-6 text-muted">kg</small>
+            </div>
+            <div class="kpi-meta text-muted">Actual vs Target seasonal tracking</div>
+          </div>
+          <span class="badge rounded-circle p-2 {% if variance >= 0 %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %} shadow-sm">
+            <i class="bi {% if variance >= 0 %}bi-graph-up-arrow{% else %}bi-graph-down-arrow{% endif %} fs-5"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coffee Cherry Processing Pipeline Journey -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.74rem;">
+          <i class="bi bi-diagram-3-fill text-danger me-1"></i>Coffee Post-Harvest Processing Pipeline:
+        </span>
+        <span class="badge bg-cream text-dark border small">Standard Estate Protocol</span>
+      </div>
+      <div class="row g-2 text-center">
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-white shadow-sm h-100" style="border-top: 3px solid #dc2626 !important;">
+            <div class="small fw-bold text-danger">Stage 1: Raw Cherry</div>
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Field picked • Floatation tank</small>
+            <span class="badge bg-danger-subtle text-danger mt-1 small">Active Receiving</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-white shadow-sm h-100" style="border-top: 3px solid #0284c7 !important;">
+            <div class="small fw-bold text-primary">Stage 2: Wet Pulped</div>
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Depulping • 36h Fermentation</small>
+            <span class="badge bg-primary-subtle text-primary mt-1 small">Washed Arabica</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-white shadow-sm h-100" style="border-top: 3px solid #d97706 !important;">
+            <div class="small fw-bold text-warning-emphasis">Stage 3: Dry Natural</div>
+            <small class="text-muted d-block" style="font-size: 0.72rem;">Sun dried • Raised African beds</small>
+            <span class="badge bg-warning-subtle text-warning-emphasis mt-1 small">Robusta &amp; Naturals</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-white shadow-sm h-100" style="border-top: 3px solid #16a34a !important;">
+            <div class="small fw-bold text-success">Stage 4: In Parchment</div>
+            <small class="text-muted d-block" style="font-size: 0.72rem;">10-11% Moisture • Ready to hull</small>
+            <span class="badge bg-success-subtle text-success mt-1 small">Storage Warehouse</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

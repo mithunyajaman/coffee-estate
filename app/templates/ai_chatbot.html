@@ -24,41 +24,48 @@
   <div class="row g-4 mb-4">
     <!-- Chat Container -->
     <div class="col-12 col-xl-9 mx-auto">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column" style="height: 680px;">
+      <div class="card border-0 shadow rounded-4 overflow-hidden d-flex flex-column hover-lift" style="height: 680px; border: 1px solid rgba(35, 71, 53, 0.15) !important;">
         <!-- Chat Header -->
-        <div class="card-header bg-forest text-white py-3 px-4 d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle bg-white text-forest p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-              <i class="bi bi-robot fs-5"></i>
+        <div class="card-header text-white py-3 px-4 d-flex justify-content-between align-items-center shadow-sm" style="background: linear-gradient(135deg, #183324 0%, #29553c 100%);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-white text-forest p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px;">
+              <i class="bi bi-robot fs-4 brand-forest"></i>
             </div>
             <div>
-              <strong class="d-block text-white" style="font-size: 0.95rem;">Coffee Plantation Copilot</strong>
-              <small class="text-white-50" style="font-size: 0.75rem;">Active &bull; Arabica, Robusta &amp; Kaveri Expert</small>
+              <div class="d-flex align-items-center gap-2">
+                <strong class="d-block text-white fs-6">Coffee Plantation Copilot</strong>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0 small" style="font-size: 0.68rem;">
+                  <span class="pulse-indicator pulse-green"></span>Online
+                </span>
+              </div>
+              <small class="text-white-50" style="font-size: 0.75rem;">AI Agronomist &bull; Arabica, Robusta &amp; Kaveri Certified</small>
             </div>
           </div>
-          <button type="button" class="btn btn-outline-light btn-sm py-1 px-2" onclick="clearChat()">
-            <i class="bi bi-trash3 me-1"></i> Clear
+          <button type="button" class="btn btn-outline-light btn-sm py-1 px-3 rounded-pill shadow-sm" onclick="clearChat()">
+            <i class="bi bi-trash3 me-1"></i> Clear History
           </button>
         </div>
 
         <!-- Messages Stream -->
-        <div class="card-body p-4 flex-grow-1 overflow-auto bg-light" id="chatStream" style="background-color: #f8fafc !important;">
+        <div class="card-body p-4 flex-grow-1 overflow-auto" id="chatStream" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;">
           <!-- Welcome Message -->
-          <div class="d-flex gap-2 mb-3">
-            <div class="rounded-circle bg-forest text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+          <div class="d-flex gap-3 mb-3">
+            <div class="rounded-circle bg-forest text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 36px; height: 36px;">
               <i class="bi bi-robot small"></i>
             </div>
-            <div class="p-3 rounded-4 shadow-sm" style="max-width: 80%; background-color: #ffffff; border-left: 4px solid #16a34a;">
-              <div class="fw-semibold brand-forest small mb-1">Estate AI Copilot</div>
-              <div class="small text-dark">
-                Hello {{ current_user.username }}! I am your <strong>Coffee Estate AI Assistant</strong>. How can I help you today?
+            <div class="p-3 shadow-sm chat-bubble-bot" style="max-width: 82%;">
+              <div class="fw-bold brand-forest small mb-1 d-flex align-items-center gap-1">
+                <i class="bi bi-stars text-warning"></i>Estate AI Copilot
+              </div>
+              <div class="small text-dark" style="line-height: 1.55;">
+                Hello {{ current_user.username }}! I am your <strong>Smart Coffee Estate Agronomy Assistant</strong>. How can I assist you with plantation operations today?
                 <br><br>
                 You can ask me about:
                 <ul class="mb-0 ps-3 mt-1">
-                  <li><strong>Leaf Rust &amp; Berry Borer</strong> control protocols</li>
-                  <li><strong>Kaveri vs Arabica vs Robusta</strong> cultivation</li>
-                  <li><strong>Bordeaux mixture</strong> preparation &amp; spray timing</li>
-                  <li><strong>Worker wages, Green Coffee attendance</strong> and muster rules</li>
+                  <li><strong>Leaf Rust &amp; Berry Borer</strong> control protocols &amp; spray windows</li>
+                  <li><strong>Kaveri vs Arabica vs Robusta</strong> cultivation profiles</li>
+                  <li><strong>Bordeaux mixture</strong> preparation &amp; sprayer dosage</li>
+                  <li><strong>Worker wages, Green Coffee attendance</strong> and biometric muster</li>
                   <li>Current <strong>pesticide stock and harvest</strong> statistics</li>
                 </ul>
               </div>
@@ -67,32 +74,32 @@
         </div>
 
         <!-- Suggestion Chips -->
-        <div class="px-4 py-2 bg-white border-top border-bottom overflow-x-auto">
+        <div class="px-4 py-2 bg-white border-top border-bottom overflow-x-auto shadow-sm">
           <div class="d-flex gap-2 text-nowrap">
             <span class="small text-muted fw-bold align-self-center me-1" style="font-size: 0.72rem;">Suggested:</span>
-            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary" onclick="sendPrompt('How to manage Coffee Leaf Rust on Arabica?')">
-              🍃 Leaf Rust Management
+            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary shadow-sm hover-lift" onclick="sendPrompt('How to manage Coffee Leaf Rust on Arabica?')">
+              🍃 Leaf Rust Protocol
             </button>
-            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary" onclick="sendPrompt('What are the key traits of Kaveri Coffee?')">
+            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary shadow-sm hover-lift" onclick="sendPrompt('What are the key traits of Kaveri Coffee?')">
               ☕ Kaveri Coffee Profile
             </button>
-            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary" onclick="sendPrompt('What are the differences between Arabica and Robusta?')">
+            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary shadow-sm hover-lift" onclick="sendPrompt('What are the differences between Arabica and Robusta?')">
               ⚖️ Arabica vs Robusta
             </button>
-            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary" onclick="sendPrompt('Explain Green Coffee and Red Coffee attendance rules')">
+            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary shadow-sm hover-lift" onclick="sendPrompt('Explain Green Coffee and Red Coffee attendance rules')">
               🟢 Green/Red Attendance
             </button>
-            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary" onclick="sendPrompt('What is the current harvest total and pesticide status?')">
+            <button type="button" class="btn btn-light btn-sm rounded-pill border small py-1 px-3 text-secondary shadow-sm hover-lift" onclick="sendPrompt('What is the current harvest total and pesticide status?')">
               📊 Estate Status
             </button>
           </div>
         </div>
 
         <!-- Input Box -->
-        <div class="card-footer bg-white p-3">
-          <form id="chatForm" onsubmit="event.preventDefault(); submitUserMessage();" class="d-flex gap-2">
-            <input type="text" id="chatInput" class="form-control rounded-pill px-3 py-2 border" placeholder="Ask anything about coffee agronomy, pest control, varieties, or estate tasks..." autocomplete="off" required>
-            <button type="submit" id="sendBtn" class="btn btn-forest rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px;">
+        <div class="card-footer bg-white p-3 border-0">
+          <form id="chatForm" onsubmit="event.preventDefault(); submitUserMessage();" class="d-flex gap-2 align-items-center">
+            <input type="text" id="chatInput" class="form-control rounded-pill px-4 py-2 border shadow-sm" placeholder="Ask anything about coffee agronomy, pest control, varieties, or estate tasks..." autocomplete="off" required style="font-size: 0.9rem;">
+            <button type="submit" id="sendBtn" class="btn btn-forest rounded-circle p-2 d-flex align-items-center justify-content-center shadow hover-lift flex-shrink-0" style="width: 44px; height: 44px;">
               <i class="bi bi-send-fill fs-6"></i>
             </button>
           </form>
@@ -143,10 +150,10 @@ function appendUserBubble(text) {
   const div = document.createElement('div');
   div.className = 'd-flex justify-content-end gap-2 mb-3';
   div.innerHTML = `
-    <div class="p-3 rounded-4 shadow-sm text-white" style="max-width: 80%; background-color: #1e3a2f;">
+    <div class="p-3 shadow-sm chat-bubble-user" style="max-width: 80%;">
       <div class="small">${escapeHtml(text)}</div>
     </div>
-    <div class="rounded-circle bg-dark text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+    <div class="rounded-circle bg-dark text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 36px; height: 36px;">
       <i class="bi bi-person-fill small"></i>
     </div>
   `;
@@ -157,7 +164,7 @@ function appendUserBubble(text) {
 function appendAssistantBubble(rawMarkdown) {
   const stream = document.getElementById('chatStream');
   const div = document.createElement('div');
-  div.className = 'd-flex gap-2 mb-3';
+  div.className = 'd-flex gap-3 mb-3';
   
   // Basic markdown formatting
   let html = rawMarkdown
@@ -168,12 +175,14 @@ function appendAssistantBubble(rawMarkdown) {
     .replace(/• /g, '&bull; ');
 
   div.innerHTML = `
-    <div class="rounded-circle bg-forest text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+    <div class="rounded-circle bg-forest text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 36px; height: 36px;">
       <i class="bi bi-robot small"></i>
     </div>
-    <div class="p-3 rounded-4 shadow-sm" style="max-width: 80%; background-color: #ffffff; border-left: 4px solid #16a34a;">
-      <div class="fw-semibold brand-forest small mb-1">Estate AI Copilot</div>
-      <div class="small text-dark">${html}</div>
+    <div class="p-3 shadow-sm chat-bubble-bot" style="max-width: 82%;">
+      <div class="fw-bold brand-forest small mb-1 d-flex align-items-center gap-1">
+        <i class="bi bi-stars text-warning"></i>Estate AI Copilot
+      </div>
+      <div class="small text-dark" style="line-height: 1.55;">${html}</div>
     </div>
   `;
   stream.appendChild(div);

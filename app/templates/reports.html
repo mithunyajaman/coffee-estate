@@ -53,25 +53,25 @@
   </div>
 
   <!-- Date Range Filter Bar -->
-  <div class="card border-0 shadow-sm mb-4">
+  <div class="card border-0 shadow-sm rounded-4 mb-4 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
     <div class="card-body p-3">
       <form method="GET" action="{{ url_for('reports.index') }}" class="row g-2 align-items-center">
         <div class="col-auto">
           <span class="text-muted small fw-semibold"><i class="bi bi-funnel me-1"></i>Period:</span>
         </div>
         <div class="col-auto d-flex flex-wrap gap-1">
-          <a href="{{ url_for('reports.index', preset='today') }}" class="btn btn-sm {% if summary.preset == 'today' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Today</a>
-          <a href="{{ url_for('reports.index', preset='7days') }}" class="btn btn-sm {% if summary.preset == '7days' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Last 7 Days</a>
-          <a href="{{ url_for('reports.index', preset='month') }}" class="btn btn-sm {% if summary.preset == 'month' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">This Month</a>
-          <a href="{{ url_for('reports.index', preset='30days') }}" class="btn btn-sm {% if summary.preset == '30days' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Last 30 Days</a>
-          <a href="{{ url_for('reports.index', preset='ytd') }}" class="btn btn-sm {% if summary.preset == 'ytd' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">YTD</a>
+          <a href="{{ url_for('reports.index', preset='today') }}" class="btn btn-sm rounded-pill {% if summary.preset == 'today' %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">Today</a>
+          <a href="{{ url_for('reports.index', preset='7days') }}" class="btn btn-sm rounded-pill {% if summary.preset == '7days' %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">Last 7 Days</a>
+          <a href="{{ url_for('reports.index', preset='month') }}" class="btn btn-sm rounded-pill {% if summary.preset == 'month' %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">This Month</a>
+          <a href="{{ url_for('reports.index', preset='30days') }}" class="btn btn-sm rounded-pill {% if summary.preset == '30days' %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">Last 30 Days</a>
+          <a href="{{ url_for('reports.index', preset='ytd') }}" class="btn btn-sm rounded-pill {% if summary.preset == 'ytd' %}btn-dark text-white fw-bold shadow-sm{% else %}btn-outline-secondary bg-white text-dark{% endif %}">YTD</a>
         </div>
         <div class="col-auto ms-auto d-flex gap-2 align-items-center">
           <span class="text-muted small">Custom:</span>
-          <input type="date" name="start_date" class="form-control form-control-sm" value="{{ summary.start_date }}" style="width: 140px;">
+          <input type="date" name="start_date" class="form-control form-control-sm rounded-3 shadow-sm" value="{{ summary.start_date }}" style="width: 140px;">
           <span class="text-muted small">&ndash;</span>
-          <input type="date" name="end_date" class="form-control form-control-sm" value="{{ summary.end_date }}" style="width: 140px;">
-          <button type="submit" class="btn btn-sm btn-dark">Filter</button>
+          <input type="date" name="end_date" class="form-control form-control-sm rounded-3 shadow-sm" value="{{ summary.end_date }}" style="width: 140px;">
+          <button type="submit" class="btn btn-sm btn-forest rounded-pill px-3 shadow-sm">Filter</button>
         </div>
       </form>
     </div>
@@ -80,53 +80,88 @@
   <!-- KPI Summary Cards -->
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--secondary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; border-left: 5px solid #d97706 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Harvested Yield</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-dark">{{ "{:,.1f}".format(summary.total_harvest_kg) }} <span class="fs-6 fw-normal text-muted">kg</span></h3>
-          <small class="text-muted">{{ summary.total_harvest_batches }} verified batches logged</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Harvested Yield</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-dark">{{ "{:,.1f}".format(summary.total_harvest_kg) }} <span class="fs-6 fw-normal text-muted">kg</span></h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-warning-subtle text-warning-emphasis shadow-sm">
+              <i class="bi bi-basket-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">{{ summary.total_harvest_batches }} verified batches logged</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--primary) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; border-left: 5px solid #16a34a !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Muster Attendance</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ summary.total_present }} <span class="fs-6 fw-normal text-muted">present</span></h3>
-          <small class="text-muted">{{ summary.total_half_day }} half-days &bull; {{ summary.total_absent }} absent</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Muster Attendance</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ summary.total_present }} <span class="fs-6 fw-normal text-muted">present</span></h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-person-check-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">{{ summary.total_half_day }} half-days &bull; {{ summary.total_absent }} absent</small>
         </div>
       </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #b23b3b !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; border-left: 5px solid #ef4444 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Inventory Stock Status</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 {% if summary.low_stock_count > 0 %}text-danger{% else %}text-success{% endif %}">
-            {{ summary.low_stock_count }} <span class="fs-6 fw-normal text-muted">items low</span>
-          </h3>
-          <small class="text-muted">{{ summary.total_inventory_items }} total tracked SKUs</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Inventory Stock Status</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 {% if summary.low_stock_count > 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ summary.low_stock_count }} <span class="fs-6 fw-normal text-muted">items low</span>
+              </h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-danger-subtle text-danger shadow-sm">
+              <i class="bi bi-box-seam-fill fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">{{ summary.total_inventory_items }} total tracked SKUs</small>
         </div>
       </div>
     </div>
     {% if is_manager %}
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--accent) !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; border-left: 5px solid #0284c7 !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Payroll Labor Cost</small>
-          <h3 class="h4 fw-bold mt-1 mb-0 text-primary">&#8377; {{ "{:,.2f}".format(summary.total_payroll_gross) }}</h3>
-          <small class="text-muted">Net Disbursed: &#8377; {{ "{:,.2f}".format(summary.total_payroll_net) }}</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Payroll Labor Cost</small>
+              <h3 class="h4 fw-bold mt-1 mb-0 text-primary">&#8377; {{ "{:,.2f}".format(summary.total_payroll_gross) }}</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-primary-subtle text-primary shadow-sm">
+              <i class="bi bi-cash-stack fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Net Disbursed: &#8377; {{ "{:,.2f}".format(summary.total_payroll_net) }}</small>
         </div>
       </div>
     </div>
     {% else %}
     <div class="col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #5F8663 !important;">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important; border-left: 5px solid #16a34a !important;">
         <div class="card-body p-3">
-          <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Attendance Consistency</small>
-          {% set total_days = summary.total_present + summary.total_half_day + summary.total_absent %}
-          {% set rate = ((summary.total_present + (summary.total_half_day * 0.5)) / total_days * 100) if total_days > 0 else 100 %}
-          <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ "{:.1f}".format(rate) }}%</h3>
-          <small class="text-muted">Personal attendance score</small>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.72rem;">Attendance Consistency</small>
+              {% set total_days = summary.total_present + summary.total_half_day + summary.total_absent %}
+              {% set rate = ((summary.total_present + (summary.total_half_day * 0.5)) / total_days * 100) if total_days > 0 else 100 %}
+              <h3 class="h4 fw-bold mt-1 mb-0 text-success">{{ "{:.1f}".format(rate) }}%</h3>
+            </div>
+            <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+              <i class="bi bi-graph-up-arrow fs-5"></i>
+            </span>
+          </div>
+          <small class="text-muted d-block mt-2">Personal attendance score</small>
         </div>
       </div>
     </div>

@@ -94,13 +94,15 @@
   </div>
 
   <!-- Today's Weather Hero Banner -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 text-white" style="background: linear-gradient(135deg, #183324 0%, #29553c 100%);">
+  <div class="card border-0 shadow rounded-4 overflow-hidden mb-4 text-white hover-lift" style="background: linear-gradient(135deg, #183324 0%, #29553c 100%); border: 1px solid rgba(255,255,255,0.15) !important;">
     <div class="card-body p-4">
       <div class="row align-items-center g-4">
         <!-- Main Weather Display -->
         <div class="col-12 col-md-4 text-center text-md-start border-end-md">
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge bg-warning text-dark font-monospace px-2 py-0" style="font-size: 0.72rem;">LIVE TELEMETRY</span>
+          <div class="d-flex align-items-center gap-2 mb-1 justify-content-center justify-content-md-start">
+            <span class="badge bg-warning text-dark font-monospace px-2 py-0 shadow-sm" style="font-size: 0.72rem;">
+              <span class="pulse-indicator pulse-amber"></span>LIVE TELEMETRY
+            </span>
             <small class="text-white-50">{{ weather_info.elevation_desc }}</small>
           </div>
           <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3 mt-2">
@@ -116,23 +118,23 @@
         <!-- Microclimate Weather Telemetry -->
         <div class="col-12 col-md-5">
           <div class="row g-2 text-center text-white-50 small">
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10">
               <span class="d-block text-white fw-bold fs-6">{{ weather_info.humidity }}%</span>
               Humidity
             </div>
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10">
               <span class="d-block text-white fw-bold fs-6">{{ weather_info.wind_speed_kmh }} km/h</span>
               Wind {{ weather_info.wind_direction }}
             </div>
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10">
               <span class="d-block text-white fw-bold fs-6">{{ weather_info.rain_prob }}%</span>
               Rain Probability
             </div>
-            <div class="col-4 p-2 rounded bg-white bg-opacity-10">
+            <div class="col-4 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10">
               <span class="d-block text-white fw-bold fs-6">{{ weather_info.pressure_hpa }} hPa</span>
               Barometer
             </div>
-            <div class="col-8 p-2 rounded bg-white bg-opacity-10">
+            <div class="col-8 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10">
               <span class="d-block text-white fw-semibold" style="font-size: 0.78rem;">
                 <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ weather_info.location_label }}
               </span>
@@ -143,9 +145,9 @@
 
         <!-- Spray Suitability Status -->
         <div class="col-12 col-md-3 text-center text-md-end">
-          <div class="p-3 rounded-4 bg-white bg-opacity-10 text-start">
+          <div class="p-3 rounded-4 bg-white bg-opacity-10 text-start border border-white border-opacity-15 shadow-sm">
             <div class="d-flex align-items-center justify-content-between mb-2">
-              <span class="{{ weather_info.spray_badge_class }} px-2 py-1">{{ weather_info.spray_status }}</span>
+              <span class="{{ weather_info.spray_badge_class }} px-2 py-1 shadow-sm">{{ weather_info.spray_status }}</span>
               <i class="bi bi-shield-check fs-5 text-warning"></i>
             </div>
             <div class="small text-white" style="font-size: 0.8rem;">
@@ -161,21 +163,21 @@
   <div class="row g-3 mb-4">
     <!-- Season Rainfall -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #06b6d4 !important;">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #06b6d4 !important;">
         <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">ESTATE RAINFALL ACCUMULATION</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
           <span class="h3 fw-bold text-dark mb-0">{{ "%.1f"|format(total_season_rainfall_mm) }}</span>
           <span class="text-info fw-semibold small">mm</span>
         </div>
         <div class="small text-muted mt-1">
-          <i class="bi bi-cloud-rain me-1"></i>Logged season precipitation
+          <i class="bi bi-cloud-rain me-1 text-info"></i>Logged season precipitation
         </div>
       </div>
     </div>
 
     <!-- Blossom Rainfall -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #16a34a !important;">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #16a34a !important;">
         <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">BLOSSOM SHOWERS (MAR-APR)</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
           <span class="h3 fw-bold text-success mb-0">{{ "%.1f"|format(blossom_rainfall_mm) }}</span>
@@ -189,7 +191,7 @@
 
     <!-- Backing Showers -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #3b82f6 !important;">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #3b82f6 !important;">
         <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">BACKING SHOWERS (MAY)</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
           <span class="h3 fw-bold text-primary mb-0">{{ "%.1f"|format(backing_rainfall_mm) }}</span>
@@ -203,7 +205,7 @@
 
     <!-- Spray Window -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #f59e0b !important;">
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #f59e0b !important;">
         <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">ACTIVE SPRAY ADVISORY</span>
         <div class="d-flex align-items-baseline gap-2 mt-1">
           <span class="h5 fw-bold text-dark mb-0">{{ weather_info.spray_status }}</span>

@@ -24,18 +24,19 @@
   <div class="row g-4 mb-4">
     <!-- Left Column: Simulation Inputs -->
     <div class="col-12 col-lg-5">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-white border-bottom py-3">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important;">
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
           <h2 class="h6 fw-bold brand-forest mb-0">
             <i class="bi bi-sliders me-1 text-primary"></i>Agronomic Forecasting Parameters
           </h2>
+          <span class="badge bg-forest text-white px-2 py-1 small">AI Simulation</span>
         </div>
         <div class="card-body p-4">
           <form id="yieldForm" onsubmit="event.preventDefault(); runYieldPrediction();">
             <!-- Block Selection -->
             <div class="mb-3">
               <label class="form-label small fw-semibold">Target Plantation Parcel *</label>
-              <select id="blockSelect" name="block_id" class="form-select" onchange="runYieldPrediction()">
+              <select id="blockSelect" name="block_id" class="form-select shadow-sm" onchange="runYieldPrediction()">
                 {% for b in blocks %}
                 <option value="{{ b.id }}" {% if loop.first %}selected{% endif %}>
                   {{ b.block_letter }} - {{ b.name }} ({{ b.coffee_type }}, {{ b.area }} ha)
@@ -45,10 +46,10 @@
             </div>
 
             <!-- Blossom Showers (March/April) -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label class="form-label small fw-semibold">Blossom Showers (Rainfall in mm)</label>
-                <span id="blossomVal" class="small fw-bold text-primary">35 mm</span>
+            <div class="mb-3 p-2 rounded-3 bg-light border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">🌸 Blossom Showers (March/April)</label>
+                <span id="blossomVal" class="badge bg-primary text-white shadow-sm px-2 py-1">35 mm</span>
               </div>
               <input type="range" class="form-range" id="blossomRange" min="5" max="80" value="35" step="1" oninput="document.getElementById('blossomVal').textContent = this.value + ' mm'; runYieldPrediction();">
               <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
@@ -59,10 +60,10 @@
             </div>
 
             <!-- Backing Showers (May) -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label class="form-label small fw-semibold">Backing Showers (Rainfall in mm)</label>
-                <span id="backingVal" class="small fw-bold text-primary">50 mm</span>
+            <div class="mb-3 p-2 rounded-3 bg-light border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">🌧️ Backing Showers (May Rain)</label>
+                <span id="backingVal" class="badge bg-primary text-white shadow-sm px-2 py-1">50 mm</span>
               </div>
               <input type="range" class="form-range" id="backingRange" min="10" max="100" value="50" step="1" oninput="document.getElementById('backingVal').textContent = this.value + ' mm'; runYieldPrediction();">
               <div class="d-flex justify-content-between text-muted" style="font-size: 0.72rem;">
@@ -73,33 +74,33 @@
             </div>
 
             <!-- Fertilizer Dosage -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label class="form-label small fw-semibold">NPK Fertilizer Dosage (kg/ha)</label>
-                <span id="npkVal" class="small fw-bold text-success">120 kg/ha</span>
+            <div class="mb-3 p-2 rounded-3 bg-light border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">🌱 NPK Fertilizer Dosage</label>
+                <span id="npkVal" class="badge bg-success text-white shadow-sm px-2 py-1">120 kg/ha</span>
               </div>
               <input type="range" class="form-range" id="npkRange" min="40" max="250" value="120" step="5" oninput="document.getElementById('npkVal').textContent = this.value + ' kg/ha'; runYieldPrediction();">
             </div>
 
             <!-- Shade Canopy Level -->
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label class="form-label small fw-semibold">Shade Canopy Density (%)</label>
-                <span id="shadeVal" class="small fw-bold text-dark">60%</span>
+            <div class="mb-3 p-2 rounded-3 bg-light border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">🌳 Shade Canopy Density</label>
+                <span id="shadeVal" class="badge bg-dark text-white shadow-sm px-2 py-1">60%</span>
               </div>
               <input type="range" class="form-range" id="shadeRange" min="20" max="90" value="60" step="5" oninput="document.getElementById('shadeVal').textContent = this.value + '%'; runYieldPrediction();">
             </div>
 
             <!-- Pest Incidence -->
-            <div class="mb-4">
-              <div class="d-flex justify-content-between">
-                <label class="form-label small fw-semibold">Pest / Rust Incidence Loss (%)</label>
-                <span id="pestVal" class="small fw-bold text-danger">5%</span>
+            <div class="mb-4 p-2 rounded-3 bg-light border">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">🪲 Pest / Rust Incidence Loss</label>
+                <span id="pestVal" class="badge bg-danger text-white shadow-sm px-2 py-1">5%</span>
               </div>
               <input type="range" class="form-range" id="pestRange" min="0" max="30" value="5" step="1" oninput="document.getElementById('pestVal').textContent = this.value + '%'; runYieldPrediction();">
             </div>
 
-            <button type="submit" class="btn btn-forest w-100 py-2 fw-semibold shadow-sm">
+            <button type="submit" class="btn btn-forest w-100 py-2 fw-semibold shadow hover-lift">
               <i class="bi bi-arrow-repeat me-1"></i> Recalculate Prediction
             </button>
           </form>
@@ -109,46 +110,49 @@
 
     <!-- Right Column: Forecast Results & Financials -->
     <div class="col-12 col-lg-7">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important;">
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
           <h2 class="h6 fw-bold brand-forest mb-0">
             <i class="bi bi-calculator me-1 text-success"></i>Projected Crop Outturn &amp; Revenue
           </h2>
-          <span class="badge bg-cream text-dark border" id="blockBadge">Block A - Arabica</span>
+          <span class="badge bg-cream text-dark border shadow-sm px-2 py-1" id="blockBadge">Block A - Arabica</span>
         </div>
         <div class="card-body p-4">
           <!-- Primary Highlight Metric -->
-          <div class="p-4 rounded-4 mb-4 text-white shadow-sm" style="background: linear-gradient(135deg, #1e3a2f 0%, #2e5946 100%);">
-            <span class="small text-white-50 text-uppercase fw-semibold" style="letter-spacing: 0.8px;">PROJECTED TOTAL CLEAN COFFEE</span>
-            <div class="d-flex align-items-baseline gap-2 mt-1">
+          <div class="p-4 rounded-4 mb-4 text-white shadow hover-lift" style="background: linear-gradient(135deg, #183324 0%, #29553c 100%); border: 1px solid rgba(255,255,255,0.15);">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small text-white-50 text-uppercase fw-semibold" style="letter-spacing: 0.8px;">PROJECTED TOTAL CLEAN COFFEE</span>
+              <span class="badge bg-warning text-dark fw-bold px-2 py-1 shadow-sm"><i class="bi bi-stars me-1"></i>AI Forecast</span>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mt-2">
               <span class="display-5 fw-bold" id="cleanKgDisplay">15,697</span>
               <span class="h4 fw-normal text-white-50">kg</span>
-              <span class="badge bg-white bg-opacity-25 ms-auto fs-6 px-3 py-2" id="metricTonsDisplay">15.70 MT</span>
+              <span class="badge bg-white bg-opacity-25 ms-auto fs-6 px-3 py-2 border border-white border-opacity-25" id="metricTonsDisplay">15.70 MT</span>
             </div>
             <div class="small text-white-50 mt-2 d-flex align-items-center gap-1">
-              <i class="bi bi-info-circle"></i> Equivalent to approximately <strong class="text-white" id="cherryKgDisplay">94,182 kg</strong> of fresh ripe cherries.
+              <i class="bi bi-info-circle text-warning"></i> Equivalent to approximately <strong class="text-white" id="cherryKgDisplay">94,182 kg</strong> of fresh ripe cherries.
             </div>
           </div>
 
           <!-- Secondary Metric Tiles -->
           <div class="row g-3 mb-4 text-center">
             <div class="col-6 col-md-4">
-              <div class="p-3 bg-light rounded-4 border">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">50kg Jute Bags</span>
+              <div class="p-3 bg-light rounded-4 border shadow-sm hover-lift" style="border-left: 4px solid var(--color-coffee-brown) !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">50kg Jute Bags</span>
                 <span class="h3 fw-bold brand-coffee" id="bagsDisplay">313</span>
                 <div class="small text-secondary">Standard Bags</div>
               </div>
             </div>
             <div class="col-6 col-md-4">
-              <div class="p-3 bg-light rounded-4 border">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Yield Density</span>
+              <div class="p-3 bg-light rounded-4 border shadow-sm hover-lift" style="border-left: 4px solid var(--color-forest-green) !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">Yield Density</span>
                 <span class="h3 fw-bold brand-forest" id="yieldHaDisplay">1,255</span>
                 <div class="small text-secondary">kg / Hectare</div>
               </div>
             </div>
             <div class="col-12 col-md-4">
-              <div class="p-3 rounded-4 border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Projected Revenue</span>
+              <div class="p-3 rounded-4 border shadow-sm hover-lift" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #16a34a !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">Projected Revenue</span>
                 <span class="h3 fw-bold text-success" id="revenueDisplay">₹54,77,500</span>
                 <div class="small text-muted">Est. Farmgate</div>
               </div>

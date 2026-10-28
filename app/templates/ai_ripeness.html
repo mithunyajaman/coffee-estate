@@ -24,25 +24,33 @@
   <div class="row g-4 mb-4">
     <!-- Left Column: Cluster Scanner -->
     <div class="col-12 col-lg-5">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-white border-bottom py-3">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important;">
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
           <h2 class="h6 fw-bold brand-forest mb-0">
             <i class="bi bi-camera me-1 text-primary"></i>Scan Coffee Cherry Cluster
           </h2>
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small">
+            <i class="bi bi-record-circle me-1"></i>RGB Color Spectrum
+          </span>
         </div>
         <div class="card-body p-4 d-flex flex-column justify-content-between">
           <div>
             <!-- Drop Zone / Preview -->
-            <div id="dropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative mb-3 cursor-pointer" style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div id="dropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative mb-3 cursor-pointer overflow-hidden shadow-sm" style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+              <!-- Laser Scanner Line -->
+              <div id="scannerLineRipeness" class="laser-scanner-line d-none"></div>
+
               <input type="file" id="fileInput" accept="image/*" class="position-absolute w-100 h-100 opacity-0 top-0 start-0 cursor-pointer">
               <div id="previewContainer" class="d-none w-100 text-center">
-                <img id="imagePreview" src="" alt="Cluster Preview" class="img-fluid rounded-3 shadow-sm mb-2" style="max-height: 180px; object-fit: contain;">
-                <div class="small text-muted" id="previewFileName">cluster.jpg</div>
+                <img id="imagePreview" src="" alt="Cluster Preview" class="img-fluid rounded-3 shadow mb-2" style="max-height: 180px; object-fit: contain; border: 2px solid #dc2626;">
+                <div class="small fw-semibold text-dark" id="previewFileName">cluster.jpg</div>
               </div>
               <div id="uploadPrompt">
-                <i class="bi bi-camera-fill display-5 text-muted mb-2"></i>
-                <div class="fw-semibold text-dark">Upload cluster photo or test a preset</div>
-                <div class="small text-muted">Evaluates cherry color hue &amp; maturation</div>
+                <div class="rounded-circle bg-white text-danger p-3 shadow-sm d-inline-flex mb-2">
+                  <i class="bi bi-camera-fill display-6 text-danger"></i>
+                </div>
+                <div class="fw-bold text-dark">Upload cluster photo or test a preset</div>
+                <div class="small text-muted mt-1">Evaluates cherry color hue &amp; maturation</div>
               </div>
             </div>
 
@@ -51,28 +59,28 @@
               <label class="form-label small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.72rem;">
                 <i class="bi bi-sliders me-1 text-primary"></i>Select Test Harvest Cluster:
               </label>
-              <div class="d-flex flex-column gap-1">
-                <button type="button" class="btn btn-outline-success btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('optimal', 'Optimal Specialty Cherries')">
+              <div class="d-flex flex-column gap-2">
+                <button type="button" class="btn btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center shadow-sm hover-lift" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; color: #15803d;" onclick="loadRipenessPreset('optimal', 'Optimal Specialty Cherries')">
                   <span>🔴 <strong>Optimal Ripe Harvest</strong> (Specialty Grade)</span>
-                  <span class="badge bg-success">~89% Ripe</span>
+                  <span class="badge bg-success shadow-sm">~89% Ripe</span>
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('early', 'Early Green Cherries')">
+                <button type="button" class="btn btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center shadow-sm hover-lift" style="background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%); border: 1px solid #fde047; color: #854d0e;" onclick="loadRipenessPreset('early', 'Early Green Cherries')">
                   <span>🟢 <strong>Early Picking</strong> (High Green Content)</span>
-                  <span class="badge bg-warning text-dark">~54% Unripe</span>
+                  <span class="badge bg-warning text-dark shadow-sm">~54% Unripe</span>
                 </button>
-                <button type="button" class="btn btn-outline-danger btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('late', 'Late Season Raisins')">
+                <button type="button" class="btn btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center shadow-sm hover-lift" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fca5a5; color: #991b1b;" onclick="loadRipenessPreset('late', 'Late Season Raisins')">
                   <span>🟤 <strong>Late Season Raisins</strong> (Over-ripe)</span>
-                  <span class="badge bg-danger">~42% Overripe</span>
+                  <span class="badge bg-danger shadow-sm">~42% Overripe</span>
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center" onclick="loadRipenessPreset('mixed', 'Uneven Maturation')">
+                <button type="button" class="btn btn-sm text-start py-2 px-3 d-flex justify-content-between align-items-center shadow-sm hover-lift" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1; color: #334155;" onclick="loadRipenessPreset('mixed', 'Uneven Maturation')">
                   <span>🟡 <strong>Mixed Maturity</strong> (Fly Picking Required)</span>
-                  <span class="badge bg-secondary">Mixed</span>
+                  <span class="badge bg-secondary shadow-sm">Mixed</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <button type="button" id="scanBtn" class="btn btn-forest w-100 py-2 fw-semibold shadow-sm" onclick="runRipenessScan()">
+          <button type="button" id="scanBtn" class="btn btn-forest w-100 py-2 fw-semibold shadow hover-lift" onclick="runRipenessScan()">
             <i class="bi bi-cpu me-1"></i> Analyze Ripeness Ratios
           </button>
         </div>
@@ -113,22 +121,22 @@
           <!-- 3-Metrics Cards Row -->
           <div class="row g-3 text-center mb-4">
             <div class="col-4">
-              <div class="p-3 rounded-4 border" style="background-color: #fef2f2; border-color: #fecaca !important;">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Ripe Cherries</span>
+              <div class="p-3 rounded-4 border shadow-sm hover-lift" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: #fca5a5 !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">Ripe Cherries</span>
                 <span class="display-6 fw-bold text-danger" id="valRipe">89.4%</span>
                 <div class="small text-danger fw-semibold mt-1">🔴 Crimson Red</div>
               </div>
             </div>
             <div class="col-4">
-              <div class="p-3 rounded-4 border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Unripe Fruit</span>
+              <div class="p-3 rounded-4 border shadow-sm hover-lift" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #86efac !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">Unripe Fruit</span>
                 <span class="display-6 fw-bold text-success" id="valUnripe">7.2%</span>
                 <div class="small text-success fw-semibold mt-1">🟢 Raw Green</div>
               </div>
             </div>
             <div class="col-4">
-              <div class="p-3 rounded-4 border" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
-                <span class="text-muted d-block small text-uppercase" style="font-size: 0.7rem;">Overripe / Pods</span>
+              <div class="p-3 rounded-4 border shadow-sm hover-lift" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-color: #cbd5e1 !important;">
+                <span class="text-muted d-block small text-uppercase fw-bold" style="font-size: 0.7rem;">Overripe / Pods</span>
                 <span class="display-6 fw-bold text-dark" id="valOverripe">3.4%</span>
                 <div class="small text-secondary fw-semibold mt-1">🟤 Dry Raisin</div>
               </div>
@@ -136,7 +144,7 @@
           </div>
 
           <!-- Harvest Recommendation Card -->
-          <div class="p-3 rounded-4 border mb-4" style="background-color: #fbfbf7; border-left: 5px solid #16a34a !important;">
+          <div class="p-3 rounded-4 border mb-4 shadow-sm" style="background: linear-gradient(135deg, #fbfbf7 0%, #f4f6f3 100%); border-left: 5px solid #16a34a !important;">
             <div class="d-flex align-items-center gap-2 mb-2">
               <i class="bi bi-check-circle-fill text-success fs-5"></i>
               <strong class="h6 fw-bold text-dark mb-0" id="recommendationTitle">Specialty Harvest Approved</strong>
@@ -151,10 +159,10 @@
 
           <!-- Action Links -->
           <div class="d-flex gap-2">
-            <a href="{{ url_for('harvest.harvest_list') }}" class="btn btn-forest btn-sm py-2 px-3">
+            <a href="{{ url_for('harvest.harvest_list') }}" class="btn btn-forest btn-sm py-2 px-3 shadow-sm hover-lift">
               <i class="bi bi-basket me-1"></i> Log Harvest Weight
             </a>
-            <a href="{{ url_for('farm.farm_list') }}" class="btn btn-outline-secondary btn-sm py-2 px-3">
+            <a href="{{ url_for('farm.farm_list') }}" class="btn btn-outline-forest btn-sm py-2 px-3 shadow-sm hover-lift">
               <i class="bi bi-map me-1"></i> View Farm Blocks
             </a>
           </div>
@@ -188,6 +196,8 @@ function loadRipenessPreset(presetKey, title) {
 
 function runRipenessScan() {
   const btn = document.getElementById('scanBtn');
+  const line = document.getElementById('scannerLineRipeness');
+  if (line) line.classList.remove('d-none');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Segmenting Colors...';
 
@@ -200,6 +210,7 @@ function runRipenessScan() {
   .then(data => {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-cpu me-1"></i> Analyze Ripeness Ratios';
+    if (line) line.classList.add('d-none');
     if (data.success && data.result) {
       const r = data.result;
       document.getElementById('valRipe').textContent = r.ripe_pct + '%';

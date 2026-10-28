@@ -24,25 +24,33 @@
   <div class="row g-4 mb-4">
     <!-- Left Column: Upload / Scanner -->
     <div class="col-12 col-lg-5">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-white border-bottom py-3">
+      <div class="card border-0 shadow-sm rounded-4 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.12) !important;">
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, #ffffff 0%, #faf8f5 100%);">
           <h2 class="h6 fw-bold brand-forest mb-0">
             <i class="bi bi-camera me-1 text-primary"></i>Upload or Scan Coffee Foliage / Berries
           </h2>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
+            <i class="bi bi-cpu me-1"></i>Vision CNN
+          </span>
         </div>
         <div class="card-body p-4 d-flex flex-column justify-content-between">
           <div>
             <!-- Image Drop Zone / Camera Preview -->
-            <div id="dropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative mb-3 cursor-pointer" style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div id="dropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light position-relative mb-3 cursor-pointer overflow-hidden shadow-sm" style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+              <!-- Laser Scanner Line (active during analysis) -->
+              <div id="scannerLine" class="laser-scanner-line d-none"></div>
+              
               <input type="file" id="fileInput" accept="image/*" class="position-absolute w-100 h-100 opacity-0 top-0 start-0 cursor-pointer">
               <div id="previewContainer" class="d-none w-100 text-center">
-                <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded-3 shadow-sm mb-2" style="max-height: 180px; object-fit: contain;">
-                <div class="small text-muted" id="previewFileName">sample_leaf.jpg</div>
+                <img id="imagePreview" src="" alt="Preview" class="img-fluid rounded-3 shadow mb-2" style="max-height: 180px; object-fit: contain; border: 2px solid #5f8663;">
+                <div class="small fw-semibold text-dark" id="previewFileName">sample_leaf.jpg</div>
               </div>
               <div id="uploadPrompt">
-                <i class="bi bi-cloud-arrow-up display-5 text-muted mb-2"></i>
-                <div class="fw-semibold text-dark">Click to upload or drag &amp; drop leaf photo</div>
-                <div class="small text-muted">Supports JPG, PNG (ventral leaf surface recommended)</div>
+                <div class="rounded-circle bg-white text-forest p-3 shadow-sm d-inline-flex mb-2">
+                  <i class="bi bi-cloud-arrow-up display-6 brand-forest"></i>
+                </div>
+                <div class="fw-bold text-dark">Click to upload or drag &amp; drop leaf photo</div>
+                <div class="small text-muted mt-1">Supports JPG, PNG (ventral leaf surface recommended)</div>
               </div>
             </div>
 
@@ -52,26 +60,26 @@
                 <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Quick Test Sample Coffee Leaves:
               </label>
               <div class="d-flex flex-wrap gap-1">
-                <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2" onclick="loadSample('rust', 'Coffee Leaf Rust (Hemileia vastatrix)')">
+                <button type="button" class="btn btn-sm py-1 px-2 border shadow-sm hover-lift" style="background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 600;" onclick="loadSample('rust', 'Coffee Leaf Rust (Hemileia vastatrix)')">
                   🍃 Leaf Rust (Arabica)
                 </button>
-                <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2" onclick="loadSample('berry_borer', 'Coffee Berry Borer (Hypothenemus hampei)')">
+                <button type="button" class="btn btn-sm py-1 px-2 border shadow-sm hover-lift" style="background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 600;" onclick="loadSample('berry_borer', 'Coffee Berry Borer (Hypothenemus hampei)')">
                   🪲 Berry Borer
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2" onclick="loadSample('black_rot', 'Black Rot / Koleroga')">
+                <button type="button" class="btn btn-sm py-1 px-2 border shadow-sm hover-lift" style="background-color: #fef3c7; border-color: #fde68a; color: #92400e; font-weight: 600;" onclick="loadSample('black_rot', 'Black Rot / Koleroga')">
                   💧 Black Rot (Koleroga)
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2" onclick="loadSample('anthracnose', 'Anthracnose Die-back')">
+                <button type="button" class="btn btn-sm py-1 px-2 border shadow-sm hover-lift" style="background-color: #fef3c7; border-color: #fde68a; color: #92400e; font-weight: 600;" onclick="loadSample('anthracnose', 'Anthracnose Die-back')">
                   🍂 Anthracnose
                 </button>
-                <button type="button" class="btn btn-outline-success btn-sm py-1 px-2" onclick="loadSample('healthy', 'Healthy Foliage')">
+                <button type="button" class="btn btn-sm py-1 px-2 border shadow-sm hover-lift" style="background-color: #dcfce7; border-color: #86efac; color: #166534; font-weight: 600;" onclick="loadSample('healthy', 'Healthy Foliage')">
                   🌱 Healthy Leaf
                 </button>
               </div>
             </div>
           </div>
 
-          <button type="button" id="analyzeBtn" class="btn btn-forest w-100 py-2 fw-semibold shadow-sm" onclick="runAnalysis()">
+          <button type="button" id="analyzeBtn" class="btn btn-forest w-100 py-2 fw-semibold shadow hover-lift" onclick="runAnalysis()">
             <i class="bi bi-search me-1"></i> Run AI Diagnosis
           </button>
         </div>
@@ -261,6 +269,8 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 
 function runAnalysis() {
   const btn = document.getElementById('analyzeBtn');
+  const scannerLine = document.getElementById('scannerLine');
+  if (scannerLine) scannerLine.classList.remove('d-none');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Analyzing with Neural Model...';
 
@@ -273,6 +283,7 @@ function runAnalysis() {
   .then(data => {
     btn.disabled = false;
     btn.innerHTML = '<i class="bi bi-search me-1"></i> Run AI Diagnosis';
+    if (scannerLine) scannerLine.classList.add('d-none');
     if (data.success && data.diagnosis) {
       const d = data.diagnosis;
       document.getElementById('diseaseTitle').textContent = d.name;

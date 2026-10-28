@@ -33,41 +33,62 @@
   <div class="row g-3 mb-4">
     <!-- Total Runtime in Minutes -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #0284c7 !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">TOTAL SPRINKLER RUNTIME</span>
-        <div class="d-flex align-items-baseline gap-2 mt-1">
-          <span class="h3 fw-bold text-dark mb-0">{{ total_sprinkler_minutes }}</span>
-          <span class="text-primary fw-semibold small">Minutes</span>
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #0284c7 !important;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">TOTAL SPRINKLER RUNTIME</span>
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="h3 fw-bold text-dark mb-0">{{ total_sprinkler_minutes }}</span>
+              <span class="text-primary fw-semibold small">Minutes</span>
+            </div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-primary-subtle text-primary shadow-sm">
+            <i class="bi bi-stopwatch-fill fs-5"></i>
+          </span>
         </div>
-        <div class="small text-muted mt-1">
-          <i class="bi bi-stopwatch me-1 text-primary"></i>Accumulated <strong>{{ total_sprinkler_hours }} hours</strong> across estate
+        <div class="small text-muted mt-2">
+          <i class="bi bi-clock-history me-1 text-primary"></i>Accumulated <strong>{{ total_sprinkler_hours }} hours</strong> across estate
         </div>
       </div>
     </div>
 
     <!-- Blocks Irrigated -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #16a34a !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">PARCELS IRRIGATED</span>
-        <div class="d-flex align-items-baseline gap-2 mt-1">
-          <span class="h3 fw-bold text-dark mb-0">{{ unique_blocks_irrigated }}</span>
-          <span class="text-success fw-semibold small">Blocks Covered</span>
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #16a34a !important;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">PARCELS IRRIGATED</span>
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="h3 fw-bold text-dark mb-0">{{ unique_blocks_irrigated }}</span>
+              <span class="text-success fw-semibold small">Blocks Covered</span>
+            </div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-success-subtle text-success shadow-sm">
+            <i class="bi bi-grid-fill fs-5"></i>
+          </span>
         </div>
-        <div class="small text-muted mt-1">
-          <i class="bi bi-grid-fill me-1 text-success"></i>Block A, B, C &amp; D rotational cycle
+        <div class="small text-muted mt-2">
+          <i class="bi bi-arrow-repeat me-1 text-success"></i>Block A, B, C &amp; D rotational cycle
         </div>
       </div>
     </div>
 
     <!-- Total Equivalent Water -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #06b6d4 !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">WATER PRECIPITATION EQUIV.</span>
-        <div class="d-flex align-items-baseline gap-2 mt-1">
-          <span class="h3 fw-bold text-dark mb-0">{{ total_equivalent_water_mm }}</span>
-          <span class="text-info fw-semibold small">mm Equivalent</span>
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #06b6d4 !important;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">WATER PRECIPITATION EQUIV.</span>
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="h3 fw-bold text-dark mb-0">{{ total_equivalent_water_mm }}</span>
+              <span class="text-info fw-semibold small">mm Equiv</span>
+            </div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-info-subtle text-info shadow-sm">
+            <i class="bi bi-droplet-half fs-5"></i>
+          </span>
         </div>
-        <div class="small text-muted mt-1">
+        <div class="small text-muted mt-2">
           <i class="bi bi-water me-1 text-info"></i>Overhead rain-gun &amp; rotary discharge
         </div>
       </div>
@@ -75,14 +96,21 @@
 
     <!-- Fuel / Power Used -->
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="border-left: 4px solid #f59e0b !important;">
-        <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">PUMP FUEL CONSUMED</span>
-        <div class="d-flex align-items-baseline gap-2 mt-1">
-          <span class="h3 fw-bold text-dark mb-0">{{ total_diesel_liters }}</span>
-          <span class="text-warning-emphasis fw-semibold small">Liters Diesel</span>
+      <div class="card border-0 shadow-sm rounded-4 p-3 h-100 hover-lift" style="border: 1px solid rgba(35, 71, 53, 0.1) !important; border-left: 5px solid #f59e0b !important;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">PUMP FUEL CONSUMED</span>
+            <div class="d-flex align-items-baseline gap-2 mt-1">
+              <span class="h3 fw-bold text-dark mb-0">{{ total_diesel_liters }}</span>
+              <span class="text-warning-emphasis fw-semibold small">Liters Diesel</span>
+            </div>
+          </div>
+          <span class="badge rounded-circle p-2 bg-warning-subtle text-warning shadow-sm">
+            <i class="bi bi-fuel-pump-fill fs-5"></i>
+          </span>
         </div>
-        <div class="small text-muted mt-1">
-          <i class="bi bi-fuel-pump me-1 text-warning"></i>Estate irrigation engine usage
+        <div class="small text-muted mt-2">
+          <i class="bi bi-lightning-charge me-1 text-warning"></i>Estate irrigation engine usage
         </div>
       </div>
     </div>
