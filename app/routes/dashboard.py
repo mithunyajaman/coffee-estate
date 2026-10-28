@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, date
-from flask import Blueprint, render_template, jsonify, g
+from flask import Blueprint, render_template, jsonify, g, session
 from sqlalchemy import func
 from app.database import db
 from app.models.user import User
@@ -9,8 +9,10 @@ from app.models.farm import EstateBlock
 from app.models.harvest import HarvestRecord
 from app.models.task import Task
 from app.models.inventory import InventoryItem
-from app.models.attendance import DailyAttendance
+from app.models.attendance import DailyAttendance, AttendanceEvent
+from app.models.weather_sprinkler import SprinklerLog, RainfallRecord
 from app.services.auth_service import login_required, roles_required, get_current_user
+from app.services.geo_weather_service import get_district_weather
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -32,6 +34,27 @@ def dashboard():
     today_present = DailyAttendance.query.filter_by(date=today, status="Present").count()
     attendance_pct = round((today_present / active_employees * 100), 1) if active_employees > 0 else 0
 
+    # Sprinkler & Irrigation Telemetry
+    total_sprinkler_minutes = db.session.query(func.coalesce(func.sum(SprinklerLog.duration_minutes), 0)).scalar() or 0
+    sprinkler_runs_count = SprinklerLog.query.count()
+    latest_sprinkler_run = SprinklerLog.query.order_by(SprinklerLog.date.desc(), SprinklerLog.id.desc()).first()
+
+    # Farm blocks list for visual block deck
+    blocks = EstateBlock.query.order_by(EstateBlock.name.asc()).limit(4).all()
+
+    # Recent face biometric punches today
+    today_face_punches = (
+        AttendanceEvent.query.filter_by(method="Face")
+        .order_by(AttendanceEvent.timestamp.desc())
+        .limit(5)
+        .all()
+    )
+
+    # Weather telemetry for selected location
+    selected_state = session.get("selected_state", "Karnataka")
+    selected_district = session.get("selected_district", "Chikmagalur")
+    weather_info = get_district_weather(selected_state, selected_district)
+
     # Audit logs for manager/admin recent activity feed
     recent_audits = []
     if current_user.is_manager:
@@ -46,9 +69,12 @@ def dashboard():
         "active_blocks_count": active_blocks,
         "today_attendance_pct": attendance_pct,
         "today_present_count": today_present,
-        "harvest_this_month_kg": float(total_harvest_kg),
+        "harvest_this_month_kg": float(total_harvest_kg or 0.0),
         "pending_tasks_count": pending_tasks,
         "low_stock_items_count": low_stock_items,
+        "total_sprinkler_minutes": int(total_sprinkler_minutes),
+        "total_sprinkler_hours": round(total_sprinkler_minutes / 60.0, 1),
+        "sprinkler_runs_count": sprinkler_runs_count,
     }
 
     freshness_timestamp = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M:%S UTC")
@@ -57,6 +83,10 @@ def dashboard():
         "dashboard.html",
         current_user=current_user,
         kpis=kpis,
+        weather_info=weather_info,
+        blocks=blocks,
+        today_face_punches=today_face_punches,
+        latest_sprinkler_run=latest_sprinkler_run,
         recent_audits=recent_audits,
         freshness_timestamp=freshness_timestamp,
     )
