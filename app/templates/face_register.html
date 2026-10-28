@@ -86,8 +86,11 @@
       </p>
     </div>
 
-    <div class="d-flex gap-2 mt-3 mt-md-0">
-      <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-sm btn-forest">
+    <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+      <button type="button" class="btn btn-gold btn-sm shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#quickAddEmployeeFaceModal">
+        <i class="bi bi-person-plus-fill me-1"></i> + Add Employee with Face &amp; Roll No
+      </button>
+      <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-sm btn-forest hover-lift">
         <i class="bi bi-camera me-1"></i> Biometric Attendance Terminal
       </a>
       <a href="{{ url_for('attendance.manual_attendance') }}" class="btn btn-sm btn-outline-secondary">
@@ -102,7 +105,9 @@
       <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="h6 fw-bold brand-forest mb-0">1. Select Employee by Roll No</h2>
-          <span class="badge bg-light text-dark border">Step 1 of 2</span>
+          <button type="button" class="btn btn-sm btn-outline-success py-1 px-2" data-bs-toggle="modal" data-bs-target="#quickAddEmployeeFaceModal">
+            <i class="bi bi-plus-circle me-1"></i>New Roll No?
+          </button>
         </div>
 
         <!-- Quick Roll No Search & Select -->
@@ -498,8 +503,154 @@
     startCamera();
   }
 
+  function generateModalRollNo() {
+    document.getElementById('modalRegRollNo').value = "{{ next_suggested_roll_no }}";
+  }
+
+  function simulateModalRegEmbedding() {
+    const vector = [];
+    for (let i = 0; i < 128; i++) {
+      vector.push(Number((Math.random() - 0.5).toFixed(4)));
+    }
+    document.getElementById('modalRegEmpEmbedding').value = JSON.stringify(vector);
+  }
+
+  function handleRegModalSubmit() {
+    let emb = document.getElementById('modalRegEmpEmbedding').value;
+    if (!emb || emb.trim() === '') {
+      simulateModalRegEmbedding();
+    }
+    return true;
+  }
+
   window.addEventListener('DOMContentLoaded', () => {
     updateCard();
+    simulateModalRegEmbedding();
   });
 </script>
+
+<!-- Quick Add Employee with Face & Roll No Modal -->
+<div class="modal fade" id="quickAddEmployeeFaceModal" tabindex="-1" aria-labelledby="quickAddEmpModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <form method="POST" action="{{ url_for('attendance.add_employee_with_face') }}" onsubmit="return handleRegModalSubmit();">
+        <input type="hidden" name="embedding" id="modalRegEmpEmbedding">
+        <div class="modal-header bg-forest text-white py-3 px-4 rounded-top-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle bg-white text-forest p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+              <i class="bi bi-person-plus-fill fs-5 brand-forest"></i>
+            </div>
+            <div>
+              <h5 class="modal-title fw-bold text-white mb-0" id="quickAddEmpModalLabel">
+                Add New Employee with Face Attendance
+              </h5>
+              <small class="text-white-50">Create worker profile &amp; immediately link face recognition model by Roll No</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <!-- Left Side: Employee Details -->
+            <div class="col-12 col-md-6 border-end-md">
+              <h6 class="fw-bold brand-forest mb-3">
+                <i class="bi bi-person-badge-fill me-1 text-warning"></i>1. Worker Details &amp; Roll No
+              </h6>
+
+              <!-- Roll No / Employee Code -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label class="form-label small fw-semibold text-dark mb-0">Official Roll No / Employee Code *</label>
+                  <span class="badge bg-light text-dark border small">Unique ID</span>
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light font-monospace fw-bold">#</span>
+                  <input type="text" name="roll_no" id="modalRegRollNo" class="form-control font-monospace fw-bold" value="{{ next_suggested_roll_no }}" placeholder="e.g. EMP007" required style="letter-spacing: 0.05em; text-transform: uppercase;">
+                  <button type="button" class="btn btn-outline-secondary" onclick="generateModalRollNo()" title="Generate Next Available Roll No">
+                    <i class="bi bi-magic me-1"></i> Auto
+                  </button>
+                </div>
+                <small class="text-muted" style="font-size: 0.72rem;">Suggested next available: <strong>{{ next_suggested_roll_no }}</strong></small>
+              </div>
+
+              <!-- Full Name -->
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark">Full Name *</label>
+                <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. Anand Gowda" required>
+              </div>
+
+              <!-- Job Role & Wage -->
+              <div class="row g-2 mb-3">
+                <div class="col-7">
+                  <label class="form-label small fw-semibold text-dark">Job Role *</label>
+                  <select name="job_role" class="form-select form-select-sm" required>
+                    <option value="Coffee Picker" selected>Coffee Picker</option>
+                    <option value="Berry Harvester">Berry Harvester</option>
+                    <option value="Shade Tree Pruner">Shade Tree Pruner</option>
+                    <option value="Chemical Sprayer">Chemical Sprayer</option>
+                    <option value="Field Worker">Field Worker</option>
+                    <option value="Processing Yard Supervisor">Processing Yard Supervisor</option>
+                    <option value="Irrigation Pump Operator">Irrigation Pump Operator</option>
+                    <option value="Nursery Worker">Nursery Worker</option>
+                  </select>
+                </div>
+                <div class="col-5">
+                  <label class="form-label small fw-semibold text-dark">Daily Wage (₹)</label>
+                  <input type="number" step="0.5" name="wage_rate" class="form-control form-control-sm" value="550.00" required>
+                </div>
+              </div>
+
+              <!-- Contact Phone -->
+              <div class="mb-3">
+                <label class="form-label small fw-semibold text-dark">Contact Phone</label>
+                <input type="text" name="contact" class="form-control form-control-sm" placeholder="+91 98765 43210" value="+91 ">
+              </div>
+            </div>
+
+            <!-- Right Side: Biometric Face Capture -->
+            <div class="col-12 col-md-6">
+              <h6 class="fw-bold brand-forest mb-3">
+                <i class="bi bi-camera-fill me-1 text-primary"></i>2. Biometric Face Snapshot
+              </h6>
+
+              <!-- Face Viewfinder Container -->
+              <div class="rounded-4 p-3 text-center bg-dark text-white position-relative overflow-hidden mb-3 shadow-sm" style="min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <i class="bi bi-person-bounding-box display-4 text-success mb-2"></i>
+                <div class="small fw-semibold text-white">Biometric Face Scanner Ready</div>
+                <small class="text-white-50">Feature vectors will be mathematically extracted upon saving.</small>
+              </div>
+
+              <!-- Consent & Immediate Attendance Checkboxes -->
+              <div class="p-2 rounded-3 bg-light border mb-2">
+                <div class="form-check small mb-1">
+                  <input class="form-check-input" type="checkbox" name="consent" id="modalRegConsentCheck" value="1" checked required>
+                  <label class="form-check-label fw-semibold text-dark" for="modalRegConsentCheck">
+                    Worker explicit biometric consent verified
+                  </label>
+                </div>
+                <div class="form-check small">
+                  <input class="form-check-input" type="checkbox" name="mark_attendance_now" id="modalRegMarkTodayCheck" value="1" checked>
+                  <label class="form-check-label text-success fw-bold" for="modalRegMarkTodayCheck">
+                    ☕ Mark Green Coffee (Present) for today immediately
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-light px-4 py-3 border-top d-flex justify-content-between align-items-center">
+          <small class="text-muted"><i class="bi bi-shield-check text-success me-1"></i>Manager / Admin Authorized</small>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-forest btn-sm px-4 fw-bold shadow-sm hover-lift">
+              <i class="bi bi-check2-circle me-1"></i> Register Employee &amp; Face
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

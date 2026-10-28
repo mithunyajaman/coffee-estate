@@ -354,3 +354,79 @@ def test_green_coffee_targeted_face_verification(client, auth_client):
     daily = DailyAttendance.query.filter_by(employee_id=emp.id, date=date.today()).first()
     assert daily is not None
     assert daily.status == "Present"
+
+
+# ==========================================
+# 5. Add Employee with Face & Roll No Tests
+# ==========================================
+
+def test_manager_can_add_employee_with_face_and_new_roll_no(client, auth_client):
+    """Estate Manager can add a new employee, assign a new Roll No, enroll face, and mark attendance in 1 step."""
+    auth_client.login_manager()
+    new_vector = [0.42] * 128
+    
+    resp = client.post("/attendance/add-employee-with-face", json={
+        "roll_no": "EMP099",
+        "name": "Kavitha Gowda",
+        "job_role": "Coffee Picker",
+        "wage_rate": "550.0",
+        "contact": "+91-9988776655",
+        "consent": True,
+        "mark_attendance_now": True,
+        "embedding": new_vector,
+    })
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["success"] is True
+    assert data["employee"]["roll_no"] == "EMP099"
+    assert data["employee"]["name"] == "Kavitha Gowda"
+
+    # Verify employee exists in DB
+    created_emp = Employee.query.filter_by(employee_code="EMP099").first()
+    assert created_emp is not None
+    assert created_emp.name == "Kavitha Gowda"
+    assert created_emp.job_role == "Coffee Picker"
+
+    # Verify face enrollment exists
+    enrollment = FaceEnrollment.query.filter_by(employee_id=created_emp.id).first()
+    assert enrollment is not None
+    assert enrollment.enrollment_status == "Enrolled"
+    assert enrollment.consent_status is True
+
+    # Verify today's attendance is marked Present (Green Coffee)
+    daily = DailyAttendance.query.filter_by(employee_id=created_emp.id, date=date.today()).first()
+    assert daily is not None
+    assert daily.status == "Present"
+    
+    event = AttendanceEvent.query.filter_by(employee_id=created_emp.id).first()
+    assert event is not None
+    assert event.method == "Face"
+    assert event.event_type == "Check-in"
+
+
+def test_worker_forbidden_from_adding_employee_with_face(client, auth_client):
+    """Field worker (regular employee) is strictly forbidden (403) from adding employees with face."""
+    auth_client.login_employee()
+    resp = client.post("/attendance/add-employee-with-face", json={
+        "roll_no": "EMP100",
+        "name": "Unauthorized Add",
+        "consent": True
+    })
+    assert resp.status_code == 403
+
+
+def test_add_employee_duplicate_roll_no_blocked(client, auth_client):
+    """Adding an employee with an existing Roll No is rejected."""
+    auth_client.login_manager()
+    existing = Employee.query.first()
+    assert existing is not None
+
+    resp = client.post("/attendance/add-employee-with-face", json={
+        "roll_no": existing.employee_code,
+        "name": "Duplicate Person",
+        "consent": True
+    })
+    assert resp.status_code == 400
+    data = resp.get_json()
+    assert data["success"] is False
+    assert "already assigned" in data["error"]

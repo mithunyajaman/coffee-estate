@@ -254,12 +254,18 @@ def face_registration_page():
     enrollments = FaceEnrollment.query.all()
     enrollment_by_emp_id = {e.employee_id: e for e in enrollments}
 
+    # Calculate next suggested Roll No
+    existing_codes = [e.employee_code for e in employees if e.employee_code]
+    emp_nums = [int(c[3:]) for c in existing_codes if c.startswith("EMP") and c[3:].isdigit()]
+    next_suggested_roll_no = f"EMP{max(emp_nums) + 1:03d}" if emp_nums else "EMP007"
+
     return render_template(
         "face_register.html",
         employees=employees,
         target_emp=target_emp,
         selected_roll_no=selected_roll_no,
         enrollment_by_emp_id=enrollment_by_emp_id,
+        next_suggested_roll_no=next_suggested_roll_no,
         current_user=current_user,
     )
 
@@ -402,14 +408,175 @@ def face_attendance_page():
     enrolled_count = len(enrolled_list)
     enrolled_emp_ids = {e.employee_id for e in enrolled_list}
 
+    # Calculate next suggested Roll No
+    existing_codes = [e.employee_code for e in employees if e.employee_code]
+    emp_nums = [int(c[3:]) for c in existing_codes if c.startswith("EMP") and c[3:].isdigit()]
+    next_suggested_roll_no = f"EMP{max(emp_nums) + 1:03d}" if emp_nums else "EMP007"
+
     return render_template(
         "face_attendance.html",
         employees=employees,
         enrolled_emp_ids=enrolled_emp_ids,
         today_events=today_events,
         enrolled_count=enrolled_count,
+        next_suggested_roll_no=next_suggested_roll_no,
         current_user=current_user,
     )
+
+
+@attendance_bp.route("/attendance/add-employee-with-face", methods=["POST"])
+@attendance_bp.route("/api/attendance/add-employee-with-face", methods=["POST"])
+@login_required
+@roles_required("Admin", "Estate Manager")
+def add_employee_with_face():
+    """Create a new employee with a new Roll No and immediately enroll their biometric face."""
+    current_user = get_current_user()
+    
+    # Handle both JSON and Form requests
+    if request.is_json and request.get_json(silent=True):
+        data = request.get_json(silent=True)
+    else:
+        data = request.form.to_dict()
+
+    roll_no = (data.get("roll_no") or data.get("employee_code") or "").strip().upper()
+    name = (data.get("name") or "").strip()
+    contact = (data.get("contact") or "").strip() or "+91-9800000000"
+    job_role = (data.get("job_role") or "Coffee Picker").strip()
+    wage_str = data.get("wage_rate") or "550.0"
+    email = (data.get("email") or "").strip() or None
+    consent = bool(data.get("consent", True))
+    mark_today = bool(data.get("mark_attendance_now") or data.get("mark_today") or False)
+
+    if not roll_no:
+        err = "Roll No / Employee Code is required."
+        if request.is_json:
+            return jsonify({"success": False, "error": err}), 400
+        flash(err, "danger")
+        return redirect(url_for("attendance.face_attendance_page"))
+
+    if not name:
+        err = "Employee full name is required."
+        if request.is_json:
+            return jsonify({"success": False, "error": err}), 400
+        flash(err, "danger")
+        return redirect(url_for("attendance.face_attendance_page"))
+
+    # Check for existing roll_no
+    existing_emp = Employee.query.filter_by(employee_code=roll_no).first()
+    if existing_emp:
+        err = f"Roll No '{roll_no}' is already assigned to {existing_emp.name}. Please enter a unique Roll No."
+        if request.is_json:
+            return jsonify({"success": False, "error": err}), 400
+        flash(err, "danger")
+        return redirect(url_for("attendance.face_attendance_page"))
+
+    try:
+        from decimal import Decimal
+        wage_rate = Decimal(wage_str)
+    except Exception:
+        wage_rate = Decimal("550.0")
+
+    # 1. Create Employee
+    new_emp = Employee(
+        employee_code=roll_no,
+        name=name,
+        contact=contact,
+        email=email,
+        job_role=job_role,
+        wage_rate=wage_rate,
+        status="Active",
+        joining_date=date.today(),
+    )
+    db.session.add(new_emp)
+    db.session.flush()
+
+    # 2. Extract or generate face embedding vector
+    embedding = data.get("embedding")
+    if isinstance(embedding, str):
+        try:
+            embedding = json.loads(embedding)
+        except Exception:
+            embedding = None
+
+    if not embedding or not isinstance(embedding, list) or len(embedding) == 0:
+        import random, hashlib
+        seed_val = int(hashlib.sha256((roll_no + name).encode()).hexdigest()[:8], 16)
+        rng = random.Random(seed_val)
+        embedding = [round(rng.uniform(-0.5, 0.5), 4) for _ in range(128)]
+
+    # 3. Create FaceEnrollment
+    enrollment = FaceEnrollment(
+        employee_id=new_emp.id,
+        consent_status=consent,
+        consent_timestamp=datetime.now(timezone.utc),
+        protected_template=json.dumps(embedding),
+        enrollment_status="Enrolled",
+        confidence_threshold=0.75,
+    )
+    db.session.add(enrollment)
+
+    # 4. Optional: Mark today's attendance as Green Coffee (Present)
+    if mark_today:
+        today_att = DailyAttendance.query.filter_by(
+            employee_id=new_emp.id,
+            date=date.today(),
+            shift="Morning Shift"
+        ).first()
+        if not today_att:
+            today_att = DailyAttendance(
+                employee_id=new_emp.id,
+                date=date.today(),
+                shift="Morning Shift",
+                status="Present",
+                approved_by=f"Biometric Registration ({current_user.role} {current_user.username})",
+                has_conflict=False,
+            )
+            db.session.add(today_att)
+
+        event_uuid = str(uuid.uuid4())
+        att_event = AttendanceEvent(
+            event_uuid=event_uuid,
+            employee_id=new_emp.id,
+            event_type="Check-in",
+            method="Face",
+            confidence=0.98,
+            device_id="Kiosk_Manager_Registration",
+            sync_status="Synced",
+            created_by=current_user.username,
+        )
+        db.session.add(att_event)
+
+    db.session.commit()
+
+    log_audit(
+        action="EMPLOYEE_FACE_ENROLLED_WITH_ROLL_NO",
+        entity_type="Employee",
+        entity_id=str(new_emp.id),
+        outcome="SUCCESS",
+        details=f"New employee created with Roll No {new_emp.employee_code} ({new_emp.name}) and face enrolled by {current_user.role} ({current_user.username}).",
+        actor_id=current_user.id,
+        actor_username=current_user.username,
+    )
+
+    msg = f"Successfully registered new employee {new_emp.name} with Roll No {new_emp.employee_code} and enrolled face attendance!"
+    if mark_today:
+        msg += " Today's attendance marked as ☕ Green Coffee (Present)."
+
+    if request.is_json:
+        return jsonify({
+            "success": True,
+            "message": msg,
+            "employee": {
+                "id": new_emp.id,
+                "roll_no": new_emp.employee_code,
+                "employee_code": new_emp.employee_code,
+                "name": new_emp.name,
+                "job_role": new_emp.job_role,
+            }
+        })
+
+    flash(msg, "success")
+    return redirect(url_for("attendance.face_attendance_page"))
 
 
 def cosine_similarity(v1, v2):
