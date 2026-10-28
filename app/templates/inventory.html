@@ -1,30 +1,40 @@
 {% extends "base.html" %}
 
-{% block title %}Inventory Management{% endblock %}
+{% block title %}Inventory &amp; Stock Ledger | Coffee Estate ERP{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-box-seam me-2 brand-leaf"></i>Estate Inventory &amp; Stock Ledger
-      </h1>
-      <p class="text-secondary small mb-0">
-        Transaction-based stock control for fertilizers, crop protection, tools, fuel, and processing supplies.
-      </p>
-    </div>
 
-    {% if current_user.is_manager %}
-    <div class="d-flex gap-2 mt-3 mt-md-0">
-      <button type="button" class="btn btn-outline-forest btn-sm" data-bs-toggle="modal" data-bs-target="#stockTxModal">
-        <i class="bi bi-arrow-left-right me-1"></i> Record Stock In / Out
-      </button>
-      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addItemModal">
-        <i class="bi bi-plus-circle me-1"></i> Add Catalog Item
-      </button>
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-box-seam-fill me-1 text-warning"></i>FIFO Stock Ledger
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-shield-check me-1 text-success"></i>Reorder Triggers Active
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-boxes text-warning"></i>Estate Inventory &amp; Stock Ledger
+        </h1>
+        <p class="page-hero-desc">
+          Automated stock control for fertilizers, systemic pesticides, pruning equipment, coffee jute bags, fuel, and processing yard supplies.
+        </p>
+      </div>
+      {% if current_user.is_manager %}
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-light btn-sm shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#stockTxModal">
+          <i class="bi bi-arrow-left-right me-1 text-warning"></i> Record Stock In / Out
+        </button>
+        <button type="button" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#addItemModal">
+          <i class="bi bi-plus-circle me-1"></i> Add Catalog Item
+        </button>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
   <!-- Low Stock Alert Banner (if any) -->

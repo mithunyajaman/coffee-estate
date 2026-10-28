@@ -1,31 +1,42 @@
 {% extends "base.html" %}
 
-{% block title %}Sprinkler &amp; Irrigation Records - Coffee Estate{% endblock %}
+{% block title %}Sprinkler &amp; Irrigation Records | Coffee Estate ERP{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header & Actions -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-droplet-half me-2 text-primary"></i>Sprinkler &amp; Irrigation Water Records
-      </h1>
-      <p class="text-secondary small mb-0">
-        Field sprinkler operations across coffee parcels: when sprinkler ran, what time window, and exact minutes per block.
-      </p>
-    </div>
-    <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
-      <a href="{{ url_for('weather.export_sprinkler_csv') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-download me-1"></i> Export Sprinkler CSV
-      </a>
-      {% if current_user.is_manager %}
-      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addSprinklerModal">
-        <i class="bi bi-droplet-fill me-1"></i> Log Sprinkler Run
-      </button>
-      {% endif %}
-      <a href="{{ url_for('weather.weather_index') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-cloud-sun me-1"></i> Weather &amp; Rainfall &rarr;
-      </a>
+
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-droplet-half me-1 text-info"></i>Precision Irrigation Control
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-flower1 me-1 text-warning"></i>Blossom &amp; Backing Showers
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-droplet-half text-info"></i>Sprinkler &amp; Irrigation Water Records
+        </h1>
+        <p class="page-hero-desc">
+          Parcel-wise water delivery logging: track sprinkler pump runtimes, water discharge volume, and timing for Arabica and Robusta flower sets.
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('weather.export_sprinkler_csv') }}" class="btn btn-outline-light btn-sm shadow-sm hover-lift">
+          <i class="bi bi-download me-1 text-warning"></i> Export Sprinkler CSV
+        </a>
+        {% if current_user.is_manager %}
+        <button type="button" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#addSprinklerModal">
+          <i class="bi bi-droplet-fill me-1"></i> Log Sprinkler Run
+        </button>
+        {% endif %}
+        <a href="{{ url_for('weather.weather_index') }}" class="btn btn-outline-light btn-sm shadow-sm hover-lift">
+          <i class="bi bi-cloud-sun me-1 text-warning"></i> Weather &amp; Rainfall &rarr;
+        </a>
+      </div>
     </div>
   </div>
 

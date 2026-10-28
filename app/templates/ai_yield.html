@@ -1,23 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}AI Yield Prediction - Harvest Forecasting{% endblock %}
+{% block title %}AI Yield Prediction | Harvest Forecasting{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>AI Yield Prediction
-      </h1>
-      <p class="text-secondary small mb-0">
-        Forecast seasonal coffee crop outturn (50kg bags &amp; metric tons) and revenue projections per plantation block.
-      </p>
-    </div>
-    <div class="d-flex gap-2 mt-2 mt-md-0">
-      <span class="badge bg-cream text-dark border px-3 py-2 rounded-pill fw-bold">
-        <i class="bi bi-rulers me-1 text-success"></i>Estate Area: {{ "%.2f"|format(total_area) }} Hectares
-      </span>
+
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-graph-up-arrow me-1 text-primary"></i>Predictive ML Regressor
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-currency-rupee me-1 text-warning"></i>Estate Revenue Projection
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-graph-up-arrow text-primary"></i>AI Crop Yield &amp; Revenue Forecasting
+        </h1>
+        <p class="page-hero-desc">
+          Predictive model analyzing elevation (ASL), shade canopy, irrigation minutes, and rainfall telemetry to forecast 50kg bag outturn and market realizations.
+        </p>
+      </div>
+      <div>
+        <span class="badge bg-primary bg-opacity-25 border border-primary text-white px-3 py-2 rounded-pill font-monospace shadow-sm">
+          <i class="bi bi-rulers me-1"></i>{{ "%.2f"|format(total_area) }} Hectares Planted
+        </span>
+      </div>
     </div>
   </div>
 

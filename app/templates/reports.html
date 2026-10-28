@@ -1,54 +1,66 @@
 {% extends "base.html" %}
 
+{% block title %}Reports &amp; Operational Analytics | Coffee Estate ERP{% endblock %}
+
 {% block content %}
-<div class="container-fluid px-4 py-3">
+<div class="container-fluid px-0">
 
-  <!-- Header -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <div>
-      <h2 class="h4 mb-1 fw-bold text-dark">
-        <i class="bi bi-file-earmark-bar-graph text-primary me-2"></i>Page 19: Reports &amp; Analytics
-      </h2>
-      <p class="text-muted small mb-0">
-        Estate operational insights, crop yields, attendance trends, inventory movement, and payroll intelligence.
-      </p>
-    </div>
-    <div class="d-flex gap-2">
-      <!-- Export Dropdown -->
-      <div class="dropdown">
-        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-          <i class="bi bi-cloud-arrow-down me-1"></i> Export Data (CSV)
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-          <li>
-            <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='attendance', start_date=summary.start_date, end_date=summary.end_date) }}">
-              <i class="bi bi-person-check text-success me-2"></i>Attendance Muster CSV
-            </a>
-          </li>
-          <li>
-            <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='harvest', start_date=summary.start_date, end_date=summary.end_date) }}">
-              <i class="bi bi-basket2 text-warning me-2"></i>Harvest Production CSV
-            </a>
-          </li>
-          <li>
-            <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='inventory') }}">
-              <i class="bi bi-boxes text-info me-2"></i>Inventory Status CSV
-            </a>
-          </li>
-          {% if is_manager %}
-          <li><hr class="dropdown-divider"></li>
-          <li>
-            <a class="dropdown-item small fw-semibold text-primary" href="{{ url_for('reports.export_csv', type='payroll', start_date=summary.start_date, end_date=summary.end_date) }}">
-              <i class="bi bi-cash-stack me-2"></i>Full Payroll Ledger CSV (Manager)
-            </a>
-          </li>
-          {% endif %}
-        </ul>
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-file-earmark-spreadsheet me-1 text-info"></i>Page 19: Reports &amp; Analytics
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-graph-up-arrow me-1 text-warning"></i>Executive Intelligence
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-file-earmark-bar-graph-fill text-warning"></i>Reports &amp; Operational Analytics
+        </h1>
+        <p class="page-hero-desc">
+          Holistic estate insights across harvest yield, biometric attendance trends, inventory stock movement, and financial payroll ledgers.
+        </p>
       </div>
+      <div class="d-flex flex-wrap gap-2">
+        <!-- Export Dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-outline-light btn-sm dropdown-toggle shadow-sm hover-lift" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-cloud-arrow-down me-1 text-warning"></i> Export Data (CSV)
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li>
+              <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='attendance', start_date=summary.start_date, end_date=summary.end_date) }}">
+                <i class="bi bi-person-check text-success me-2"></i>Attendance Muster CSV
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='harvest', start_date=summary.start_date, end_date=summary.end_date) }}">
+                <i class="bi bi-basket2 text-warning me-2"></i>Harvest Production CSV
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small" href="{{ url_for('reports.export_csv', type='inventory') }}">
+                <i class="bi bi-boxes text-info me-2"></i>Inventory Status CSV
+              </a>
+            </li>
+            {% if is_manager %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item small fw-semibold text-primary" href="{{ url_for('reports.export_csv', type='payroll', start_date=summary.start_date, end_date=summary.end_date) }}">
+                <i class="bi bi-cash-stack me-2"></i>Full Payroll Ledger CSV (Manager)
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
 
-      <button onclick="window.print()" class="btn btn-primary btn-sm" style="background-color: var(--primary); border-color: var(--primary);">
-        <i class="bi bi-printer me-1"></i> Print / Save PDF
-      </button>
+        <button onclick="window.print()" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift">
+          <i class="bi bi-printer me-1"></i> Print / Save PDF
+        </button>
+      </div>
     </div>
   </div>
 

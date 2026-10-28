@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Task Management{% endblock %}
+{% block title %}Field Tasks &amp; Workflow | Coffee Estate ERP{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-check2-square me-2 brand-leaf"></i>Field Task Assignments
-      </h1>
-      <p class="text-secondary small mb-0">
-        Assign daily estate operations, monitor progress, link field tasks to parcels, and record completions.
-      </p>
-    </div>
 
-    {% if current_user.is_manager %}
-    <div class="mt-3 mt-md-0">
-      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-        <i class="bi bi-plus-circle me-1"></i> Assign New Task
-      </button>
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-clock-history me-1 text-warning"></i>Daily Shifts &amp; Crews
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-geo-alt-fill me-1 text-danger"></i>Parcel-Linked Operations
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-check2-square text-success"></i>Field Task Assignments &amp; Workflow
+        </h1>
+        <p class="page-hero-desc">
+          Coordinate shade pruning, weeding, sprinkler runs, berry harvesting, and nursery tasks with real-time progress monitoring.
+        </p>
+      </div>
+      {% if current_user.is_manager %}
+      <div>
+        <button type="button" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+          <i class="bi bi-plus-circle me-1"></i> Assign New Task
+        </button>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
   <!-- Status Counters -->

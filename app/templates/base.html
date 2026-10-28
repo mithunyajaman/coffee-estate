@@ -51,104 +51,104 @@
       {% endif %}
     </div>
 
-    <!-- Navigation Menu (Aligned with 20 Blueprint Pages) -->
+    <!-- Navigation Menu -->
     <nav class="sidebar-nav">
       <div class="nav-section-title">Overview</div>
       <a href="{{ url_for('dashboard.dashboard') }}" class="sidebar-link {% if request.path == '/dashboard' %}active{% endif %}">
-        <i class="bi bi-grid-1x2"></i>
-        <span>3. Smart Dashboard</span>
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Smart Dashboard</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto" style="font-size: 0.62rem;">Live</span>
       </a>
 
-      <div class="nav-section-title">Core Operations</div>
+      <div class="nav-section-title">Plantation Operations</div>
       <a href="{{ url_for('farm.farm_list') }}" class="sidebar-link {% if request.path.startswith('/farm') %}active{% endif %}">
-        <i class="bi bi-map"></i>
-        <span>4. Farm Management</span>
+        <i class="bi bi-map-fill"></i>
+        <span>Farm Parcels &amp; Blocks</span>
       </a>
       <a href="{{ url_for('weather.sprinkler_index') }}" class="sidebar-link {% if request.path.startswith('/sprinkler') or request.path.startswith('/irrigation') %}active{% endif %}">
         <i class="bi bi-droplet-half"></i>
         <span>Sprinkler &amp; Irrigation</span>
-        <span class="badge bg-primary ms-auto" style="font-size: 0.65rem;">Water</span>
+        <span class="badge bg-info-subtle text-info border border-info-subtle ms-auto" style="font-size: 0.62rem;">Water</span>
       </a>
       <a href="{{ url_for('pesticides.index') }}" class="sidebar-link {% if request.path.startswith('/pesticides') %}active{% endif %}">
         <i class="bi bi-shield-shaded"></i>
-        <span>Pesticides &amp; Spraying</span>
+        <span>Pesticides &amp; Protection</span>
       </a>
       <a href="{{ url_for('weather.weather_index') }}" class="sidebar-link {% if request.path.startswith('/weather') %}active{% endif %}">
-        <i class="bi bi-cloud-sun"></i>
-        <span>5. Weather &amp; Rainfall</span>
+        <i class="bi bi-cloud-sun-fill"></i>
+        <span>Weather &amp; Rainfall</span>
       </a>
       <a href="{{ url_for('harvest.harvest_list') }}" class="sidebar-link {% if request.path.startswith('/harvest') %}active{% endif %}">
-        <i class="bi bi-basket"></i>
-        <span>8. Harvest Management</span>
+        <i class="bi bi-basket3-fill"></i>
+        <span>Harvest &amp; Yield</span>
       </a>
       <a href="{{ url_for('tasks.task_list') }}" class="sidebar-link {% if request.path.startswith('/tasks') %}active{% endif %}">
         <i class="bi bi-check2-square"></i>
-        <span>14. Task Management</span>
+        <span>Field Tasks</span>
       </a>
       <a href="{{ url_for('inventory.inventory_list') }}" class="sidebar-link {% if request.path.startswith('/inventory') %}active{% endif %}">
-        <i class="bi bi-box-seam"></i>
-        <span>17. Inventory Tracking</span>
+        <i class="bi bi-boxes"></i>
+        <span>Inventory &amp; Supplies</span>
       </a>
 
-      <div class="nav-section-title">Workforce &amp; Attendance</div>
+      <div class="nav-section-title">Workforce &amp; Biometrics</div>
       <a href="{{ url_for('employees.employee_list') }}" class="sidebar-link {% if request.path.startswith('/employees') %}active{% endif %}">
-        <i class="bi bi-people"></i>
-        <span>10. Employees</span>
+        <i class="bi bi-people-fill"></i>
+        <span>Employees Directory</span>
       </a>
       {% if current_user.is_manager %}
       <a href="{{ url_for('attendance.face_registration_page') }}" class="sidebar-link {% if request.path == '/attendance/face-register' %}active{% endif %}">
         <i class="bi bi-person-bounding-box"></i>
-        <span>11. Face Registration</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.62rem;">Roll No</span>
+        <span>Face Registration</span>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-auto" style="font-size: 0.62rem;">Roll No</span>
       </a>
       <a href="{{ url_for('attendance.face_attendance_page') }}" class="sidebar-link {% if request.path == '/attendance/face-checkin' %}active{% endif %}">
-        <i class="bi bi-camera"></i>
-        <span>12. Face Attendance</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.62rem;">Biometric</span>
+        <i class="bi bi-camera-fill"></i>
+        <span>Biometric Attendance</span>
+        <span class="badge bg-success ms-auto" style="font-size: 0.62rem;">Face</span>
       </a>
       <a href="{{ url_for('attendance.manual_attendance') }}" class="sidebar-link {% if request.path == '/attendance/manual' %}active{% endif %}">
-        <i class="bi bi-clipboard-check"></i>
-        <span>13. Manual / Offline Att.</span>
+        <i class="bi bi-clipboard2-check-fill"></i>
+        <span>Manual Muster Roll</span>
       </a>
       {% endif %}
       <a href="{{ url_for('payroll.index') }}" class="sidebar-link {% if request.path.startswith('/payroll') %}active{% endif %}">
         <i class="bi bi-cash-stack"></i>
-        <span>15. Payroll Management</span>
+        <span>Payroll &amp; Wages</span>
       </a>
 
       <div class="nav-section-title">AI Agriculture &amp; Models</div>
       <a href="{{ url_for('ai.disease_detection') }}" class="sidebar-link {% if request.path.startswith('/ai/disease') or request.path.startswith('/disease') %}active{% endif %}">
         <i class="bi bi-virus"></i>
-        <span>6. Disease Detection AI</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
+        <span>Disease Detection AI</span>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-auto" style="font-size: 0.62rem;">Vision</span>
       </a>
       <a href="{{ url_for('ai.cherry_ripeness') }}" class="sidebar-link {% if request.path.startswith('/ai/ripeness') or request.path.startswith('/ripeness') %}active{% endif %}">
-        <i class="bi bi-record-circle"></i>
-        <span>7. Cherry Ripeness AI</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
+        <i class="bi bi-record-circle-fill"></i>
+        <span>Cherry Ripeness AI</span>
+        <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto" style="font-size: 0.62rem;">Optical</span>
       </a>
       <a href="{{ url_for('ai.yield_prediction') }}" class="sidebar-link {% if request.path.startswith('/ai/yield') or request.path.startswith('/yield') %}active{% endif %}">
         <i class="bi bi-graph-up-arrow"></i>
-        <span>9. AI Yield Prediction</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
+        <span>AI Yield Prediction</span>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-auto" style="font-size: 0.62rem;">ML Model</span>
       </a>
       <a href="{{ url_for('ai.chatbot') }}" class="sidebar-link {% if request.path.startswith('/ai/chatbot') or request.path.startswith('/ai/chat') or request.path.startswith('/chatbot') %}active{% endif %}">
-        <i class="bi bi-chat-dots"></i>
-        <span>18. AI Estate Chatbot</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
+        <i class="bi bi-chat-dots-fill"></i>
+        <span>AI Estate Chatbot</span>
+        <span class="badge bg-info-subtle text-info border border-info-subtle ms-auto" style="font-size: 0.62rem;">Agronomist</span>
       </a>
 
       <div class="nav-section-title">System &amp; Intelligence</div>
       <a href="{{ url_for('reports.index') }}" class="sidebar-link {% if request.path.startswith('/reports') %}active{% endif %}">
-        <i class="bi bi-file-earmark-bar-graph"></i>
-        <span>19. Reports &amp; Analytics</span>
-        <span class="badge bg-success ms-auto" style="font-size: 0.65rem;">Active</span>
+        <i class="bi bi-file-earmark-bar-graph-fill"></i>
+        <span>Reports &amp; Analytics</span>
       </a>
       {% if current_user.is_admin %}
       <a href="{{ url_for('ai.settings') }}" class="sidebar-link {% if request.path.startswith('/settings') or request.path.startswith('/ai/settings') %}active{% endif %}">
-        <i class="bi bi-sliders"></i>
-        <span>20. Settings &amp; Security</span>
-        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Admin</span>
+        <i class="bi bi-sliders2-vertical"></i>
+        <span>Settings &amp; Security</span>
+        <span class="badge bg-secondary ms-auto" style="font-size: 0.62rem;">Admin</span>
       </a>
       {% endif %}
     </nav>

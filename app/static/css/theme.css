@@ -600,6 +600,136 @@ body {
   box-shadow: 0 4px 14px rgba(27, 61, 44, 0.2);
 }
 
+/* ==============================================================================
+   PREMIUM LUXURY ESTATE UI SYSTEM (ALL PAGES ELEVATION)
+   ============================================================================== */
+
+/* Page Hero Banner: Unified High-End Executive Header */
+.page-hero-banner {
+  background: linear-gradient(135deg, #0e2417 0%, #1a3c29 50%, #26553a 100%);
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  color: #ffffff;
+  box-shadow: 0 16px 36px rgba(14, 36, 23, 0.22);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(252, 211, 77, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.page-hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: 20%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.page-hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.page-hero-desc {
+  font-size: 0.88rem;
+  color: #d1e7dd;
+  max-width: 780px;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.hero-pill-badge {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 30px;
+}
+
+/* Luxury Interactive Cards */
+.card-interactive {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(35, 71, 53, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(20, 50, 30, 0.1);
+  border-color: rgba(95, 134, 99, 0.25);
+}
+
+/* Elevated Metric Chip */
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.metric-chip-forest {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.metric-chip-gold {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.metric-chip-blue {
+  background: #f0f9ff;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+/* Glowing Accent Borders */
+.glow-green {
+  box-shadow: 0 0 25px rgba(34, 197, 94, 0.4) !important;
+}
+
+.glow-gold {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.4) !important;
+}
+
+.glow-red {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.4) !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
   .app-sidebar {

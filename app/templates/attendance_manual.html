@@ -1,38 +1,40 @@
 {% extends "base.html" %}
 
-{% block title %}Manual &amp; Offline Attendance{% endblock %}
+{% block title %}Manual &amp; Offline Attendance | Coffee Estate ERP{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-clipboard2-check-fill me-2 brand-leaf"></i>Daily Attendance Roster
-      </h1>
-      <p class="text-secondary small mb-0">
-        Record shifts, mark daily attendance status, and sync offline field muster rolls idempotently.
-      </p>
-    </div>
 
-    <!-- Network & Sync Status Badges -->
-    <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-      <span class="badge bg-white border text-dark p-2" id="connectionStatusText">
-        <span class="text-success"><i class="bi bi-wifi"></i> Checking...</span>
-      </span>
-
-      <!-- Offline Queue Indicator -->
-      <span class="badge bg-warning text-dark border p-2 d-none" id="offlineQueueBadge">
-        <i class="bi bi-cloud-arrow-up-fill me-1"></i><span id="offlineCountSpan">0</span> Queued Offline
-      </span>
-
-      <button type="button" class="btn btn-sm btn-outline-forest" onclick="syncOfflineQueue()">
-        <i class="bi bi-arrow-repeat me-1"></i> Sync Queue
-      </button>
-
-      <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-sm btn-forest">
-        <i class="bi bi-camera me-1"></i> Face Check-in
-      </a>
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge" id="connectionStatusText">
+            <span class="text-success"><i class="bi bi-wifi"></i> Online</span>
+          </span>
+          <span class="hero-pill-badge bg-warning-subtle text-dark border-0 d-none" id="offlineQueueBadge">
+            <i class="bi bi-cloud-arrow-up-fill me-1 text-warning"></i><span id="offlineCountSpan">0</span> Queued Offline
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-shield-check me-1 text-success"></i>Idempotent Sync Safe
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-clipboard2-check-fill text-warning"></i>Daily Attendance Roster &amp; Offline Sync
+        </h1>
+        <p class="page-hero-desc">
+          Authorized manual attendance logging for field supervisors when workers are off-grid or lighting is unsuitable for biometric scanning.
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-light btn-sm shadow-sm hover-lift" onclick="syncOfflineQueue()">
+          <i class="bi bi-arrow-repeat me-1 text-warning"></i> Sync Offline Queue
+        </button>
+        <a href="{{ url_for('attendance.face_attendance_page') }}" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift">
+          <i class="bi bi-camera me-1"></i> Biometric Terminal &rarr;
+        </a>
+      </div>
     </div>
   </div>
 

@@ -1,30 +1,40 @@
 {% extends "base.html" %}
 
-{% block title %}Farm Management - Coffee Estate Blocks{% endblock %}
+{% block title %}Farm Parcels &amp; Blocks | Coffee Estate ERP{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-  <!-- Header & Actions -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-2 border-bottom">
-    <div>
-      <h1 class="h3 fw-bold brand-forest mb-1">
-        <i class="bi bi-map-fill me-2 brand-leaf"></i>Plantation Farm Management
-      </h1>
-      <p class="text-secondary small mb-0">
-        Estate parcel blocks (Block A, Block B, Block C) structured neatly across Arabica Coffee, Robusta Coffee, and Kaveri Coffee.
-      </p>
-    </div>
 
-    {% if current_user.is_manager %}
-    <div class="d-flex gap-2 mt-3 mt-md-0">
-      <button type="button" class="btn btn-outline-forest btn-sm" data-bs-toggle="modal" data-bs-target="#logActivityModal">
-        <i class="bi bi-journal-plus me-1"></i> Log Field Activity
-      </button>
-      <button type="button" class="btn btn-forest btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addBlockModal">
-        <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
-      </button>
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-compass me-1 text-warning"></i>13.3161° N, 75.7720° E
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-tree-fill me-1 text-success"></i>Shade Canopy Regulated
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-map-fill text-warning"></i>Plantation Farm Management &amp; Parcels
+        </h1>
+        <p class="page-hero-desc">
+          High-elevation parcels (Block A, B, C, D) structured across Arabica S.795, Robusta CxR, and Kaveri: elevation ASL, shade tree density, soil moisture, and activity logs.
+        </p>
+      </div>
+      {% if current_user.is_manager %}
+      <div class="d-flex flex-wrap gap-2">
+        <button type="button" class="btn btn-outline-light btn-sm shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#logActivityModal">
+          <i class="bi bi-journal-plus me-1 text-warning"></i> Log Field Activity
+        </button>
+        <button type="button" class="btn btn-gold btn-sm px-3 shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#addBlockModal">
+          <i class="bi bi-plus-circle me-1"></i> Add Plantation Block
+        </button>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 
   <!-- Estate Map & Varietal Area Breakdown Row -->

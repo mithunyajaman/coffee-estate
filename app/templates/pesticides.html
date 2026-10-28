@@ -1,27 +1,39 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container-fluid px-4 py-3">
+{% block title %}Pesticides &amp; Crop Protection | Coffee Estate ERP{% endblock %}
 
-  <!-- Header -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <div>
-      <h2 class="h4 mb-1 fw-bold text-dark">
-        <i class="bi bi-shield-shaded text-success me-2"></i>Pesticides &amp; Crop Protection Register
-      </h2>
-      <p class="text-muted small mb-0">
-        Monitor agronomic spraying, safety pre-harvest intervals (PHI), target coffee pests, and chemical store consumption.
-      </p>
-    </div>
-    <div class="d-flex gap-2">
-      <a href="{{ url_for('pesticides.export_csv') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-cloud-arrow-down me-1"></i> Export Spray Register (CSV)
-      </a>
-      {% if is_manager %}
-      <button class="btn btn-primary btn-sm" style="background-color: var(--primary); border-color: var(--primary);" data-bs-toggle="modal" data-bs-target="#addPesticideModal">
-        <i class="bi bi-plus-circle me-1"></i> Log Spraying Operation
-      </button>
-      {% endif %}
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- Luxury Page Hero Banner -->
+  <div class="page-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="hero-pill-badge">
+            <i class="bi bi-shield-check me-1 text-success"></i>Pre-Harvest Interval (PHI) Safe
+          </span>
+          <span class="hero-pill-badge">
+            <i class="bi bi-bug me-1 text-warning"></i>Coffee Borer &amp; Rust Control
+          </span>
+        </div>
+        <h1 class="page-hero-title">
+          <i class="bi bi-shield-shaded text-success"></i>Pesticides &amp; Crop Protection Register
+        </h1>
+        <p class="page-hero-desc">
+          Monitor agronomic chemical applications, pre-harvest safety intervals, targeted parcel pest defense, and chemical store stock deductions.
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('pesticides.export_csv') }}" class="btn btn-outline-light btn-sm shadow-sm hover-lift">
+          <i class="bi bi-cloud-arrow-down me-1 text-warning"></i> Export Spray Register (CSV)
+        </a>
+        {% if is_manager %}
+        <button class="btn btn-gold btn-sm px-3 shadow-sm hover-lift" data-bs-toggle="modal" data-bs-target="#addPesticideModal">
+          <i class="bi bi-plus-circle me-1"></i> Log Spraying Operation
+        </button>
+        {% endif %}
+      </div>
     </div>
   </div>
 

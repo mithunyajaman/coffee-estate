@@ -19,23 +19,24 @@
   }
 
   .loading-card {
-    background: rgba(246, 243, 233, 0.96);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 20px;
-    padding: 2.75rem 2.25rem;
-    max-width: 520px;
+    background: rgba(12, 26, 18, 0.84);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    max-width: 540px;
     width: 100%;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     text-align: center;
     position: relative;
     z-index: 10;
+    color: #ffffff;
   }
 
   .pulse-logo {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     background: linear-gradient(135deg, var(--color-forest-green), var(--color-leaf-green));
     border-radius: 50%;
     display: inline-flex;
@@ -61,8 +62,8 @@
 
   .progress-bar-custom {
     height: 8px;
-    border-radius: 4px;
-    background-color: #e2e8f0;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.12);
     overflow: hidden;
     margin: 1.5rem 0 0.75rem;
   }
@@ -70,8 +71,8 @@
   .progress-fill {
     height: 100%;
     width: 15%;
-    background: linear-gradient(90deg, var(--color-leaf-green), var(--color-forest-green));
-    border-radius: 4px;
+    background: linear-gradient(90deg, #10b981, #f59e0b);
+    border-radius: 6px;
     transition: width 0.4s ease;
   }
 </style>
@@ -86,8 +87,8 @@
     </div>
 
     <!-- Title & Domain -->
-    <h1 class="h3 fw-bold brand-forest mb-1">AI-Powered Smart Coffee Estate</h1>
-    <p class="text-muted small mb-3">Management &amp; Decision Support System • Chikmagalur</p>
+    <h1 class="h3 fw-bold text-white mb-1">AI-Powered Smart Coffee Estate</h1>
+    <p class="text-white-50 small mb-3">Management &amp; Decision Support System • Chikmagalur</p>
 
     <!-- Progress Indicator -->
     <div class="progress-bar-custom">
@@ -95,8 +96,8 @@
     </div>
     
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <small class="text-secondary" id="statusMessage">Checking database connectivity...</small>
-      <small class="fw-bold brand-forest" id="percentText">25%</small>
+      <small class="text-white-50" id="statusMessage">Checking database connectivity...</small>
+      <small class="fw-bold text-warning" id="percentText">25%</small>
     </div>
 
     <!-- Recoverable Error Fallback Area (Initially Hidden) -->
