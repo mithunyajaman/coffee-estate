@@ -195,7 +195,7 @@
   <!-- 6 VIBRANT KPI CARDS -->
   <div class="row g-3 mb-4">
     <!-- 1. Workforce KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-1">
       <a href="{{ url_for('employees.employee_list') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-green">
           <div class="d-flex justify-content-between align-items-start">
@@ -204,7 +204,7 @@
               <i class="bi bi-people-fill"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ kpis.active_employees }}</div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.active_employees }}">{{ kpis.active_employees }}</div>
           <div class="small text-muted" style="font-size: 0.75rem;">
             Total registered: <strong>{{ kpis.total_employees }}</strong>
           </div>
@@ -213,7 +213,7 @@
     </div>
 
     <!-- 2. Attendance KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-2">
       <a href="{{ url_for('attendance.face_attendance_page' if current_user.is_manager else 'attendance.manual_attendance') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-gold">
           <div class="d-flex justify-content-between align-items-start">
@@ -222,7 +222,7 @@
               <i class="bi bi-check2-circle"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ kpis.today_attendance_pct }}%</div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.today_attendance_pct }}" data-suffix="%">{{ kpis.today_attendance_pct }}%</div>
           <div class="small text-success fw-semibold" style="font-size: 0.75rem;">
             <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>{{ kpis.today_present_count }} Green Coffee
           </div>
@@ -231,7 +231,7 @@
     </div>
 
     <!-- 3. Plantation Blocks KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-3">
       <a href="{{ url_for('farm.farm_list') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-blue">
           <div class="d-flex justify-content-between align-items-start">
@@ -240,7 +240,7 @@
               <i class="bi bi-map-fill"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ kpis.active_blocks_count }}</div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.active_blocks_count }}">{{ kpis.active_blocks_count }}</div>
           <div class="small text-muted" style="font-size: 0.75rem;">
             Arabica, Robusta &amp; Kaveri
           </div>
@@ -249,7 +249,7 @@
     </div>
 
     <!-- 4. Harvest KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-4">
       <a href="{{ url_for('harvest.harvest_list') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-amber">
           <div class="d-flex justify-content-between align-items-start">
@@ -258,7 +258,7 @@
               <i class="bi bi-basket2-fill"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ "%.0f"|format(kpis.harvest_this_month_kg) }} <small class="fs-6 text-muted">kg</small></div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.harvest_this_month_kg }}" data-suffix=" kg">{{ "%.0f"|format(kpis.harvest_this_month_kg) }} <small class="fs-6 text-muted">kg</small></div>
           <div class="small text-muted" style="font-size: 0.75rem;">
             Total cherry crop
           </div>
@@ -267,7 +267,7 @@
     </div>
 
     <!-- 5. Sprinkler Irrigation KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-5">
       <a href="{{ url_for('weather.sprinkler_index') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-cyan">
           <div class="d-flex justify-content-between align-items-start">
@@ -276,7 +276,7 @@
               <i class="bi bi-droplet-half"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ kpis.total_sprinkler_minutes }} <small class="fs-6 text-muted">m</small></div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.total_sprinkler_minutes }}" data-suffix=" m">{{ kpis.total_sprinkler_minutes }} <small class="fs-6 text-muted">m</small></div>
           <div class="small text-muted" style="font-size: 0.75rem;">
             {{ kpis.total_sprinkler_hours }} hrs &bull; {{ kpis.sprinkler_runs_count }} runs
           </div>
@@ -285,7 +285,7 @@
     </div>
 
     <!-- 6. Inventory & Tasks KPI -->
-    <div class="col-12 col-sm-6 col-xl-2">
+    <div class="col-12 col-sm-6 col-xl-2 fade-in-up stagger-6">
       <a href="{{ url_for('inventory.inventory_list') }}" class="text-decoration-none">
         <div class="stat-card-luxury accent-purple">
           <div class="d-flex justify-content-between align-items-start">
@@ -294,7 +294,7 @@
               <i class="bi bi-box-seam-fill"></i>
             </div>
           </div>
-          <div class="h3 fw-bold text-dark mt-2 mb-1">{{ kpis.low_stock_items_count }}</div>
+          <div class="h3 fw-bold text-dark mt-2 mb-1" data-counter="{{ kpis.low_stock_items_count }}">{{ kpis.low_stock_items_count }}</div>
           <div class="small text-muted" style="font-size: 0.75rem;">
             {{ kpis.pending_tasks_count }} pending tasks
           </div>

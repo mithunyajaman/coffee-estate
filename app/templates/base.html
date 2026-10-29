@@ -17,6 +17,17 @@
   <!-- Custom Estate Theme Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
   <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/coffee-plant-logo.jpg') }}">
+  <script>
+    // Immediate Theme Initialization to avoid white flash
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('coffee_estate_theme');
+        if (savedTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -184,7 +195,13 @@
         </div>
       </div>
 
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Luxury Dark/Light Mode Switcher -->
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill d-flex align-items-center gap-1 px-2 py-1 shadow-sm hover-lift" id="themeToggleBtn" title="Toggle Plantation Dark/Light Mode">
+          <i class="bi bi-moon-stars-fill text-warning" id="themeToggleIcon"></i>
+          <span class="d-none d-sm-inline small fw-semibold" id="themeToggleText">Dark</span>
+        </button>
+
         <div class="dropdown">
           <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
             <i class="bi bi-person-circle fs-5 brand-forest"></i>
@@ -275,6 +292,76 @@
       sidebar.classList.toggle('show');
     });
   }
+
+  // Theme Switcher Logic
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeToggleIcon = document.getElementById('themeToggleIcon');
+  const themeToggleText = document.getElementById('themeToggleText');
+
+  function updateThemeUI(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (themeToggleIcon) {
+        themeToggleIcon.className = 'bi bi-sun-fill text-warning';
+      }
+      if (themeToggleText) {
+        themeToggleText.textContent = 'Light';
+      }
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (themeToggleIcon) {
+        themeToggleIcon.className = 'bi bi-moon-stars-fill text-warning';
+      }
+      if (themeToggleText) {
+        themeToggleText.textContent = 'Dark';
+      }
+    }
+  }
+
+  // Sync with current theme on load
+  const activeTheme = localStorage.getItem('coffee_estate_theme') || 'light';
+  updateThemeUI(activeTheme);
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('coffee_estate_theme', nextTheme);
+      } catch (e) {}
+      updateThemeUI(nextTheme);
+    });
+  }
+
+  // Universal Fluid Number Counter Animation
+  function animateValue(el, start, end, duration, prefix = '', suffix = '') {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Cubic ease-out
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(easeProgress * (end - start) + start);
+      el.textContent = prefix + current.toLocaleString('en-IN') + suffix;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        el.textContent = prefix + end.toLocaleString('en-IN') + suffix;
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Automatically animate elements with data-counter attribute
+    document.querySelectorAll('[data-counter]').forEach(el => {
+      const targetVal = parseFloat(el.getAttribute('data-counter'));
+      if (!isNaN(targetVal)) {
+        const prefix = el.getAttribute('data-prefix') || '';
+        const suffix = el.getAttribute('data-suffix') || '';
+        animateValue(el, 0, targetVal, 1000, prefix, suffix);
+      }
+    });
+  });
 </script>
 
 {% block scripts %}{% endblock %}

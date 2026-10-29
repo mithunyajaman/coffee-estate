@@ -201,6 +201,13 @@ function loadRipenessPreset(presetKey, title) {
   } else {
     img.src = "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&q=80";
   }
+  img.onerror = function() {
+    if (presetKey === 'optimal') {
+      img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' width='300' height='200'><rect width='300' height='200' fill='%23193828'/><circle cx='80' cy='100' r='36' fill='%23dc2626'/><circle cx='140' cy='85' r='40' fill='%23b91c1c'/><circle cx='200' cy='110' r='38' fill='%23ef4444'/><circle cx='150' cy='140' r='34' fill='%23991b1b'/><text x='150' y='185' fill='%23ffffff' font-family='sans-serif' font-size='12' text-anchor='middle'>Specialty Ripe Coffee Cherries (Brix 22.5°)</text></svg>";
+    } else {
+      img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' width='300' height='200'><rect width='300' height='200' fill='%23193828'/><circle cx='80' cy='100' r='36' fill='%2316a34a'/><circle cx='140' cy='85' r='40' fill='%23eab308'/><circle cx='200' cy='110' r='38' fill='%23ca8a04'/><circle cx='150' cy='140' r='34' fill='%2365a30d'/><text x='150' y='185' fill='%23ffffff' font-family='sans-serif' font-size='12' text-anchor='middle'>Early Stage Green/Yellow Cluster</text></svg>";
+    }
+  };
   fn.textContent = title + " (Sample)";
   runRipenessScan();
 }

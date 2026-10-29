@@ -258,6 +258,15 @@ function loadSample(sampleId, title) {
   } else {
     img.src = "https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=400&q=80";
   }
+  img.onerror = function() {
+    if (sampleId === 'rust') {
+      img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' width='300' height='200'><rect width='300' height='200' fill='%23193828'/><path d='M40 100 Q150 10 260 100 Q150 190 40 100 Z' fill='%2322c55e' stroke='%2315803d' stroke-width='4'/><path d='M40 100 L260 100' stroke='%2315803d' stroke-width='3'/><circle cx='110' cy='85' r='12' fill='%23ea580c' opacity='0.85'/><circle cx='150' cy='120' r='18' fill='%23f97316' opacity='0.85'/><circle cx='190' cy='80' r='14' fill='%23c2410c' opacity='0.85'/><circle cx='130' cy='95' r='8' fill='%23f59e0b'/><text x='150' y='180' fill='%23ffffff' font-family='sans-serif' font-size='12' text-anchor='middle'>Arabica Ventral Surface - Leaf Rust Active</text></svg>";
+    } else if (sampleId === 'healthy') {
+      img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' width='300' height='200'><rect width='300' height='200' fill='%23193828'/><path d='M40 100 Q150 10 260 100 Q150 190 40 100 Z' fill='%2316a34a' stroke='%2315803d' stroke-width='4'/><path d='M40 100 L260 100' stroke='%2386efac' stroke-width='3'/><text x='150' y='180' fill='%23ffffff' font-family='sans-serif' font-size='12' text-anchor='middle'>Healthy Arabica Foliage - 99.4% Chlorophyll</text></svg>";
+    } else {
+      img.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' width='300' height='200'><rect width='300' height='200' fill='%23193828'/><circle cx='100' cy='100' r='45' fill='%23dc2626'/><circle cx='170' cy='90' r='50' fill='%23b91c1c'/><circle cx='230' cy='110' r='40' fill='%23991b1b'/><circle cx='165' cy='85' r='5' fill='%23000000'/><text x='150' y='180' fill='%23ffffff' font-family='sans-serif' font-size='12' text-anchor='middle'>Coffee Cherries - Berry Borer Detected</text></svg>";
+    }
+  };
   fn.textContent = title + " (Sample Loaded)";
   runAnalysis();
 }

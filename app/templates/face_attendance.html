@@ -204,20 +204,54 @@
           </div>
         </div>
 
-        <!-- Video Frame with Face Guide SVG -->
+        <!-- Video Frame with Face Guide SVG & Holographic HUD -->
         <div class="kiosk-camera-frame mb-3 position-relative" id="kioskCameraFrame">
           <video id="kioskVideo" autoplay playsinline muted></video>
           <img id="kioskImagePreview" class="d-none" alt="Photo Preview">
           <img src="{{ url_for('static', filename='images/face-frame.svg') }}" class="target-frame-svg" alt="Face Frame Guide">
+          
+          <!-- Holographic Rotating Reticle -->
+          <div class="holo-radar-ring"></div>
+          <div class="holo-radar-ring-inner"></div>
+
+          <!-- Laser Scan Beam -->
           <div class="scanning-beam" id="scanBeam"></div>
           <div class="scanning-overlay-text" id="scanOverlayText">
             <i class="bi bi-cpu me-1"></i> Extracting Facial Features...
+          </div>
+
+          <!-- Holographic Pop Stamp Overlay -->
+          <div id="hologramStamp" class="position-absolute top-50 start-50 translate-middle d-none text-center" style="z-index: 30; pointer-events: none;">
+            <div id="hologramStampInner" class="stamp-pop-animation p-3 rounded-4 shadow-lg text-white" style="background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(10px); border: 2px solid #86efac; min-width: 250px;">
+              <div class="fs-1 mb-1">☕</div>
+              <h5 class="fw-bold mb-0" id="hologramStampTitle">VERIFIED PRESENT</h5>
+              <small class="font-monospace text-white-50" id="hologramStampSub">☕ Green Coffee Validated</small>
+            </div>
           </div>
 
           <div id="kioskFallbackNotice" class="text-white text-center p-3 d-none">
             <i class="bi bi-camera-video-off fs-1 text-secondary mb-2"></i>
             <p class="small mb-2">Camera is inactive or permission needed.</p>
             <button class="btn btn-sm btn-outline-light" onclick="startKioskCamera()">Start Camera</button>
+          </div>
+        </div>
+
+        <!-- Real-time HUD Telemetry & Soundwave Bar -->
+        <div class="d-flex justify-content-between align-items-center px-3 py-1 mb-3 bg-dark rounded-pill text-white-50 small font-monospace shadow-sm" style="font-size: 0.72rem; border: 1px solid rgba(255,255,255,0.12);">
+          <div class="d-flex align-items-center gap-2">
+            <span class="pulse-dot"></span>
+            <span class="text-success fw-bold">BIOMETRIC HUD ACTIVE</span>
+          </div>
+          <div class="soundwave-box" title="Biometric Audio Telemetry">
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+            <div class="soundwave-bar"></div>
+          </div>
+          <div class="text-warning">
+            <i class="bi bi-shield-lock-fill me-1"></i>128-D Cosine Match
           </div>
         </div>
 
@@ -353,6 +387,32 @@
     } catch (e) {
       // Audio might be muted until user interaction
     }
+  }
+
+  // Holographic Visual Stamp Popup
+  function triggerHologramStamp(type, title, sub) {
+    const stamp = document.getElementById('hologramStamp');
+    const stampInner = document.getElementById('hologramStampInner');
+    const stampTitle = document.getElementById('hologramStampTitle');
+    const stampSub = document.getElementById('hologramStampSub');
+    if (!stamp || !stampInner) return;
+
+    if (type === 'green') {
+      stampInner.style.background = 'rgba(16, 185, 129, 0.95)';
+      stampInner.style.borderColor = '#86efac';
+      if (stampTitle) stampTitle.textContent = title || 'VERIFIED PRESENT';
+      if (stampSub) stampSub.textContent = sub || '☕ Green Coffee Validated';
+    } else {
+      stampInner.style.background = 'rgba(220, 38, 38, 0.95)';
+      stampInner.style.borderColor = '#fca5a5';
+      if (stampTitle) stampTitle.textContent = title || 'REJECTED MISMATCH';
+      if (stampSub) stampSub.textContent = sub || '☕ Red Coffee Alert';
+    }
+
+    stamp.classList.remove('d-none');
+    setTimeout(() => {
+      stamp.classList.add('d-none');
+    }, 2400);
   }
 
   function filterKioskDropdown() {
@@ -548,6 +608,7 @@
       if (resp.status === 200 && res.matched) {
         kFrame.classList.add('border-match-green');
         playAttendanceChime('green');
+        triggerHologramStamp('green', (res.event_type === 'Check-out' ? 'LOGGED OUT' : 'VERIFIED PRESENT'), res.employee_name);
         resultBanner.classList.add('alert-success', 'border-2', 'border-success');
         resultBanner.innerHTML = `
           <div class="d-flex align-items-center gap-3">
@@ -595,6 +656,7 @@
       } else if (resp.status === 404) {
         kFrame.classList.add('border-match-red');
         playAttendanceChime('red');
+        triggerHologramStamp('red', 'NOT ENROLLED', 'Enroll Face Biometric First');
         resultBanner.classList.add('alert-danger', 'border-2', 'border-danger');
         resultBanner.innerHTML = `
           <div class="d-flex flex-column gap-2">
@@ -622,6 +684,7 @@
       } else {
         kFrame.classList.add('border-match-red');
         playAttendanceChime('red');
+        triggerHologramStamp('red', 'REJECTED MISMATCH', '☕ Red Coffee Alert');
         resultBanner.classList.add('alert-danger', 'border-2', 'border-danger');
         resultBanner.innerHTML = `
           <div class="d-flex flex-column gap-2">
